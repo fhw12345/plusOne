@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+build
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+pnpm-lock.yaml

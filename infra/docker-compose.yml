@@ -1,0 +1,81 @@
+# Local dev infra for Plus One
+# Starts: postgres, redis, (optional) langfuse
+#
+# Note: production Postgres is Azure-managed. This local Postgres is for
+# offline development only — never holds real user data.
+#
+# Usage:
+#   docker compose -f infra/docker-compose.yml up -d
+#   docker compose -f infra/docker-compose.yml down
+#
+# Wipe all data (DESTRUCTIVE):
+#   docker compose -f infra/docker-compose.yml down -v
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: plusone-postgres
+    environment:
+      POSTGRES_USER: plus_one
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: plus_one
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plus_one -d plus_one"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: plusone-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Langfuse for LLM trace + cost tracking — optional, comment out if not needed
+  langfuse:
+    image: langfuse/langfuse:2
+    container_name: plusone-langfuse
+    profiles: ["full"]  # only starts with: docker compose --profile full up
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgresql://langfuse:dev@langfuse-db:5432/langfuse
+      NEXTAUTH_SECRET: dev-secret-change-me-in-prod
+      NEXTAUTH_URL: http://localhost:3001
+      SALT: dev-salt-change-me
+      TELEMETRY_ENABLED: "false"
+
+  langfuse-db:
+    image: postgres:16-alpine
+    container_name: plusone-langfuse-db
+    profiles: ["full"]
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: langfuse
+    volumes:
+      - langfuse_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse -d langfuse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg_data:
+  redis_data:
+  langfuse_data:

@@ -1,0 +1,11 @@
+# Force LF for all text files (matches CI Linux runner + Docker)
+* text=auto eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.zip binary
