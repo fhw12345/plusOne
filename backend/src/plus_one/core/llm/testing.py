@@ -17,15 +17,24 @@ Usage in a test::
 
 from __future__ import annotations
 
+import asyncio
 from collections import defaultdict, deque
-from collections.abc import AsyncIterator
-from typing import Any, TypeVar
+from contextvars import ContextVar
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
 from plus_one.core.llm.provider import LLMProvider, Message, Response, Usage
 
-TOutput = TypeVar("TOutput", bound=BaseModel)
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+
+# Per-async-task role binding. Using a ContextVar instead of an instance
+# attribute makes role tracking race-safe under asyncio.gather over multiple
+# roles — two concurrent tasks see independent role values, not the last
+# writer's. Reviewer F2.
+_current_role: ContextVar[str] = ContextVar("plus_one_mock_role", default="mock")
 
 
 class _ScriptedResponse:
@@ -71,9 +80,7 @@ class MockLLMProvider(LLMProvider):
         output_tokens: int = 50,
     ) -> None:
         """Push a scripted response for the next call with ``role``."""
-        self._queues[role].append(
-            _ScriptedResponse(text, parsed_data, input_tokens, output_tokens)
-        )
+        self._queues[role].append(_ScriptedResponse(text, parsed_data, input_tokens, output_tokens))
 
     def reset(self) -> None:
         """Clear all queued responses + call history."""
@@ -91,7 +98,7 @@ class MockLLMProvider(LLMProvider):
 
     role = "mock"
 
-    async def complete(
+    async def complete[TOutput: BaseModel](
         self,
         *,
         system: str,
@@ -100,9 +107,13 @@ class MockLLMProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
     ) -> Response[TOutput]:
-        # Caller's role is identified by attribute set on the bound mock —
-        # see conftest.py for how this is wired per-test
-        role = getattr(self, "_current_role", "mock")
+        # Caller's role is identified by the ContextVar set by _RoleBoundMock,
+        # which is per-async-task (race-safe under asyncio.gather).
+        role = _current_role.get()
+        # Yield to the event loop between read and write so that any test
+        # exercising concurrency actually exposes a bug in the role binding
+        # (rather than passing by happy-path luck on a sync-ish hot path).
+        await asyncio.sleep(0)
         self.calls.append(
             {
                 "role": role,
@@ -140,7 +151,7 @@ class MockLLMProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
     ) -> AsyncIterator[str]:
-        response = await self.complete(
+        response: Response[BaseModel] = await self.complete(
             system=system,
             messages=messages,
             max_tokens=max_tokens,
@@ -154,9 +165,10 @@ class MockLLMProvider(LLMProvider):
 class _RoleBoundMock:
     """Adapter so each get_llm_provider(role) call returns a per-role view.
 
-    Each adapter records the role it was issued for, then forwards to the
-    shared :class:`MockLLMProvider` with that role attached. This way
-    ``calls_for_role()`` works across many roles in one test.
+    Sets the ``_current_role`` ContextVar before delegating to the shared
+    :class:`MockLLMProvider`. Because ContextVar values are per-async-task,
+    two calls running concurrently under :func:`asyncio.gather` see
+    independent role bindings — there is no race.
     """
 
     name = "mock"
@@ -166,25 +178,26 @@ class _RoleBoundMock:
         self.role = role
 
     async def complete(self, **kwargs: Any) -> Any:
-        self._parent._current_role = self.role  # type: ignore[attr-defined]
+        token = _current_role.set(self.role)
         try:
             return await self._parent.complete(**kwargs)
         finally:
-            self._parent._current_role = "mock"  # type: ignore[attr-defined]
+            _current_role.reset(token)
 
     async def astream(self, **kwargs: Any) -> AsyncIterator[str]:
-        self._parent._current_role = self.role  # type: ignore[attr-defined]
+        token = _current_role.set(self.role)
         try:
             async for chunk in self._parent.astream(**kwargs):
                 yield chunk
         finally:
-            self._parent._current_role = "mock"  # type: ignore[attr-defined]
+            _current_role.reset(token)
 
 
 def make_mock_factory(parent: MockLLMProvider) -> Any:
     """Return a drop-in replacement for ``get_llm_provider`` that yields role-bound mocks."""
 
-    def _factory(role: str = "conversational", *, streaming: bool = False) -> Any:  # noqa: ARG001
+    def _factory(role: str = "conversational", *, streaming: bool = False) -> Any:
+        del streaming  # unused, present for API compatibility with real factory
         return _RoleBoundMock(parent, role)
 
     return _factory

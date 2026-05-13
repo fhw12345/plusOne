@@ -5,9 +5,7 @@ export default function HomePage() {
       <p className="text-center text-lg text-muted-foreground">
         AI travel planner — local gems vs tourist traps, with sources you can verify.
       </p>
-      <p className="text-sm text-muted-foreground">
-        🚧 Phase α — under construction
-      </p>
+      <p className="text-sm text-muted-foreground">🚧 Phase α — under construction</p>
     </main>
   );
 }

@@ -6,8 +6,9 @@ in follow-up PRs as feature areas come online.
 
 from __future__ import annotations
 
+import os
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,10 +16,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from plus_one import __version__
 from plus_one.config import settings
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup / shutdown hooks."""
+    # Production entry point opt-in: real LLM access is allowed for this
+    # process. Tests never go through this lifespan and therefore never set
+    # the flag, so a stray MaestroProvider() in a test will still raise.
+    os.environ["PLUS_ONE_ALLOW_REAL_LLM"] = "1"
     # TODO: warm up DB pool, Redis connection, Langfuse client
     yield
     # TODO: graceful shutdown

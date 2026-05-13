@@ -16,11 +16,8 @@ from __future__ import annotations
 
 import json
 import re
-from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
-
-T = TypeVar("T", bound=BaseModel)
 
 
 class LLMParseError(ValueError):
@@ -39,12 +36,12 @@ class LLMParseError(ValueError):
 _CODE_FENCE = re.compile(r"```(?:json)?\s*(.+?)```", re.DOTALL)
 
 
-def _strategy_direct(text: str, model: type[T]) -> T:
+def _strategy_direct[T: BaseModel](text: str, model: type[T]) -> T:
     """Tier 1: assume the whole text is JSON."""
     return model.model_validate_json(text.strip())
 
 
-def _strategy_code_fence(text: str, model: type[T]) -> T:
+def _strategy_code_fence[T: BaseModel](text: str, model: type[T]) -> T:
     """Tier 2: extract JSON from a markdown code fence."""
     match = _CODE_FENCE.search(text)
     if not match:
@@ -52,7 +49,7 @@ def _strategy_code_fence(text: str, model: type[T]) -> T:
     return model.model_validate_json(match.group(1).strip())
 
 
-def _strategy_brace_match(text: str, model: type[T]) -> T:
+def _strategy_brace_match[T: BaseModel](text: str, model: type[T]) -> T:
     """Tier 3: find the first balanced ``{...}`` (or ``[...]``) and parse."""
     for opener, closer in (("{", "}"), ("[", "]")):
         start = text.find(opener)
@@ -75,7 +72,7 @@ def _strategy_brace_match(text: str, model: type[T]) -> T:
     raise ValueError("no balanced braces found")
 
 
-def parse_with_fallback(text: str, model: type[T]) -> T:
+def parse_with_fallback[T: BaseModel](text: str, model: type[T]) -> T:
     """Try parse strategies in order; raise :class:`LLMParseError` if all fail."""
     attempts: list[str] = []
     for strategy_name, strategy in (

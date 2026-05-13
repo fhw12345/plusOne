@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Generic, Literal, Protocol, TypeVar
+from typing import Literal, Protocol
 
 from pydantic import BaseModel
-
-TOutput = TypeVar("TOutput", bound=BaseModel)
 
 
 class Message(BaseModel):
@@ -24,7 +22,7 @@ class Usage(BaseModel):
     cost_usd: float | None = None
 
 
-class Response(BaseModel, Generic[TOutput]):
+class Response[TOutput: BaseModel](BaseModel):
     """Wrapper around a single LLM completion."""
 
     text: str
@@ -38,14 +36,13 @@ class LLMProvider(Protocol):
     """Abstract LLM provider — every implementation supports these calls.
 
     Implementations in this module:
-      - :class:`AnthropicProvider`
-      - :class:`OpenAIProvider`
-      - :class:`CachedLLMProvider`  (demo mode)
+      - :class:`MaestroProvider` (real, via Agent Maestro gateway)
+      - :class:`MockLLMProvider` (tests)
     """
 
     name: str
 
-    async def complete(
+    async def complete[TOutput: BaseModel](
         self,
         *,
         system: str,

@@ -14,9 +14,12 @@ the same client.
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import TYPE_CHECKING
 
 from plus_one.core.llm.maestro_provider import MaestroProvider
-from plus_one.core.llm.provider import LLMProvider
+
+if TYPE_CHECKING:
+    from plus_one.core.llm.provider import LLMProvider
 
 
 @lru_cache(maxsize=32)
