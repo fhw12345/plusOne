@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from plus_one.core.agents.framework.errors import SkillNotFoundError
 
@@ -52,6 +52,14 @@ _FRONTMATTER_RE = re.compile(
 # Minimum word length to count toward keyword routing — shorter than this
 # matches too noisily ("a", "to", "the").
 _MIN_KEYWORD_LEN = 4
+
+# Tokenization for the routing haystack: lowercase alphanumeric runs.
+_TOKEN_RE = re.compile(r"[a-z0-9]+")
+
+
+def _tokenize(text: str) -> set[str]:
+    """Lowercase + alphanumeric-only token set, for cheap matching."""
+    return {tok for tok in _TOKEN_RE.findall(text.lower()) if len(tok) >= _MIN_KEYWORD_LEN}
 
 
 class Skill(BaseModel):
@@ -74,23 +82,31 @@ class Skill(BaseModel):
         default=None,
         description="Where the skill was loaded from (None for in-memory skills)",
     )
+    keyword_set: frozenset[str] = Field(
+        default_factory=frozenset,
+        description=(
+            "Pre-computed routing tokens drawn from description + when_to_use. "
+            "Set automatically by the validator; callers should not pass this."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _populate_keyword_set(self) -> Skill:
+        # Frozen models still allow object.__setattr__ during validation
+        if not self.keyword_set:
+            tokens = _tokenize(f"{self.description} {self.when_to_use}")
+            object.__setattr__(self, "keyword_set", frozenset(tokens))
+        return self
 
     def keyword_score(self, text: str) -> int:
-        """Trivial keyword-match score for cheap-and-fast routing.
+        """Count of keywords from this skill that appear in ``text``.
 
-        Counts how many words from ``description`` + ``when_to_use`` appear
-        in ``text`` (case-insensitive, word-boundary). Suitable as a baseline
-        before a real embedding-based router is added.
+        O(k) with k = unique tokens in ``text``; uses precomputed
+        :attr:`keyword_set` so no per-call regex storm even with hundreds
+        of skills routed per query.
         """
-        haystack = text.lower()
-        score = 0
-        for needle in (self.description + " " + self.when_to_use).lower().split():
-            cleaned = re.sub(r"[^a-z0-9]+", "", needle)
-            if len(cleaned) >= _MIN_KEYWORD_LEN and re.search(
-                rf"\b{re.escape(cleaned)}\b", haystack
-            ):
-                score += 1
-        return score
+        haystack_tokens = _tokenize(text)
+        return len(self.keyword_set & haystack_tokens)
 
 
 def parse_skill_file(path: Path) -> Skill:

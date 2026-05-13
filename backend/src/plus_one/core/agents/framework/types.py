@@ -58,6 +58,16 @@ class AgentContext(BaseModel):
     query: str = Field(description="The user's original input that started the cycle")
     depth: int = Field(default=0, ge=0, description="Iteration count, 0 on entry")
     max_depth: int = Field(default=4, ge=1, description="Hard cap on iterations")
+    phase_timeout: float | None = Field(
+        default=None,
+        gt=0,
+        description=(
+            "Per-phase wall-clock timeout in seconds. None disables timeout. "
+            "On timeout, the cycle aborts (CycleAbortedError) with reason "
+            "'<phase> timeout'. Production should set this; tests usually "
+            "don't need to."
+        ),
+    )
     summary: str = Field(
         default="",
         description="Running summary; updated by Controller each iteration",

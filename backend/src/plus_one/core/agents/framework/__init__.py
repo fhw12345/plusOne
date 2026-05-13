@@ -9,14 +9,33 @@ See ADR-002 for the rationale on building a custom framework instead of
 using LangGraph.
 """
 
+from plus_one.core.agents.framework.cycle import (
+    ControllerFn,
+    CycleResult,
+    JoinerFn,
+    ProducerFn,
+    ProgressEvent,
+    run_cycle,
+    stream_cycle,
+)
 from plus_one.core.agents.framework.errors import (
     AgentError,
     CycleAbortedError,
     SkillNotFoundError,
     ToolNotFoundError,
 )
-from plus_one.core.agents.framework.skills import Skill, SkillRegistry
-from plus_one.core.agents.framework.tools import Tool, ToolRegistry, ToolResult
+from plus_one.core.agents.framework.skills import (
+    Skill,
+    SkillRegistry,
+    parse_skill_file,
+)
+from plus_one.core.agents.framework.tools import (
+    Tool,
+    ToolCall,
+    ToolRegistry,
+    ToolResult,
+    run_tool_calls,
+)
 from plus_one.core.agents.framework.types import (
     AgentContext,
     Decision,
@@ -26,14 +45,24 @@ from plus_one.core.agents.framework.types import (
 __all__ = [
     "AgentContext",
     "AgentError",
+    "ControllerFn",
     "CycleAbortedError",
+    "CycleResult",
     "Decision",
+    "JoinerFn",
     "PhaseResult",
+    "ProducerFn",
+    "ProgressEvent",
     "Skill",
     "SkillNotFoundError",
     "SkillRegistry",
     "Tool",
+    "ToolCall",
     "ToolNotFoundError",
     "ToolRegistry",
     "ToolResult",
+    "parse_skill_file",
+    "run_cycle",
+    "run_tool_calls",
+    "stream_cycle",
 ]

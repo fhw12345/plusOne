@@ -1,8 +1,9 @@
 """Cycle main loop — Producer -> Joiner -> Controller, looped until done.
 
 The cycle is generic: it knows how to call three async callables in order,
-ask the Controller "should we continue", track depth, and emit progress
-events. It does NOT know about ramen, Reddit, or any Plus One specifics.
+ask the Controller "should we continue", track depth, enforce a per-phase
+timeout, and emit progress events. It does NOT know about ramen, Reddit,
+or any Plus One specifics.
 
 Domain agents adapt themselves to the three phase signatures::
 
@@ -10,28 +11,35 @@ Domain agents adapt themselves to the three phase signatures::
     JoinerFn[Cand, Joined] = (list[Cand], AgentContext) -> PhaseResult[list[Joined]]
     ControllerFn[Joined] = (list[Joined], AgentContext) -> PhaseResult[Decision]
 
-A ``CycleResult`` packages the final joined items + final decision + the
-full trace, so the caller can both render the answer and inspect what
-happened.
+Two entry points share a single internal stepper so behaviour, trace
+content, and stop semantics stay aligned:
+
+  - :func:`run_cycle` — wait for full result + return CycleResult
+  - :func:`stream_cycle` — yield events as they happen (for SSE)
 
 Stop conditions (in order):
-  1. Producer returned empty -> abort with reason
-  2. Controller says ``should_continue=False`` -> normal exit
-  3. ``ctx.depth >= ctx.max_depth`` -> hard cap exit
+  1. Producer returned empty -> ``cycle_aborted`` event then stop
+  2. Phase exceeded ``ctx.phase_timeout`` -> ``cycle_aborted`` event then stop
+  3. Controller says ``should_continue=False`` -> ``cycle_complete``
+  4. ``ctx.depth >= ctx.max_depth`` -> ``cycle_complete``
+
+``CycleAbortedError`` is the *terminal aggregate* result of an aborted
+stream when consumed via :func:`run_cycle`. Stream consumers see only the
+events; they should react to ``event.name == "cycle_aborted"`` themselves
+rather than catching exceptions from the iterator.
 """
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Protocol
+import asyncio
+from collections.abc import AsyncIterator, Awaitable, Callable
+from dataclasses import dataclass
+from typing import Any, Protocol
 
 import structlog
 
 from plus_one.core.agents.framework.errors import CycleAbortedError
 from plus_one.core.agents.framework.types import AgentContext, Decision, PhaseResult
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
 
 logger = structlog.get_logger()
 
@@ -43,36 +51,29 @@ class ProgressEvent(Protocol):
     depth: int
 
 
+@dataclass(slots=True)
 class _Event:
     """Generic, lightweight progress event."""
 
-    __slots__ = ("data", "depth", "name")
+    name: str
+    depth: int
+    data: dict[str, Any]
 
-    def __init__(self, name: str, depth: int, **data: object) -> None:
-        self.name = name
-        self.depth = depth
-        self.data = data
-
-    def __repr__(self) -> str:
-        return f"<Event {self.name} depth={self.depth} data={self.data}>"
+    @classmethod
+    def make(cls, name: str, depth: int, **data: object) -> _Event:
+        return cls(name=name, depth=depth, data=dict(data))
 
 
+@dataclass(slots=True)
 class CycleResult[TJoined]:
     """Final output of a cycle run."""
 
-    __slots__ = ("ctx", "decision", "items", "trace")
-
-    def __init__(
-        self,
-        items: list[TJoined],
-        decision: Decision,
-        ctx: AgentContext,
-        trace: list[_Event],
-    ) -> None:
-        self.items = items
-        self.decision = decision
-        self.ctx = ctx
-        self.trace = trace
+    items: list[TJoined]
+    decision: Decision
+    ctx: AgentContext
+    trace: list[_Event]
+    aborted_reason: str | None = None
+    """Set if the cycle ended via cycle_aborted (e.g. empty Producer / timeout)."""
 
 
 type ProducerFn[TCand] = Callable[[AgentContext], Awaitable[PhaseResult[list[TCand]]]]
@@ -84,109 +85,55 @@ type ControllerFn[TJoined] = Callable[
 ]
 
 
-async def run_cycle[TCand, TJoined](
-    *,
-    producer: ProducerFn[TCand],
-    joiner: JoinerFn[TCand, TJoined],
-    controller: ControllerFn[TJoined],
-    ctx: AgentContext,
-) -> CycleResult[TJoined]:
-    """Run the Producer -> Joiner -> Controller loop until it terminates.
+async def _await_with_timeout[T](coro: Awaitable[T], seconds: float | None) -> T:
+    """``asyncio.wait_for`` shim that passes through when ``seconds`` is None.
 
-    Raises:
-        CycleAbortedError: If Producer returns empty, with a descriptive reason.
-                      Use this to distinguish "no useful result" from
-                      "result is empty by design".
+    Named ``seconds`` rather than ``timeout`` to dodge the ASYNC109 lint
+    (which assumes a ``timeout`` kwarg on an async function is a public API
+    smell — true for end-user APIs, false for this internal helper).
     """
-    trace: list[_Event] = []
-    accumulated: list[TJoined] = []
-    last_decision = Decision(should_continue=False, reasoning="cycle never ran")
-
-    while True:
-        trace.append(_Event("iteration_start", ctx.depth))
-
-        producer_result = await producer(ctx)
-        candidates = producer_result.payload
-        trace.append(
-            _Event("producer", ctx.depth, n_candidates=len(candidates), notes=producer_result.notes)
-        )
-
-        if not candidates:
-            # Empty Producer means "nothing more to look at, full stop".
-            # Distinct from Controller saying "we have enough".
-            logger.info("cycle_aborted_empty_producer", depth=ctx.depth)
-            raise CycleAbortedError(f"producer returned no candidates at depth={ctx.depth}")
-
-        joiner_result = await joiner(candidates, ctx)
-        joined_items = joiner_result.payload
-        accumulated.extend(joined_items)
-        trace.append(
-            _Event(
-                "joiner",
-                ctx.depth,
-                n_in=len(candidates),
-                n_out=len(joined_items),
-                notes=joiner_result.notes,
-            )
-        )
-
-        controller_result = await controller(accumulated, ctx)
-        last_decision = controller_result.payload
-        trace.append(
-            _Event(
-                "controller",
-                ctx.depth,
-                should_continue=last_decision.should_continue,
-                reasoning=last_decision.reasoning,
-            )
-        )
-
-        # Update running summary for next Producer iteration
-        ctx.summary = last_decision.summary or ctx.summary
-
-        if not last_decision.should_continue:
-            logger.info(
-                "cycle_done_controller_stop",
-                depth=ctx.depth,
-                reason=last_decision.reasoning,
-            )
-            break
-
-        ctx.depth += 1
-        if ctx.at_depth_cap():
-            logger.info("cycle_done_depth_cap", depth=ctx.depth)
-            trace.append(_Event("depth_cap_hit", ctx.depth))
-            break
-
-    return CycleResult(items=accumulated, decision=last_decision, ctx=ctx, trace=trace)
+    if seconds is None:
+        return await coro
+    return await asyncio.wait_for(coro, timeout=seconds)
 
 
-async def stream_cycle[TCand, TJoined](
+async def _step_cycle[TCand, TJoined](
     *,
     producer: ProducerFn[TCand],
     joiner: JoinerFn[TCand, TJoined],
     controller: ControllerFn[TJoined],
     ctx: AgentContext,
+    accumulated: list[TJoined],
 ) -> AsyncIterator[_Event]:
-    """Generator variant — yield each progress event as it happens.
+    """Single source of truth for cycle behaviour.
 
-    Useful for the SSE endpoint that wants to push live progress to the
-    frontend without waiting for the full cycle to finish. The final event
-    yielded is ``cycle_complete``; callers should collect items off the
-    Joiner events themselves if needed.
+    Both :func:`run_cycle` and :func:`stream_cycle` consume this. ``accumulated``
+    is mutated in place so the caller can see Joiner output even on early
+    termination.
 
-    NOTE: this is a thin re-implementation rather than a wrapper around
-    :func:`run_cycle` because Python doesn't let us yield from one async
-    fn into another's stream cleanly without a queue.
+    On a fatal condition (empty Producer, phase timeout, cancellation) yields
+    a single ``cycle_aborted`` event with a ``reason`` data field and returns —
+    NEVER raises into the consumer's ``async for`` loop. Cancellation is
+    re-raised after yielding the event so structured-concurrency cleanup
+    still runs upstream.
     """
-    accumulated: list[TJoined] = []
+    timeout = ctx.phase_timeout
 
     while True:
-        yield _Event("iteration_start", ctx.depth)
+        yield _Event.make("iteration_start", ctx.depth)
 
-        producer_result = await producer(ctx)
+        # === Producer phase ===
+        try:
+            producer_result = await _await_with_timeout(producer(ctx), timeout)
+        except TimeoutError:
+            yield _Event.make("cycle_aborted", ctx.depth, reason="producer timeout")
+            return
+        except asyncio.CancelledError:
+            yield _Event.make("cycle_aborted", ctx.depth, reason="cancelled")
+            raise
+
         candidates = producer_result.payload
-        yield _Event(
+        yield _Event.make(
             "producer",
             ctx.depth,
             n_candidates=len(candidates),
@@ -194,13 +141,22 @@ async def stream_cycle[TCand, TJoined](
         )
 
         if not candidates:
-            yield _Event("cycle_aborted", ctx.depth, reason="empty producer")
-            raise CycleAbortedError(f"producer returned no candidates at depth={ctx.depth}")
+            yield _Event.make("cycle_aborted", ctx.depth, reason="empty producer")
+            return
 
-        joiner_result = await joiner(candidates, ctx)
+        # === Joiner phase ===
+        try:
+            joiner_result = await _await_with_timeout(joiner(candidates, ctx), timeout)
+        except TimeoutError:
+            yield _Event.make("cycle_aborted", ctx.depth, reason="joiner timeout")
+            return
+        except asyncio.CancelledError:
+            yield _Event.make("cycle_aborted", ctx.depth, reason="cancelled")
+            raise
+
         joined_items = joiner_result.payload
         accumulated.extend(joined_items)
-        yield _Event(
+        yield _Event.make(
             "joiner",
             ctx.depth,
             n_in=len(candidates),
@@ -208,9 +164,18 @@ async def stream_cycle[TCand, TJoined](
             notes=joiner_result.notes,
         )
 
-        controller_result = await controller(accumulated, ctx)
+        # === Controller phase ===
+        try:
+            controller_result = await _await_with_timeout(controller(accumulated, ctx), timeout)
+        except TimeoutError:
+            yield _Event.make("cycle_aborted", ctx.depth, reason="controller timeout")
+            return
+        except asyncio.CancelledError:
+            yield _Event.make("cycle_aborted", ctx.depth, reason="cancelled")
+            raise
+
         decision = controller_result.payload
-        yield _Event(
+        yield _Event.make(
             "controller",
             ctx.depth,
             should_continue=decision.should_continue,
@@ -220,10 +185,109 @@ async def stream_cycle[TCand, TJoined](
         ctx.summary = decision.summary or ctx.summary
 
         if not decision.should_continue:
-            yield _Event("cycle_complete", ctx.depth, reason="controller stop")
+            yield _Event.make("cycle_complete", ctx.depth, reason="controller stop")
             return
 
         ctx.depth += 1
         if ctx.at_depth_cap():
-            yield _Event("cycle_complete", ctx.depth, reason="depth cap")
+            yield _Event.make("cycle_complete", ctx.depth, reason="depth cap")
             return
+
+
+async def run_cycle[TCand, TJoined](
+    *,
+    producer: ProducerFn[TCand],
+    joiner: JoinerFn[TCand, TJoined],
+    controller: ControllerFn[TJoined],
+    ctx: AgentContext,
+) -> CycleResult[TJoined]:
+    """Run the cycle to completion.
+
+    Aggregates the event stream into a :class:`CycleResult`. If the cycle
+    aborts (empty Producer, phase timeout) the result has
+    ``aborted_reason`` set and ``CycleAbortedError`` is raised so callers
+    can short-circuit without inspecting the result.
+
+    Use :func:`stream_cycle` directly if you want events without the raise.
+
+    Raises:
+        CycleAbortedError: cycle ended via a ``cycle_aborted`` event.
+        asyncio.CancelledError: re-raised after a final event is recorded.
+    """
+    trace: list[_Event] = []
+    accumulated: list[TJoined] = []
+    last_decision = Decision(should_continue=False, reasoning="cycle never ran")
+    aborted_reason: str | None = None
+
+    async for event in _step_cycle(
+        producer=producer,
+        joiner=joiner,
+        controller=controller,
+        ctx=ctx,
+        accumulated=accumulated,
+    ):
+        trace.append(event)
+        if event.name == "controller":
+            # Capture the latest controller decision so the result reflects
+            # the actual stopping decision, not the initial placeholder.
+            last_decision = Decision(
+                should_continue=event.data.get("should_continue", False),
+                reasoning=event.data.get("reasoning", ""),
+                summary=ctx.summary,
+            )
+        elif event.name == "cycle_aborted":
+            aborted_reason = str(event.data.get("reason", "unknown"))
+
+    if aborted_reason is not None:
+        logger.info("run_cycle_aborted", depth=ctx.depth, reason=aborted_reason)
+        result = CycleResult(
+            items=accumulated,
+            decision=last_decision,
+            ctx=ctx,
+            trace=trace,
+            aborted_reason=aborted_reason,
+        )
+        raise CycleAbortedError(aborted_reason) from _ResultCarrierError(result)
+
+    return CycleResult(items=accumulated, decision=last_decision, ctx=ctx, trace=trace)
+
+
+class _ResultCarrierError(Exception):
+    """Internal exception wrapper used as ``__cause__`` so callers that
+    catch :class:`CycleAbortedError` can still introspect the partial
+    :class:`CycleResult` via ``exc.__cause__.result``.
+
+    Not part of the public API.
+    """
+
+    def __init__(self, result: CycleResult[Any]) -> None:
+        super().__init__(f"partial result with {len(result.items)} items")
+        self.result = result
+
+
+async def stream_cycle[TCand, TJoined](
+    *,
+    producer: ProducerFn[TCand],
+    joiner: JoinerFn[TCand, TJoined],
+    controller: ControllerFn[TJoined],
+    ctx: AgentContext,
+) -> AsyncIterator[_Event]:
+    """Yield each progress event as it happens.
+
+    Designed for the SSE endpoint that pushes live progress to the frontend.
+    Never raises into the consumer's loop except for ``CancelledError``;
+    abort conditions surface as a final ``cycle_aborted`` event with a
+    ``reason`` data field, after which the iterator simply ends.
+
+    Callers that want a "the cycle aborted" hard signal should use
+    :func:`run_cycle` instead, which raises :class:`CycleAbortedError`.
+    """
+    accumulated: list[TJoined] = []
+    async for event in _step_cycle(
+        producer=producer,
+        joiner=joiner,
+        controller=controller,
+        ctx=ctx,
+        accumulated=accumulated,
+    ):
+        yield event

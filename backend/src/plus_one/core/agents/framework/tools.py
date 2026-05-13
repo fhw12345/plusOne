@@ -189,5 +189,8 @@ async def run_tool_calls(
     for i in unsafe_indices:
         results[i] = await registry.dispatch(calls_list[i])
 
-    # All slots filled by construction; help the type checker.
+    # Slot-fill is total by construction (every index appeared in exactly one
+    # of safe_indices / unsafe_indices). Assert rather than silent-filter so
+    # any future regression in the dispatch loop is loud.
+    assert all(r is not None for r in results), "internal: some result slot unfilled"
     return [r for r in results if r is not None]
