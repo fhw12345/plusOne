@@ -75,7 +75,7 @@ class Settings(BaseSettings):
     # (CLI / mobile) use the body, browser SPAs use the cookie.
     auth_cookie_name: str = "plus_one_session"
     auth_cookie_secure: bool = True  # set False on plain-http localhost
-    auth_cookie_samesite: str = "lax"
+    auth_cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
     # === Observability ===
     langfuse_public_key: str = ""

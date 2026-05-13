@@ -128,15 +128,40 @@ async def exchange(
     # only sent over HTTPS in prod (auth_cookie_secure=True default), and
     # immune to CSRF for cross-site top-level POSTs. Frontend SPAs use
     # this; non-browser clients (CLI / mobile) use the body field.
+    #
+    # Cookie scope notes (intentional choices):
+    #   - path="/" explicit so a future API mount under /api doesn't
+    #     silently scope the cookie wrong
+    #   - no `domain` — leaving it unset gives a host-only cookie, the
+    #     safest scope. Don't add `domain=...` without a real reason
+    #     (subdomain SSO is the only legitimate one).
     response.set_cookie(
         key=settings.auth_cookie_name,
         value=access_token,
         max_age=settings.jwt_ttl_minutes * 60,
+        path="/",
         httponly=True,
         secure=settings.auth_cookie_secure,
-        samesite=settings.auth_cookie_samesite,  # type: ignore[arg-type]
+        samesite=settings.auth_cookie_samesite,
     )
     return TokenResponse(
         access_token=access_token,
         expires_in_minutes=settings.jwt_ttl_minutes,
+    )
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Clear the auth cookie",
+    description=(
+        "Browser SPAs call this to sign out cleanly — the JWT is "
+        "deleted from the client cookie store. Non-browser clients "
+        "(CLI / mobile) just discard their stored token."
+    ),
+)
+async def logout(response: Response) -> None:
+    response.delete_cookie(
+        key=settings.auth_cookie_name,
+        path="/",
     )

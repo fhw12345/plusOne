@@ -15,6 +15,13 @@ row-level lock on the user before invoking; we do this by acquiring
 Cleanup of expired tokens is left to a periodic task (deferred — out
 of scope for this batch). The expires_at index added in PR #3 makes
 ``DELETE WHERE expires_at < now()`` cheap.
+
+⚠️ INVARIANT — All writes to ``magic_link_tokens`` for a given user
+MUST first acquire ``SELECT users.id ... FOR UPDATE`` on that user.
+:func:`issue_magic_link` does this internally; any future writer must
+do the same to preserve the same-user serialization. The cleanup cron
+mentioned above is the one legitimate exception (operates on rows
+already outside the partial-unique index).
 """
 
 from __future__ import annotations
