@@ -17,6 +17,7 @@ Usage in a test::
 
 from __future__ import annotations
 
+import asyncio
 from collections import defaultdict, deque
 from contextvars import ContextVar
 from typing import TYPE_CHECKING, Any
@@ -109,6 +110,10 @@ class MockLLMProvider(LLMProvider):
         # Caller's role is identified by the ContextVar set by _RoleBoundMock,
         # which is per-async-task (race-safe under asyncio.gather).
         role = _current_role.get()
+        # Yield to the event loop between read and write so that any test
+        # exercising concurrency actually exposes a bug in the role binding
+        # (rather than passing by happy-path luck on a sync-ish hot path).
+        await asyncio.sleep(0)
         self.calls.append(
             {
                 "role": role,
