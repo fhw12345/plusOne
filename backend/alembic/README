@@ -1,0 +1,10 @@
+# Alembic migrations live here.
+#
+# Generate a new revision from model diffs:
+#   uv run alembic revision --autogenerate -m "your message"
+#
+# Apply pending migrations to the configured DATABASE_URL:
+#   uv run alembic upgrade head
+#
+# Roll back one:
+#   uv run alembic downgrade -1
