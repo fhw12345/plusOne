@@ -12,7 +12,7 @@ wire protocol regardless of upstream vendor, we get:
 
 from __future__ import annotations
 
-import sys
+import os
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -61,16 +61,19 @@ class MaestroProvider(LLMProvider):
         max_tokens: int | None = None,
         streaming: bool = False,
     ) -> None:
-        # Hard guard: if pytest is the running interpreter, refuse to construct
-        # a real Maestro client. The intended path under tests is the mock
-        # provider injected via tests/conftest.py — if this guard fires it means
-        # a test is bypassing the mock (e.g. via stale module-level imports).
-        if "pytest" in sys.modules:
+        # Hard guard: explicit opt-in required to construct a real client.
+        # Production entry points (main.py lifespan, worker bootstrap) set
+        # PLUS_ONE_ALLOW_REAL_LLM=1 once at startup. Tests never set it, so
+        # any accidental construction (e.g. via a stale module-level import
+        # bypassing the mock_llm fixture) raises loudly here instead of
+        # silently calling Maestro.
+        if os.getenv("PLUS_ONE_ALLOW_REAL_LLM") != "1":
             raise RuntimeError(
-                "MaestroProvider must not be instantiated under pytest. "
-                "Tests should depend on the `mock_llm` fixture and call "
-                "get_llm_provider through the patched namespace. See "
-                "tests/conftest.py."
+                "MaestroProvider construction blocked: real LLM access "
+                "requires PLUS_ONE_ALLOW_REAL_LLM=1. Production entry points "
+                "set this on startup; tests must use the mock_llm fixture "
+                "from tests/conftest.py and never instantiate MaestroProvider "
+                "directly."
             )
         self.role = role
         self.model = resolve_model(role)

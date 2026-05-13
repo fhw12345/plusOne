@@ -6,6 +6,7 @@ in follow-up PRs as feature areas come online.
 
 from __future__ import annotations
 
+import os
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
@@ -22,6 +23,10 @@ if TYPE_CHECKING:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup / shutdown hooks."""
+    # Production entry point opt-in: real LLM access is allowed for this
+    # process. Tests never go through this lifespan and therefore never set
+    # the flag, so a stray MaestroProvider() in a test will still raise.
+    os.environ["PLUS_ONE_ALLOW_REAL_LLM"] = "1"
     # TODO: warm up DB pool, Redis connection, Langfuse client
     yield
     # TODO: graceful shutdown

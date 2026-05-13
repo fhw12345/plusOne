@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
@@ -63,15 +64,84 @@ def test_parser_raises_on_garbage() -> None:
 
 
 @pytest.mark.unit
-async def test_real_maestro_provider_refuses_to_instantiate_under_pytest() -> None:
+def test_real_maestro_provider_blocked_without_opt_in_env_var(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Critical guard: prevents tests from accidentally calling real LLM.
 
     Even if a test bypasses the mock_llm fixture (stale import, missing
-    monkeypatch), MaestroProvider raises RuntimeError when sys.modules
-    contains pytest. This protects CI from ever burning real tokens.
+    monkeypatch), MaestroProvider raises RuntimeError unless the opt-in
+    env var PLUS_ONE_ALLOW_REAL_LLM=1 is set. Production entry points
+    (main.py lifespan) set it once at startup; tests never do.
     """
-    with pytest.raises(RuntimeError, match="must not be instantiated under pytest"):
+    monkeypatch.delenv("PLUS_ONE_ALLOW_REAL_LLM", raising=False)
+    with pytest.raises(RuntimeError, match="PLUS_ONE_ALLOW_REAL_LLM"):
         MaestroProvider(role="conversational")
+
+
+@pytest.mark.unit
+def test_real_maestro_provider_constructs_when_opt_in_env_var_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Inverse of the guard test: opt-in actually unblocks construction.
+
+    Without this we couldn't tell whether the guard's negative-case test
+    is tautological (always raising for some other reason). This proves
+    PLUS_ONE_ALLOW_REAL_LLM=1 is a real toggle, not a placebo.
+    """
+    monkeypatch.setenv("PLUS_ONE_ALLOW_REAL_LLM", "1")
+    # Construction must succeed; we don't actually issue any network call,
+    # the ChatAnthropic client is built lazily on .ainvoke / .astream.
+    provider = MaestroProvider(role="conversational")
+    assert provider.role == "conversational"
+    assert provider.name == "maestro"
+
+
+@pytest.mark.unit
+def test_stale_import_pattern_still_blocked() -> None:
+    """Regression test for the bug PR #1 was originally fixing.
+
+    A test that imports MaestroProvider directly and tries to construct it
+    must still hit the guard, even though tests/conftest.py only patches
+    the get_llm_provider factory. This is the structural guarantee that
+    the mock_llm fixture cannot be silently bypassed.
+    """
+    # No env var set in test process.
+    with pytest.raises(RuntimeError, match="PLUS_ONE_ALLOW_REAL_LLM"):
+        MaestroProvider(role="producer_agent")
+
+
+@pytest.mark.unit
+async def test_mock_role_binding_is_race_safe_under_gather(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """Concurrent calls to different roles must NOT bleed into each other.
+
+    Reviewer F2: the prior implementation stored the active role on a
+    shared instance attribute, which races under asyncio.gather. The
+    ContextVar-based binding fixes this; this test pins the contract.
+    """
+
+    async def call_role(role: str) -> str:
+        llm = llm_pkg.get_llm_provider(role)
+        # Yield to event loop in the middle to maximize interleaving
+        response: Response[BaseModel] = await llm.complete(
+            system="s",
+            messages=[Message(role="user", content=role)],
+        )
+        return response.text
+
+    # Fan out 10 concurrent calls across 3 roles, repeated.
+    roles = ["producer_agent", "joiner_agent", "controller_agent"] * 4
+    await asyncio.gather(*(call_role(r) for r in roles))
+
+    # Each role should be recorded the exact number of times we called it,
+    # not double-counted under one role due to a race.
+    for r in ("producer_agent", "joiner_agent", "controller_agent"):
+        assert len(mock_llm.calls_for_role(r)) == roles.count(r), (
+            f"role {r}: expected {roles.count(r)} calls, "
+            f"got {len(mock_llm.calls_for_role(r))} — race in role binding"
+        )
 
 
 @pytest.mark.unit
