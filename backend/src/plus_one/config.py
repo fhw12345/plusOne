@@ -55,6 +55,28 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_ttl_minutes: int = 60
 
+    # Magic-link tokens are short-lived; long enough for a user to switch
+    # apps, short enough to limit interception.
+    magic_link_ttl_minutes: int = 15
+
+    # Where the frontend is reachable, used to build the magic-link URL
+    # included in emails. Local dev default works against the next.js
+    # dev server; production override via env.
+    frontend_base_url: str = "http://localhost:3000"
+
+    # Email sender selection — the console sender writes magic-link URLs
+    # to server logs. Must be opt-in (NOT inferred from app_env) so a
+    # staging deployment can never accidentally leak credentials to its
+    # log aggregator. Set to True only on a developer's local machine.
+    allow_console_email_sender: bool = False
+
+    # Cookie settings for the auth JWT. JWT lands in body AND in an
+    # httpOnly cookie so the frontend can choose; non-browser clients
+    # (CLI / mobile) use the body, browser SPAs use the cookie.
+    auth_cookie_name: str = "plus_one_session"
+    auth_cookie_secure: bool = True  # set False on plain-http localhost
+    auth_cookie_samesite: Literal["lax", "strict", "none"] = "lax"
+
     # === Observability ===
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
