@@ -55,6 +55,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_ttl_minutes: int = 60
 
+    # Where the frontend is reachable, used to build the magic-link URL
+    # included in emails. Local dev default works against the next.js
+    # dev server; production override via env.
+    frontend_base_url: str = "http://localhost:3000"
+
     # === Observability ===
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
