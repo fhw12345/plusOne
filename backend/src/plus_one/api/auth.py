@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -96,9 +96,15 @@ async def request_link(
     "/exchange",
     response_model=TokenResponse,
     summary="Exchange a magic-link token for a JWT",
+    description=(
+        "Returns the JWT in both an httpOnly cookie (for browser SPAs) "
+        "AND the response body (for non-browser clients like CLI / mobile). "
+        "Browser callers should ignore the body and rely on the cookie."
+    ),
 )
 async def exchange(
     body: ExchangeBody,
+    response: Response,
     session: Annotated[AsyncSession, Depends(get_request_session)],
 ) -> TokenResponse:
     try:
@@ -117,6 +123,19 @@ async def exchange(
         ) from exc
 
     access_token = create_access_token(user.id)
+
+    # httpOnly + Secure + SameSite=Lax: not readable from JS (XSS-safe),
+    # only sent over HTTPS in prod (auth_cookie_secure=True default), and
+    # immune to CSRF for cross-site top-level POSTs. Frontend SPAs use
+    # this; non-browser clients (CLI / mobile) use the body field.
+    response.set_cookie(
+        key=settings.auth_cookie_name,
+        value=access_token,
+        max_age=settings.jwt_ttl_minutes * 60,
+        httponly=True,
+        secure=settings.auth_cookie_secure,
+        samesite=settings.auth_cookie_samesite,  # type: ignore[arg-type]
+    )
     return TokenResponse(
         access_token=access_token,
         expires_in_minutes=settings.jwt_ttl_minutes,

@@ -66,12 +66,17 @@ def test_no_authorization_header_returns_401() -> None:
 
 @pytest.mark.unit
 def test_malformed_authorization_header_returns_401() -> None:
+    """Non-bearer scheme MUST be rejected with 401, not 403.
+
+    Reviewer F3: previously the test accepted either 401 or 403 to dodge
+    a behavior question. The contract is 401 with a WWW-Authenticate:
+    Bearer header so callers know how to retry.
+    """
     app = _make_app(_make_user())
     client = TestClient(app)
     resp = client.get("/me", headers={"Authorization": "Basic abc"})
-    # HTTPBearer rejects non-bearer schemes outright -> 403 from FastAPI.
-    # We accept either 401 (our handler) or 403 (HTTPBearer auto_error).
-    assert resp.status_code in (401, 403)
+    assert resp.status_code == 401
+    assert resp.headers.get("www-authenticate", "").lower().startswith("bearer")
 
 
 @pytest.mark.unit

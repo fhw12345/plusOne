@@ -58,7 +58,15 @@ class _SmtpEmailSender:
 
 
 def get_email_sender() -> EmailSender:
-    """Pick the sender based on ``APP_ENV``."""
-    if settings.app_env == "production":
-        return _SmtpEmailSender()
-    return _ConsoleEmailSender()
+    """Pick the sender based on explicit opt-in.
+
+    Reviewer F2: previously this was ``app_env != "production"`` →
+    Console, which silently leaked magic-links into staging logs. Now
+    the console sender requires ``settings.allow_console_email_sender``
+    to be explicitly True. Default is False, so any environment that
+    forgets to wire SMTP gets a loud NotImplementedError on first send
+    rather than silently logging credentials.
+    """
+    if settings.allow_console_email_sender:
+        return _ConsoleEmailSender()
+    return _SmtpEmailSender()
