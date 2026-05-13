@@ -19,9 +19,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-background text-foreground antialiased">{children}</body>

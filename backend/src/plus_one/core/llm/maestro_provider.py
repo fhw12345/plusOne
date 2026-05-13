@@ -12,8 +12,8 @@ wire protocol regardless of upstream vendor, we get:
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
-from typing import TypeVar
+import sys
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from langchain_anthropic import ChatAnthropic
@@ -21,17 +21,19 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from pydantic import BaseModel
 
 from plus_one.config import settings
+from plus_one.core.llm.parsers import parse_with_fallback
 from plus_one.core.llm.provider import LLMProvider, Message, Response, Usage
 from plus_one.core.llm.roles import resolve_model
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from langchain_core.runnables import Runnable
+
 logger = structlog.get_logger()
 
-TOutput = TypeVar("TOutput", bound=BaseModel)
 
-
-def _to_langchain_messages(
-    system: str, messages: list[Message]
-) -> list[BaseMessage]:
+def _to_langchain_messages(system: str, messages: list[Message]) -> list[BaseMessage]:
     """Convert Plus One ``Message`` list (+ system) to LangChain message objects."""
     lc: list[BaseMessage] = [SystemMessage(content=system)] if system else []
     for m in messages:
@@ -59,18 +61,31 @@ class MaestroProvider(LLMProvider):
         max_tokens: int | None = None,
         streaming: bool = False,
     ) -> None:
+        # Hard guard: if pytest is the running interpreter, refuse to construct
+        # a real Maestro client. The intended path under tests is the mock
+        # provider injected via tests/conftest.py — if this guard fires it means
+        # a test is bypassing the mock (e.g. via stale module-level imports).
+        if "pytest" in sys.modules:
+            raise RuntimeError(
+                "MaestroProvider must not be instantiated under pytest. "
+                "Tests should depend on the `mock_llm` fixture and call "
+                "get_llm_provider through the patched namespace. See "
+                "tests/conftest.py."
+            )
         self.role = role
         self.model = resolve_model(role)
         self._chat = ChatAnthropic(
-            model_name=self.model,
-            temperature=temperature if temperature is not None else settings.llm_default_temperature,
+            model=self.model,
+            temperature=temperature
+            if temperature is not None
+            else settings.llm_default_temperature,
             max_tokens_to_sample=max_tokens or settings.llm_default_max_tokens,
             streaming=streaming,
             anthropic_api_url=settings.maestro_base_url,
             anthropic_api_key=settings.maestro_auth_token,
         )
 
-    async def complete(
+    async def complete[TOutput: BaseModel](
         self,
         *,
         system: str,
@@ -82,8 +97,9 @@ class MaestroProvider(LLMProvider):
         """One-shot completion. For streaming use :meth:`astream`."""
         lc_messages = _to_langchain_messages(system, messages)
 
-        # bind() returns a new runnable with overridden params
-        chat = self._chat.bind(temperature=temperature)
+        # bind() returns a new Runnable with overridden params; type annotation
+        # avoids mypy treating the rebind as an incompatible assignment.
+        chat: Runnable[Any, AIMessage] = self._chat.bind(temperature=temperature)
         if max_tokens is not None:
             chat = chat.bind(max_tokens=max_tokens)
 
@@ -106,8 +122,6 @@ class MaestroProvider(LLMProvider):
 
         parsed: TOutput | None = None
         if response_model is not None:
-            from plus_one.core.llm.parsers import parse_with_fallback
-
             parsed = parse_with_fallback(text, response_model)
 
         return Response[TOutput](
@@ -128,7 +142,7 @@ class MaestroProvider(LLMProvider):
     ) -> AsyncIterator[str]:
         """Yield response text chunks as they arrive."""
         lc_messages = _to_langchain_messages(system, messages)
-        chat = self._chat.bind(temperature=temperature)
+        chat: Runnable[Any, AIMessage] = self._chat.bind(temperature=temperature)
         if max_tokens is not None:
             chat = chat.bind(max_tokens=max_tokens)
 

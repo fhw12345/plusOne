@@ -18,14 +18,14 @@ Usage in a test::
 from __future__ import annotations
 
 from collections import defaultdict, deque
-from collections.abc import AsyncIterator
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
 from plus_one.core.llm.provider import LLMProvider, Message, Response, Usage
 
-TOutput = TypeVar("TOutput", bound=BaseModel)
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 
 class _ScriptedResponse:
@@ -71,9 +71,7 @@ class MockLLMProvider(LLMProvider):
         output_tokens: int = 50,
     ) -> None:
         """Push a scripted response for the next call with ``role``."""
-        self._queues[role].append(
-            _ScriptedResponse(text, parsed_data, input_tokens, output_tokens)
-        )
+        self._queues[role].append(_ScriptedResponse(text, parsed_data, input_tokens, output_tokens))
 
     def reset(self) -> None:
         """Clear all queued responses + call history."""
@@ -91,7 +89,7 @@ class MockLLMProvider(LLMProvider):
 
     role = "mock"
 
-    async def complete(
+    async def complete[TOutput: BaseModel](
         self,
         *,
         system: str,
@@ -140,7 +138,7 @@ class MockLLMProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
     ) -> AsyncIterator[str]:
-        response = await self.complete(
+        response: Response[BaseModel] = await self.complete(
             system=system,
             messages=messages,
             max_tokens=max_tokens,
@@ -184,7 +182,8 @@ class _RoleBoundMock:
 def make_mock_factory(parent: MockLLMProvider) -> Any:
     """Return a drop-in replacement for ``get_llm_provider`` that yields role-bound mocks."""
 
-    def _factory(role: str = "conversational", *, streaming: bool = False) -> Any:  # noqa: ARG001
+    def _factory(role: str = "conversational", *, streaming: bool = False) -> Any:
+        del streaming  # unused, present for API compatibility with real factory
         return _RoleBoundMock(parent, role)
 
     return _factory

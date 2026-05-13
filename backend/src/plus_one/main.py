@@ -7,13 +7,16 @@ in follow-up PRs as feature areas come online.
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from plus_one import __version__
 from plus_one.config import settings
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 
 @asynccontextmanager

@@ -51,9 +51,7 @@ ROLES: Final[dict[str, str]] = {
     "joiner_agent": os.getenv("MODEL_JOINER_AGENT", "claude-opus-4.7"),
     "controller_agent": os.getenv("MODEL_CONTROLLER_AGENT", "claude-haiku-4.5"),
     "skill_router": os.getenv("MODEL_SKILL_ROUTER", "claude-haiku-4.5"),
-    "disagreement_detector": os.getenv(
-        "MODEL_DISAGREEMENT_DETECTOR", "gemini-3.1-pro-preview"
-    ),
+    "disagreement_detector": os.getenv("MODEL_DISAGREEMENT_DETECTOR", "gemini-3.1-pro-preview"),
     "eval_judge": os.getenv("MODEL_EVAL_JUDGE", "gpt-5.5"),
     "bullshit_filter": os.getenv("MODEL_BULLSHIT_FILTER", "gpt-5.5"),
     "conversational": os.getenv("MODEL_CONVERSATIONAL", "claude-haiku-4.5"),

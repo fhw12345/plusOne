@@ -17,12 +17,16 @@ If a test needs to script LLM behavior, depend on the ``mock_llm`` fixture::
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 import pytest
 
+from plus_one.core import llm as llm_pkg
 from plus_one.core.llm import factory
 from plus_one.core.llm.testing import MockLLMProvider, make_mock_factory
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @pytest.fixture(autouse=True)
@@ -35,13 +39,13 @@ def mock_llm(monkeypatch: pytest.MonkeyPatch) -> Iterator[MockLLMProvider]:
     parent = MockLLMProvider()
     fake_factory = make_mock_factory(parent)
 
-    factory.get_llm_provider.cache_clear()
+    # Capture the real (lru_cached) factory before monkeypatch swaps it out,
+    # so we can clear its cache on teardown without losing the reference.
+    real_factory = factory.get_llm_provider
+    real_factory.cache_clear()
     monkeypatch.setattr(factory, "get_llm_provider", fake_factory)
-    # Also patch the re-exported name in the package's __init__ surface.
-    from plus_one.core import llm as llm_pkg
-
     monkeypatch.setattr(llm_pkg, "get_llm_provider", fake_factory)
 
     yield parent
 
-    factory.get_llm_provider.cache_clear()
+    real_factory.cache_clear()

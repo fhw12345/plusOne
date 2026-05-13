@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 from pydantic import BaseModel
 
-from plus_one.core.llm import get_llm_provider
+from plus_one.core import llm as llm_pkg
+from plus_one.core.llm.maestro_provider import MaestroProvider
 from plus_one.core.llm.parsers import LLMParseError, parse_with_fallback
-from plus_one.core.llm.provider import Message
+from plus_one.core.llm.provider import Message, Response
 from plus_one.core.llm.roles import ROLES, list_roles, resolve_model
-from plus_one.core.llm.testing import MockLLMProvider
+
+if TYPE_CHECKING:
+    from plus_one.core.llm.testing import MockLLMProvider
 
 
 class _DemoSchema(BaseModel):
@@ -58,11 +63,23 @@ def test_parser_raises_on_garbage() -> None:
 
 
 @pytest.mark.unit
+async def test_real_maestro_provider_refuses_to_instantiate_under_pytest() -> None:
+    """Critical guard: prevents tests from accidentally calling real LLM.
+
+    Even if a test bypasses the mock_llm fixture (stale import, missing
+    monkeypatch), MaestroProvider raises RuntimeError when sys.modules
+    contains pytest. This protects CI from ever burning real tokens.
+    """
+    with pytest.raises(RuntimeError, match="must not be instantiated under pytest"):
+        MaestroProvider(role="conversational")
+
+
+@pytest.mark.unit
 async def test_mock_llm_default_response_when_nothing_queued(
     mock_llm: MockLLMProvider,
 ) -> None:
-    llm = get_llm_provider("producer_agent")
-    response = await llm.complete(
+    llm = llm_pkg.get_llm_provider("producer_agent")
+    response: Response[BaseModel] = await llm.complete(
         system="hi",
         messages=[Message(role="user", content="hello")],
     )
@@ -80,8 +97,8 @@ async def test_mock_llm_returns_queued_response_per_role(
         parsed_data={"title": "ramen", "score": 9},
     )
 
-    llm = get_llm_provider("producer_agent")
-    response = await llm.complete(
+    llm = llm_pkg.get_llm_provider("producer_agent")
+    response: Response[_DemoSchema] = await llm.complete(
         system="prod",
         messages=[Message(role="user", content="...")],
         response_model=_DemoSchema,
@@ -91,8 +108,8 @@ async def test_mock_llm_returns_queued_response_per_role(
     assert response.parsed.score == 9
 
     # A call to a different role gets default, not the queued one
-    llm2 = get_llm_provider("controller_agent")
-    response2 = await llm2.complete(
+    llm2 = llm_pkg.get_llm_provider("controller_agent")
+    response2: Response[BaseModel] = await llm2.complete(
         system="ctl",
         messages=[Message(role="user", content="...")],
     )
