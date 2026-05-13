@@ -34,6 +34,7 @@ from sqlalchemy import (
     Table,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
@@ -282,7 +283,7 @@ class MagicLinkToken(Base):
             "uq_magic_link_tokens_user_id_unconsumed",
             "user_id",
             unique=True,
-            postgresql_where=Column("consumed_at").is_(None),
+            postgresql_where=text("consumed_at IS NULL"),
         ),
     )
 
