@@ -42,9 +42,15 @@ def _utcnow() -> datetime:
 class TimestampMixin:
     """Adds ``created_at`` and ``updated_at`` columns.
 
-    Uses ``server_default=func.now()`` so inserts work even if the
-    application forgets to set the column. ``updated_at`` is application-
-    side only (no ``ON UPDATE``) — set it explicitly in ``UPDATE`` paths.
+    ``created_at`` is set both client-side (default=) and server-side
+    (server_default=) so inserts work whether or not the application
+    populates it.
+
+    ``updated_at`` is **client-side only** (no server_default, no
+    server_onupdate). Reviewer flagged that the prior "both worlds"
+    approach silently misses bulk SQL updates that bypass the ORM.
+    Convention: only the ORM writes these models; raw SQL updates
+    must explicitly set ``updated_at``.
     """
 
     created_at: Mapped[datetime] = mapped_column(
@@ -56,7 +62,6 @@ class TimestampMixin:
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        server_default=func.now(),
         default=_utcnow,
         onupdate=_utcnow,
     )

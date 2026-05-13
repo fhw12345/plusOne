@@ -147,3 +147,30 @@ def test_magic_link_token_construction() -> None:
     )
     assert tok.token == "abc123"
     assert tok.consumed_at is None
+
+
+@pytest.mark.unit
+def test_trip_status_check_constraint_declared() -> None:
+    """Trip.status must have a DB-level CHECK against the four allowed values."""
+    table = Base.metadata.tables["trips"]
+    check_names = {
+        c.name for c in table.constraints if c.__class__.__name__ == "CheckConstraint" and c.name
+    }
+    assert "ck_trips_status" in check_names
+
+
+@pytest.mark.unit
+def test_magic_link_token_extra_indexes_declared() -> None:
+    """Reviewer-required indexes for cleanup + partial-unique replay guard."""
+    indexes = {idx.name for idx in Base.metadata.tables["magic_link_tokens"].indexes}
+    assert "ix_magic_link_tokens_expires_at" in indexes
+    assert "uq_magic_link_tokens_user_id_unconsumed" in indexes
+
+
+@pytest.mark.unit
+def test_updated_at_has_no_server_default() -> None:
+    """Reviewer F3: server_default on updated_at is misleading because raw SQL
+    bulk updates would bypass it. The convention is ORM-only writes; updated_at
+    is set client-side via the TimestampMixin onupdate hook."""
+    col = Base.metadata.tables["users"].c.updated_at
+    assert col.server_default is None

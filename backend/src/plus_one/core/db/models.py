@@ -24,8 +24,8 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import (
-    JSON,
     Boolean,
+    CheckConstraint,
     Column,
     DateTime,
     ForeignKey,
@@ -35,6 +35,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -92,13 +93,17 @@ class Profile(Base, TimestampMixin):
 
     # JSON blobs — schema is enforced at the Pydantic boundary in services/,
     # not at the DB layer. PRD §8 schema-b shape.
-    demographics: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
-    travel_style: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
-    explicit_preferences: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
-    visited_cities: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False, default=list)
+    demographics: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    travel_style: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    explicit_preferences: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, default=dict
+    )
+    visited_cities: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB, nullable=False, default=list
+    )
     # implicit_preferences exists for v2 (learning algorithm); MVP keeps it empty.
     implicit_preferences: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSON, nullable=False, default=list
+        JSONB, nullable=False, default=list
     )
 
     user: Mapped[User] = relationship("User", back_populates="profile")
@@ -120,8 +125,10 @@ class Companion(Base, TimestampMixin):
         nullable=False,
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    explicit_preferences: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
-    constraints: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    explicit_preferences: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, default=dict
+    )
+    constraints: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
 
     user: Mapped[User] = relationship("User", back_populates="companions")
 
@@ -148,10 +155,24 @@ trip_companions = Table(
 )
 
 
+# Valid Trip.status values. Enforced at the DB layer via CHECK so a typo
+# in worker code can't silently corrupt state.
+_TRIP_STATUSES = ("pending", "running", "complete", "aborted")
+
+
 class Trip(Base, TimestampMixin):
     """One planning request (input + reference to generated reports)."""
 
     __tablename__ = "trips"
+    __table_args__ = (
+        # Note: the naming convention prepends "ck_<table>_" to the
+        # constraint name, so the resulting DB-level constraint name is
+        # "ck_trips_status".
+        CheckConstraint(
+            f"status IN {_TRIP_STATUSES}",
+            name="status",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=new_uuid)
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -204,9 +225,9 @@ class Report(Base, TimestampMixin):
 
     # Full structured output: TL;DR + tabs + cards. Schema enforced by
     # services/, not the DB.
-    content: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    content: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     # Cycle trace (events, timing, token cost) for observability.
-    trace: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False, default=list)
+    trace: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
     # Cumulative token usage across all LLM calls in this report.
     input_tokens: Mapped[int] = mapped_column(nullable=False, default=0)
     output_tokens: Mapped[int] = mapped_column(nullable=False, default=0)
@@ -251,6 +272,19 @@ class MagicLinkToken(Base):
     """
 
     __tablename__ = "magic_link_tokens"
+    __table_args__ = (
+        # Cleanup query "DELETE WHERE expires_at < now()" should not full-scan.
+        Index("ix_magic_link_tokens_expires_at", "expires_at"),
+        # At most one live (unconsumed) token per user — replay/abuse guard.
+        # Partial unique requires a Postgres-only WHERE clause; harmless on
+        # other dialects, which simply ignore postgresql_where.
+        Index(
+            "uq_magic_link_tokens_user_id_unconsumed",
+            "user_id",
+            unique=True,
+            postgresql_where=Column("consumed_at").is_(None),
+        ),
+    )
 
     token: Mapped[str] = mapped_column(String(128), primary_key=True)
     user_id: Mapped[uuid.UUID] = mapped_column(

@@ -22,7 +22,8 @@ from plus_one.core.db.base import Base
 # `models` directly.
 from plus_one.core.db import models as _models
 
-assert _models  # silence "unused import" without losing the side-effect
+# `del` rather than `assert` so `python -O` doesn't strip the side-effect.
+del _models
 
 config = context.config
 

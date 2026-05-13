@@ -1,10 +1,22 @@
-"""Async engine + session factory + FastAPI dependency.
+"""Async engine + session factories + FastAPI dependencies.
 
-The session is created via ``async_sessionmaker`` and yielded as a
-context-managed dependency. Repositories receive an ``AsyncSession`` and
-must NOT commit themselves — commit/rollback is the dependency's job, so
-that an HTTP handler that calls multiple repositories sees one atomic
-transaction by default.
+Two distinct session policies live here:
+
+  * :func:`get_request_session` — one session per HTTP request, commits
+    on clean exit. Right for short REST endpoints (POST /trips form
+    submit, GET /profile, etc.) where the whole handler is one logical
+    transaction.
+
+  * :func:`session_scope` (context manager) — one session for one short
+    write unit. Use this from background workers / agent code that need
+    to commit incrementally (e.g. flip Trip.status to 'running', later
+    insert a Report row, later flip status to 'complete'). Holding a
+    single transaction for the whole 60-90s cycle would lock rows for
+    the duration and burn pool slots — see ADR-006 + reviewer feedback
+    on PR #3.
+
+Session pooling is also tuned via env so dev (small box) vs production
+(future deployment) can pick different sizes without code changes.
 """
 
 from __future__ import annotations
@@ -28,15 +40,27 @@ if TYPE_CHECKING:
 def _build_engine() -> AsyncEngine:
     """Create the async engine.
 
-    Pool sizing is conservative for a single-machine local-host project
-    (per ADR-006). Production at scale would tune this differently.
+    Pool sizing comes from settings so different deployment shapes can
+    tune without code changes. ``application_name`` lands in
+    ``pg_stat_activity`` so we can attribute connections to this app
+    when debugging contention.
     """
     return create_async_engine(
         settings.database_url,
         echo=False,
         pool_pre_ping=True,
-        pool_size=5,
-        max_overflow=5,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_pool_max_overflow,
+        connect_args={
+            "server_settings": {
+                "application_name": f"plus_one-{settings.app_env}",
+                # Kill any single statement that runs longer than this.
+                # Per-phase timeout in the agent cycle handles the cycle
+                # level (see core/agents/framework/cycle.py); this is
+                # the DB-level safety net for runaway queries.
+                "statement_timeout": str(settings.db_statement_timeout_ms),
+            },
+        },
     )
 
 
@@ -50,9 +74,18 @@ async_session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
 
 @asynccontextmanager
 async def session_scope() -> AsyncIterator[AsyncSession]:
-    """Context-manage a session: commit on clean exit, rollback on exception.
+    """One session, one short transaction. Commits on clean exit, rolls back on error.
 
-    Use this in scripts / tasks that don't go through FastAPI DI.
+    Use in background workers / agent code where each logical write
+    should commit immediately rather than ride along with a long-lived
+    HTTP request.
+
+    Example::
+
+        async with session_scope() as s:
+            trip = await s.get(Trip, trip_id)
+            trip.status = "running"
+            # auto-commit at exit
     """
     session = async_session_factory()
     try:
@@ -65,14 +98,24 @@ async def session_scope() -> AsyncIterator[AsyncSession]:
         await session.close()
 
 
-async def get_session() -> AsyncIterator[AsyncSession]:
-    """FastAPI dependency: yields a session, commits on success, rolls back on error.
+async def get_request_session() -> AsyncIterator[AsyncSession]:
+    """FastAPI dependency for short HTTP request handlers.
+
+    Yields a session, commits on success, rolls back on error.
+
+    Do NOT use this for SSE streaming endpoints — those should hold no
+    transaction across the cycle. SSE handlers should call
+    :func:`session_scope` per write instead.
 
     Usage::
 
         @app.get("/foo")
-        async def foo(session: Annotated[AsyncSession, Depends(get_session)]):
+        async def foo(session: Annotated[AsyncSession, Depends(get_request_session)]):
             ...
     """
     async with session_scope() as session:
         yield session
+
+
+# Backwards-compatible alias for callers that already imported the old name.
+get_session = get_request_session

@@ -37,6 +37,15 @@ class Settings(BaseSettings):
 
     # === DB ===
     database_url: str = "postgresql+asyncpg://plus_one:dev@localhost:5432/plus_one"
+    # Pool sizing — tuned for local-dev defaults (ADR-006). Production at
+    # scale would override these via env. ``db_pool_size + db_pool_max_overflow``
+    # is the hard ceiling on concurrent open connections.
+    db_pool_size: int = 5
+    db_pool_max_overflow: int = 5
+    # DB-level kill switch for runaway queries. The agent cycle has its own
+    # per-phase timeout (see core/agents/framework/cycle.py); this is the
+    # safety net at the SQL layer.
+    db_statement_timeout_ms: int = 30_000
 
     # === Redis ===
     redis_url: str = "redis://localhost:6379/0"

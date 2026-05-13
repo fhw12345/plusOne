@@ -37,12 +37,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_users")),
         sa.UniqueConstraint("email", name=op.f("uq_users_email")),
     )
@@ -51,23 +46,18 @@ def upgrade() -> None:
         "profiles",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("demographics", sa.JSON(), nullable=False),
-        sa.Column("travel_style", sa.JSON(), nullable=False),
-        sa.Column("explicit_preferences", sa.JSON(), nullable=False),
-        sa.Column("visited_cities", sa.JSON(), nullable=False),
-        sa.Column("implicit_preferences", sa.JSON(), nullable=False),
+        sa.Column("demographics", postgresql.JSONB(), nullable=False),
+        sa.Column("travel_style", postgresql.JSONB(), nullable=False),
+        sa.Column("explicit_preferences", postgresql.JSONB(), nullable=False),
+        sa.Column("visited_cities", postgresql.JSONB(), nullable=False),
+        sa.Column("implicit_preferences", postgresql.JSONB(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
             ["user_id"], ["users.id"], name=op.f("fk_profiles_user_id_users"), ondelete="CASCADE"
         ),
@@ -80,20 +70,15 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("name", sa.String(length=100), nullable=False),
-        sa.Column("explicit_preferences", sa.JSON(), nullable=False),
-        sa.Column("constraints", sa.JSON(), nullable=False),
+        sa.Column("explicit_preferences", postgresql.JSONB(), nullable=False),
+        sa.Column("constraints", postgresql.JSONB(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
@@ -121,11 +106,10 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.CheckConstraint(
+            "status IN ('pending', 'running', 'complete', 'aborted')",
+            name="ck_trips_status",
         ),
         sa.ForeignKeyConstraint(
             ["user_id"], ["users.id"], name=op.f("fk_trips_user_id_users"), ondelete="CASCADE"
@@ -157,8 +141,8 @@ def upgrade() -> None:
         "reports",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("trip_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("content", sa.JSON(), nullable=False),
-        sa.Column("trace", sa.JSON(), nullable=False),
+        sa.Column("content", postgresql.JSONB(), nullable=False),
+        sa.Column("trace", postgresql.JSONB(), nullable=False),
         sa.Column("input_tokens", sa.Integer(), nullable=False),
         sa.Column("output_tokens", sa.Integer(), nullable=False),
         sa.Column(
@@ -167,12 +151,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
             ["trip_id"], ["trips.id"], name=op.f("fk_reports_trip_id_trips"), ondelete="CASCADE"
         ),
@@ -194,12 +173,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
             ["for_companion_id"],
             ["companions.id"],
@@ -237,9 +211,25 @@ def upgrade() -> None:
         ["user_id"],
         unique=False,
     )
+    op.create_index(
+        "ix_magic_link_tokens_expires_at",
+        "magic_link_tokens",
+        ["expires_at"],
+        unique=False,
+    )
+    # Partial unique: at most one live (unconsumed) token per user.
+    op.create_index(
+        "uq_magic_link_tokens_user_id_unconsumed",
+        "magic_link_tokens",
+        ["user_id"],
+        unique=True,
+        postgresql_where=sa.text("consumed_at IS NULL"),
+    )
 
 
 def downgrade() -> None:
+    op.drop_index("uq_magic_link_tokens_user_id_unconsumed", table_name="magic_link_tokens")
+    op.drop_index("ix_magic_link_tokens_expires_at", table_name="magic_link_tokens")
     op.drop_index(op.f("ix_magic_link_tokens_user_id"), table_name="magic_link_tokens")
     op.drop_table("magic_link_tokens")
     op.drop_index("ix_feedback_trip_card", table_name="feedback")
