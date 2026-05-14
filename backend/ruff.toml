@@ -43,6 +43,9 @@ ignore = [
 "src/plus_one/core/tools/**" = ["TC003"]
 # OAuth2 "token_type" is a standard field name (RFC 6749 §5.1), not a password.
 "src/plus_one/api/auth.py" = ["S105", "TC002"]
+# FastAPI runtime types — same rationale as auth.py.
+"src/plus_one/api/trips.py" = ["TC002", "TC003"]
+"src/plus_one/services/trip_runner.py" = ["TC003"]
 # FastAPI's Depends(...) needs runtime types for parameter resolution; AsyncSession
 # can't live under TYPE_CHECKING here.
 "src/plus_one/core/auth/deps.py" = ["TC002"]
