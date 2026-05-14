@@ -5,6 +5,7 @@ All env vars are validated at startup. See ``.env.example`` for the full list.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
@@ -23,6 +24,11 @@ class Settings(BaseSettings):
     # === App ===
     app_env: Literal["development", "staging", "production"] = "development"
     log_level: str = "INFO"
+
+    # === Tool fixtures ===
+    # Tools (Reddit, XHS, Google Places) read pre-collected JSON from this
+    # directory in v1. Live API wiring is a follow-up batch.
+    fixtures_dir: Path = Path("fixtures")
 
     # === Agent Maestro (LLM gateway) ===
     # Maestro is an Anthropic-API-compatible gateway exposing Claude / GPT / Gemini
