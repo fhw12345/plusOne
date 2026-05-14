@@ -22,6 +22,11 @@ Plus One solves these by running a multi-source agent cycle that:
 🚧 **Phase α — Active development**. See [docs/prd.md](docs/prd.md) for the
 full product spec and [docs/adr/](docs/adr/) for key architectural decisions.
 
+**Backend is complete; frontend pending.** See
+[docs/handoff/REMAINING_WORK.md](docs/handoff/REMAINING_WORK.md) for the
+current state, a curl-based demo of the working backend, and the plan
+for finishing the frontend + end-to-end smoke.
+
 Plus One is **self-hosted on the developer's machine** (see [ADR-006](docs/adr/ADR-006-local-host-posture.md)).
 Only PostgreSQL runs on Azure for durability. LLM traffic goes through a
 local Agent Maestro instance running as a VS Code extension (free, borrows
