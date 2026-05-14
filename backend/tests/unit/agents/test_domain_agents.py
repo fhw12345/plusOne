@@ -126,6 +126,79 @@ async def test_joiner_handles_empty_candidate_list(
     assert result.payload == []
 
 
+@pytest.mark.unit
+async def test_joiner_repairs_llm_paraphrased_candidate_name(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """Reviewer B3: if the LLM paraphrases the candidate name, we replace
+    it with the original Producer Candidate so name/area/style cannot
+    silently drift between Producer and the report."""
+    cand = Candidate(name="Menya Itto", area="Shinkoiwa", style="tonkotsu", rationale="r")
+    output = {
+        "items": [
+            {
+                # LLM "helpfully" added a paren — original was "Menya Itto"
+                "candidate": {
+                    "name": "Menya Itto",  # case preserved on echo
+                    "area": "WRONG",  # LLM mangled area
+                    "style": "WRONG",
+                    "rationale": "WRONG",
+                },
+                "classification": "local_gem",
+                "confidence": 0.8,
+                "evidence": [],
+                "summary": "ok",
+            }
+        ]
+    }
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text=json.dumps(output),
+        parsed_data=output,
+    )
+    result = await joiner([cand], AgentContext(query="Tokyo"))
+    assert len(result.payload) == 1
+    # Restored from the original Candidate
+    assert result.payload[0].candidate.area == "Shinkoiwa"
+    assert result.payload[0].candidate.style == "tonkotsu"
+
+
+@pytest.mark.unit
+async def test_joiner_drops_hallucinated_candidates(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """LLM returned a candidate name that wasn't in the Producer's list.
+    Drop it rather than fabricate a Candidate from thin air."""
+    cand = Candidate(name="Menya Itto", rationale="r")
+    output = {
+        "items": [
+            {
+                "candidate": {"name": "Menya Itto", "rationale": "r"},
+                "classification": "local_gem",
+                "confidence": 0.8,
+                "evidence": [],
+                "summary": "ok",
+            },
+            {
+                "candidate": {"name": "Made-up Place", "rationale": "r"},
+                "classification": "local_gem",
+                "confidence": 0.9,
+                "evidence": [],
+                "summary": "fake",
+            },
+        ]
+    }
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text=json.dumps(output),
+        parsed_data=output,
+    )
+    result = await joiner([cand], AgentContext(query="Tokyo"))
+    assert len(result.payload) == 1
+    assert result.payload[0].candidate.name == "Menya Itto"
+    assert "dropped_unknown=1" in result.notes
+
+
 # === Controller ==========================================================
 
 
@@ -196,13 +269,33 @@ async def test_controller_falls_back_to_llm_for_ambiguous_state(
 
 
 @pytest.mark.unit
-async def test_controller_short_circuits_at_imminent_depth_cap(
+async def test_controller_does_not_short_circuit_on_depth_alone(
     mock_llm: MockLLMProvider,
 ) -> None:
-    items = [_joined("x", "neutral")]  # ambiguous shape
+    """Reviewer B2: depth-cap is the cycle main loop's job. The Controller
+    should make its decision based on coverage, not duplicate the depth
+    check (which previously fired off-by-one and discarded a valid round
+    of joined results). At depth = max_depth - 1 with ambiguous coverage,
+    Controller still asks the LLM."""
+    items = [
+        _joined("g1", "local_gem"),
+        _joined("t1", "tourist_trap"),
+    ]
+    payload = {
+        "should_continue": False,
+        "reasoning": "Coverage looks good for this query.",
+        "summary": "1 gem, 1 trap.",
+    }
+    mock_llm.queue_response(
+        role="controller_agent",
+        text=json.dumps(payload),
+        parsed_data=payload,
+    )
+
     ctx = AgentContext(query="x", max_depth=4)
-    ctx.depth = 3  # next iteration would be the cap
+    ctx.depth = 3  # cycle main loop will cap on next iteration
     result = await controller(items, ctx)
+    # Now the LLM is consulted (not short-circuited) — coverage is genuinely
+    # ambiguous at this depth.
+    assert len(mock_llm.calls_for_role("controller_agent")) == 1
     assert result.payload.should_continue is False
-    # Rule path; no LLM call.
-    assert mock_llm.calls_for_role("controller_agent") == []

@@ -63,16 +63,14 @@ def _classification_counts(items: list[JoinedItem]) -> Counter[str]:
 
 
 def _rule_decision(items: list[JoinedItem], ctx: AgentContext) -> Decision | None:
-    """Deterministic stop signals. Return Decision to stop, or None to defer."""
-    if ctx.depth >= ctx.max_depth - 1:
-        # Cycle main loop will hit its cap on the next iteration anyway;
-        # short-circuit so we don't burn a round of LLM tokens.
-        return Decision(
-            should_continue=False,
-            reasoning="depth cap imminent",
-            summary=ctx.summary,
-        )
+    """Deterministic stop signals. Return Decision to stop, or None to defer.
 
+    Note: depth-cap enforcement is the cycle main loop's responsibility
+    (single source of truth). The previous "depth_cap_imminent" rule
+    here was logically wrong (off-by-one — fired on the second-to-last
+    iteration, discarding the round's joined results) and duplicated
+    the cycle's own check. Removed per Reviewer B2.
+    """
     counts = _classification_counts(items)
     gems = counts.get("local_gem", 0)
     traps = counts.get("tourist_trap", 0)

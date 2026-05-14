@@ -45,6 +45,33 @@ class _JoinerOutput(BaseModel):
     items: list[JoinedItem] = Field(default_factory=list, max_length=30)
 
 
+# How many hits per source per candidate to serialize into the LLM prompt.
+# Capping keeps the payload bounded while still giving the LLM enough URLs
+# to cite — see Reviewer B1 fix.
+_MAX_HITS_PER_SOURCE = 5
+_MAX_SNIPPET_CHARS = 240
+
+
+def _format_hit(source: str, hit: object) -> str:
+    """Render one tool-result hit as a single line for the LLM prompt.
+
+    Each tool returns Pydantic objects with somewhat different shapes
+    (RedditPost has subreddit + score, Place has rating + address). We
+    normalize to ``- [<source>][<url>] <title>: <snippet>`` so the LLM
+    has one consistent format to read.
+    """
+    url = (
+        getattr(hit, "permalink", None)
+        or getattr(hit, "url", None)
+        or getattr(hit, "google_maps_url", None)
+        or "(no url)"
+    )
+    title = getattr(hit, "title", None) or getattr(hit, "name", "") or ""
+    body = getattr(hit, "body", None) or getattr(hit, "formatted_address", "") or ""
+    snippet = str(body)[:_MAX_SNIPPET_CHARS]
+    return f"- [{source}][{url}] {title}: {snippet}"
+
+
 def _default_registry() -> ToolRegistry:
     """Build a ToolRegistry with the three Plus One tools.
 
@@ -94,6 +121,9 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
     all_results = await asyncio.gather(*fetch_tasks)
 
     # Hand the raw fetches + candidates to the LLM for classification.
+    # Per-source, serialize the top hits with URL + title + snippet so the
+    # LLM has actual evidence to cite (Reviewer B1: prompt forbids
+    # inventing URLs, so the payload must contain the URLs to cite).
     llm = llm_factory.get_llm_provider("joiner_agent")
     system = load_prompt("joiner", "v1")
     user_payload_lines: list[str] = [f"User query: {ctx.query}", ""]
@@ -101,10 +131,12 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
         user_payload_lines.append(f"## {candidate.name} ({candidate.area or 'unknown'})")
         for r in results:
             label = r.tool
-            if r.ok and r.output:
-                user_payload_lines.append(f"- {label}: {len(r.output)} hits")
-            else:
-                user_payload_lines.append(f"- {label}: empty/{r.error or 'no data'}")
+            if not r.ok or not r.output:
+                user_payload_lines.append(f"### {label}: empty/{r.error or 'no data'}")
+                continue
+            user_payload_lines.append(f"### {label} ({len(r.output)} hits)")
+            for hit in r.output[:_MAX_HITS_PER_SOURCE]:
+                user_payload_lines.append(_format_hit(label, hit))
         user_payload_lines.append("")
 
     response = await llm.complete(
@@ -114,10 +146,31 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
     )
 
     parsed = response.parsed if response.parsed is not None else _JoinerOutput()
+
+    # Reviewer B3: the prompt asks the LLM to "echo back the candidate
+    # object as given," but Pydantic accepts whatever it returns. Replace
+    # each parsed candidate with the original Producer Candidate (matched
+    # by case-insensitive name) so name/area/style cannot silently drift
+    # between the Producer's output and the report. Items whose name we
+    # can't match are dropped (the LLM hallucinated a candidate).
+    by_name: dict[str, Candidate] = {c.name.lower(): c for c in candidates}
+    repaired: list[JoinedItem] = []
+    dropped = 0
+    for item in parsed.items:
+        original = by_name.get(item.candidate.name.lower())
+        if original is None:
+            dropped += 1
+            continue
+        repaired_item = (
+            item if item.candidate is original else item.model_copy(update={"candidate": original})
+        )
+        repaired.append(repaired_item)
+
     return PhaseResult(
-        payload=list(parsed.items),
+        payload=repaired,
         notes=(
-            f"candidates_in={len(candidates)} joined_out={len(parsed.items)} "
+            f"candidates_in={len(candidates)} joined_out={len(repaired)} "
+            f"dropped_unknown={dropped} "
             f"in_tokens={response.usage.input_tokens} "
             f"out_tokens={response.usage.output_tokens}"
         ),
