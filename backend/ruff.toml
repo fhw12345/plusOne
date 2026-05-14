@@ -45,7 +45,7 @@ ignore = [
 "src/plus_one/api/auth.py" = ["S105", "TC002"]
 # FastAPI runtime types — same rationale as auth.py.
 "src/plus_one/api/trips.py" = ["TC002", "TC003"]
-"src/plus_one/services/trip_runner.py" = ["TC003"]
+"src/plus_one/services/trip_runner.py" = ["TC003", "PLR0915"]
 # FastAPI's Depends(...) needs runtime types for parameter resolution; AsyncSession
 # can't live under TYPE_CHECKING here.
 "src/plus_one/core/auth/deps.py" = ["TC002"]

@@ -8,11 +8,13 @@ and is then fetchable via the GET endpoint.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from typing import Annotated
 from uuid import UUID
 
+import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -22,7 +24,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from plus_one.core.auth.deps import current_user
 from plus_one.core.db.models import Report, Trip, User
 from plus_one.core.db.session import get_request_session
-from plus_one.services.trip_runner import run_trip, subscribe
+from plus_one.services.trip_runner import register, run_trip, subscribe
+
+logger = structlog.get_logger()
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
 
@@ -79,6 +83,10 @@ async def create_trip(
     query = " | ".join(query_parts)
 
     background.add_task(run_trip, trip.id, query)
+    # Pre-create the per-trip event queue BEFORE the response so the
+    # client can race straight to GET /stream and not lose events.
+    # Reviewer B1: register before BackgroundTask schedules run_trip.
+    register(trip.id)
     return CreateTripResponse(trip_id=trip.id, status=trip.status)
 
 
@@ -98,9 +106,19 @@ async def stream_trip(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="trip_not_found")
 
     async def event_generator() -> AsyncIterator[str]:
-        async for event in subscribe(trip_id):
-            payload = json.dumps(event, default=str)
-            yield f"event: {event.get('name', 'message')}\ndata: {payload}\n\n"
+        # Reviewer M1: client disconnect raises CancelledError /
+        # GeneratorExit inside this generator. Catching them here makes
+        # the asyncio cancellation chain complete cleanly so the
+        # underlying subscribe() doesn't leak a pending queue.get().
+        # The runner owns the per-trip queue's lifecycle (drops on
+        # cycle end / runner crash); we just exit our consumer half.
+        try:
+            async for event in subscribe(trip_id):
+                payload = json.dumps(event, default=str)
+                yield f"event: {event.get('name', 'message')}\ndata: {payload}\n\n"
+        except asyncio.CancelledError:
+            logger.info("sse_client_disconnected", trip_id=str(trip_id))
+            raise
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 

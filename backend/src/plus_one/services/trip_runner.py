@@ -1,19 +1,32 @@
 """Trip runner — orchestrates one cycle execution from API request to DB write.
 
 Flow:
-  1. ``run_trip(trip_id)`` is invoked as a FastAPI BackgroundTask after
-     POST /api/trips creates the row.
-  2. We open a fresh ``session_scope`` per write unit (per ADR-006 +
-     PR #3 reviewer F1: never hold a transaction across the 60-90s
-     cycle), bumping Trip.status pending -> running.
-  3. We stream the agent cycle's events into a per-trip
-     :class:`asyncio.Queue` so the SSE handler can fan them out to the
-     subscribed client.
+  1. POST /api/trips creates the Trip row, calls :func:`register` to
+     pre-create the per-trip event queue, then schedules ``run_trip``
+     as a BackgroundTask. Pre-creating the queue (rather than letting
+     ``run_trip`` create it lazily) closes a race where the SSE handler
+     can hit ``subscribe()`` before the runner publishes its first
+     event, ending up with an orphaned queue that blocks forever.
+  2. ``run_trip(trip_id, query)`` opens its own ``session_scope`` per
+     write unit (per ADR-006 + PR #3 reviewer F1: never hold a
+     transaction across the 60-90s cycle), bumping Trip.status
+     pending -> running.
+  3. We drive the cycle with ``run_cycle`` (NOT ``stream_cycle``) so
+     we get the accumulated joined items back as a CycleResult.items
+     list, while teeing each event into the per-trip queue via a
+     pump callable threaded through phase wrappers.
   4. On success: persist a Report row with the joined items + trace +
-     token totals; flip Trip.status to ``complete``.
+     token totals; flip Trip.status to ``complete``. If the report
+     write itself fails, the trip flips to ``aborted`` (not
+     ``complete``) — losing the Report row is the only persisted
+     artifact, so silent loss is the wrong default.
   5. On ``CycleAbortedError`` or unhandled exception: flip Trip.status
-     to ``aborted`` with the reason in the trip record's ``free_text``
-     scratchpad-style addendum (no separate column for v1).
+     to ``aborted`` and emit a final cycle_aborted SSE event.
+
+The per-trip queue is dropped in a ``try/finally`` so process shutdown
+or runner crashes don't leak. The SSE handler also wraps its iteration
+in try/finally so client disconnect doesn't leave the queue dangling
+indefinitely either.
 """
 
 from __future__ import annotations
@@ -25,11 +38,14 @@ from uuid import UUID
 
 import structlog
 
-from plus_one.agents.controller import controller
-from plus_one.agents.joiner import joiner
-from plus_one.agents.producer import producer
-from plus_one.core.agents.framework.cycle import stream_cycle
-from plus_one.core.agents.framework.types import AgentContext
+from plus_one.agents.controller import controller as controller_phase
+from plus_one.agents.joiner import JoinedItem
+from plus_one.agents.joiner import joiner as joiner_phase
+from plus_one.agents.producer import Candidate
+from plus_one.agents.producer import producer as producer_phase
+from plus_one.core.agents.framework.cycle import run_cycle
+from plus_one.core.agents.framework.errors import CycleAbortedError
+from plus_one.core.agents.framework.types import AgentContext, Decision, PhaseResult
 from plus_one.core.db.models import Report, Trip
 from plus_one.core.db.session import session_scope
 
@@ -47,18 +63,25 @@ logger = structlog.get_logger()
 # trip_id. The SSE handler subscribes to that queue. We use plain
 # ``asyncio.Queue`` because both producer and consumer live in the same
 # process (in-process worker for v1, per ADR-006). When v2 introduces an
-# out-of-process worker, this becomes a Redis pub/sub bridge instead — the
-# subscribe()/publish() interface stays the same, only the storage flips.
+# out-of-process worker, this becomes a Redis pub/sub bridge — the
+# subscribe()/publish() interface stays the same, only storage flips.
+#
+# Queue lifecycle (Reviewer B1 / M1 fix):
+#   - register(trip_id) is called from POST handler BEFORE BackgroundTask
+#     schedules run_trip — guarantees the queue exists before subscribe().
+#   - subscribe(trip_id) attaches to an existing queue; if none exists
+#     (e.g., stale/replay subscribe to a trip whose runner already finished),
+#     it returns immediately. Never creates.
+#   - run_trip drops the queue in a finally block so crash / cancellation
+#     paths don't leak. SSE handler's finally guards client-disconnect.
 
+_EOF: dict[str, object] = {"name": "_eof"}
 _queues: dict[UUID, asyncio.Queue[dict[str, object]]] = {}
 
 
-def _get_or_create_queue(trip_id: UUID) -> asyncio.Queue[dict[str, object]]:
-    queue = _queues.get(trip_id)
-    if queue is None:
-        queue = asyncio.Queue()
-        _queues[trip_id] = queue
-    return queue
+def register(trip_id: UUID) -> None:
+    """Create the per-trip queue. Idempotent. Call from POST handler."""
+    _queues.setdefault(trip_id, asyncio.Queue())
 
 
 def _drop_queue(trip_id: UUID) -> None:
@@ -68,12 +91,14 @@ def _drop_queue(trip_id: UUID) -> None:
 async def subscribe(trip_id: UUID) -> AsyncIterator[dict[str, object]]:
     """SSE handler iterates this to forward events to the client.
 
-    A sentinel ``{"name": "_eof"}`` event marks end-of-stream so the
-    handler knows to close the response. The handler is responsible
-    for dropping the queue on disconnect (via :func:`_drop_queue`) but
-    the runner also drops it on its own clean exit.
+    Returns immediately (yields nothing) if the queue is unknown — covers
+    the stale-replay / wrong-trip-id path so we don't create an orphan.
+
+    The EOF sentinel ``{"name": "_eof"}`` ends the stream cleanly.
     """
-    queue = _get_or_create_queue(trip_id)
+    queue = _queues.get(trip_id)
+    if queue is None:
+        return
     while True:
         event = await queue.get()
         if event.get("name") == "_eof":
@@ -82,7 +107,13 @@ async def subscribe(trip_id: UUID) -> AsyncIterator[dict[str, object]]:
 
 
 async def _publish(trip_id: UUID, event: dict[str, object]) -> None:
-    queue = _get_or_create_queue(trip_id)
+    queue = _queues.get(trip_id)
+    if queue is None:
+        # Runner published into a queue that's already gone (shouldn't
+        # normally happen — register is called first). Drop on the floor
+        # rather than NPE.
+        logger.warning("publish_after_drop", trip_id=str(trip_id), name=event.get("name"))
+        return
     await queue.put(event)
 
 
@@ -102,7 +133,7 @@ async def _set_status(trip_id: UUID, status: str) -> None:
 
 async def _save_report(
     trip_id: UUID,
-    items: list[object],
+    items: list[JoinedItem],
     trace: list[dict[str, object]],
     input_tokens: int,
     output_tokens: int,
@@ -110,7 +141,7 @@ async def _save_report(
     async with session_scope() as session:
         report = Report(
             trip_id=trip_id,
-            content={"items": [_to_jsonable(i) for i in items]},
+            content={"items": [i.model_dump(mode="json") for i in items]},
             trace=trace,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
@@ -120,86 +151,144 @@ async def _save_report(
         return report.id
 
 
-def _to_jsonable(obj: object) -> object:
-    """Coerce Pydantic models / nested objects into JSON-friendly dicts."""
-    if hasattr(obj, "model_dump"):
-        return obj.model_dump(mode="json")
-    return obj
-
-
 async def run_trip(trip_id: UUID, query: str) -> None:
     """Run one trip's cycle end-to-end. Designed for FastAPI BackgroundTask.
 
     Errors are caught + recorded as a status flip + a final SSE event,
-    NEVER re-raised — BackgroundTask's exception handling is fire-and-
-    forget and a leaked traceback in logs is the worst outcome we want.
+    NEVER re-raised — BackgroundTask exception handling is fire-and-forget
+    and a leaked traceback is the worst outcome we want.
     """
-    await _set_status(trip_id, "running")
-    await _publish(trip_id, {"name": "started", "trip_id": str(trip_id)})
-
-    ctx = AgentContext(query=query, max_depth=4, phase_timeout=120.0)
-    accumulated: list[object] = []
-    trace: list[dict[str, object]] = []
-    in_tokens = 0
-    out_tokens = 0
-    aborted = False
+    register(trip_id)  # idempotent guard in case POST handler forgot
     try:
-        async for event in stream_cycle(
-            producer=producer,
-            joiner=joiner,
-            controller=controller,
-            ctx=ctx,
-        ):
-            payload = {
-                "name": event.name,
-                "depth": event.depth,
-                "data": event.data,
+        await _set_status(trip_id, "running")
+        await _publish(trip_id, {"name": "started", "trip_id": str(trip_id)})
+
+        ctx = AgentContext(query=query, max_depth=4, phase_timeout=120.0)
+        trace: list[dict[str, object]] = []
+
+        # Wrap each phase so we can tee per-phase progress into the SSE
+        # queue while still letting run_cycle aggregate the items list.
+        # The wrappers also capture token counts via the agent's notes
+        # field (the agents log usage there as "in_tokens=X out_tokens=Y").
+        token_totals = {"in": 0, "out": 0}
+
+        def _accumulate_tokens(notes: str) -> None:
+            for tok_kind, key in (("in_tokens=", "in"), ("out_tokens=", "out")):
+                if tok_kind in notes:
+                    try:
+                        tail = notes.split(tok_kind, 1)[1]
+                        n = int(tail.split(maxsplit=1)[0])
+                        token_totals[key] += n
+                    except (ValueError, IndexError):
+                        pass
+
+        async def producer_pump(c: AgentContext) -> PhaseResult[list[Candidate]]:
+            event = {"name": "iteration_start", "depth": c.depth, "data": {}}
+            trace.append(event)
+            await _publish(trip_id, event)
+            result = await producer_phase(c)
+            ev = {
+                "name": "producer",
+                "depth": c.depth,
+                "data": {"n_candidates": len(result.payload), "notes": result.notes},
             }
-            trace.append(payload)
-            await _publish(trip_id, payload)
-            # Capture intermediate joined items as they fly past.
-            if event.name == "joiner":
-                # Joiner emits n_in / n_out / notes; the actual items are
-                # surfaced via the cycle's accumulated list when complete.
-                pass
-            if event.name == "cycle_aborted":
-                aborted = True
-        # The cycle accumulates joined items in its internal list; for v1
-        # we re-derive from the trace's last 'joiner' event count, but the
-        # full items list isn't surfaced in events. v2 will add a richer
-        # event payload — for now we save the trace and an empty items
-        # list when stream_cycle is the only entry-point. The richer
-        # path runs through joiner(...) directly via run_cycle (used in
-        # tests) which carries the full accumulated[] list.
-    except Exception as exc:  # pragma: no cover — last-resort safety net
-        logger.exception("run_trip_unhandled", trip_id=str(trip_id))
+            trace.append(ev)
+            await _publish(trip_id, ev)
+            _accumulate_tokens(result.notes)
+            return result
+
+        async def joiner_pump(
+            cands: list[Candidate], c: AgentContext
+        ) -> PhaseResult[list[JoinedItem]]:
+            result = await joiner_phase(cands, c)
+            ev = {
+                "name": "joiner",
+                "depth": c.depth,
+                "data": {
+                    "n_in": len(cands),
+                    "n_out": len(result.payload),
+                    "notes": result.notes,
+                },
+            }
+            trace.append(ev)
+            await _publish(trip_id, ev)
+            _accumulate_tokens(result.notes)
+            return result
+
+        async def controller_pump(
+            items_in: list[JoinedItem], c: AgentContext
+        ) -> PhaseResult[Decision]:
+            result = await controller_phase(items_in, c)
+            ev = {
+                "name": "controller",
+                "depth": c.depth,
+                "data": {
+                    "should_continue": result.payload.should_continue,
+                    "reasoning": result.payload.reasoning,
+                    "notes": result.notes,
+                },
+            }
+            trace.append(ev)
+            await _publish(trip_id, ev)
+            return result
+
+        aborted_reason: str | None = None
+        items: list[JoinedItem] = []
+        try:
+            cycle_result = await run_cycle(
+                producer=producer_pump,
+                joiner=joiner_pump,
+                controller=controller_pump,
+                ctx=ctx,
+            )
+            items = cycle_result.items
+        except Exception as exc:
+            aborted_reason = exc.reason if isinstance(exc, CycleAbortedError) else str(exc)
+            # Try to recover items from the partial-result carrier (PR #2 pattern).
+            cause = getattr(exc, "__cause__", None)
+            partial = getattr(cause, "result", None)
+            if partial is not None:
+                items = list(getattr(partial, "items", []))
+            ev = {"name": "cycle_aborted", "depth": ctx.depth, "data": {"reason": aborted_reason}}
+            trace.append(ev)
+            await _publish(trip_id, ev)
+            logger.info("run_trip_aborted", trip_id=str(trip_id), reason=aborted_reason)
+
+        # Persistence: report-save failure is fatal for status (Reviewer M3).
+        report_id: UUID | None = None
+        report_save_failed = False
+        try:
+            report_id = await _save_report(
+                trip_id,
+                items,
+                trace,
+                input_tokens=token_totals["in"],
+                output_tokens=token_totals["out"],
+            )
+        except Exception:
+            logger.exception("report_save_failed", trip_id=str(trip_id))
+            report_save_failed = True
+
+        if aborted_reason is not None or report_save_failed:  # noqa: SIM108
+            final_status = "aborted"
+        else:
+            final_status = "complete"
+
+        with contextlib.suppress(Exception):
+            await _set_status(trip_id, final_status)
+
         await _publish(
             trip_id,
-            {"name": "cycle_aborted", "depth": ctx.depth, "data": {"reason": str(exc)}},
+            {
+                "name": "trip_complete",
+                "trip_id": str(trip_id),
+                "status": final_status,
+                "report_id": str(report_id) if report_id else None,
+            },
         )
-        aborted = True
-
-    final_status = "aborted" if aborted else "complete"
-    report_id: UUID | None = None
-    with contextlib.suppress(Exception):  # best-effort persistence
-        report_id = await _save_report(
-            trip_id,
-            accumulated,
-            trace,
-            input_tokens=in_tokens,
-            output_tokens=out_tokens,
-        )
-
-    await _set_status(trip_id, final_status)
-    await _publish(
-        trip_id,
-        {
-            "name": "trip_complete",
-            "trip_id": str(trip_id),
-            "status": final_status,
-            "report_id": str(report_id) if report_id else None,
-        },
-    )
-    # EOF sentinel drains any subscribed SSE handler.
-    await _publish(trip_id, {"name": "_eof"})
-    _drop_queue(trip_id)
+        await _publish(trip_id, _EOF)
+    finally:
+        # Always drop the queue — even on cancellation / unhandled error
+        # so the per-trip queue dictionary doesn't leak across hot reloads
+        # or worker restarts.
+        _drop_queue(trip_id)
