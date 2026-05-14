@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from plus_one import __version__
 from plus_one.api.auth import router as auth_router
+from plus_one.api.trips import router as trips_router
 from plus_one.config import settings
 
 if TYPE_CHECKING:
@@ -49,6 +50,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(trips_router)
 
 
 @app.get("/health")
