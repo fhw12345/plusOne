@@ -30,9 +30,20 @@ logger = structlog.get_logger()
 
 
 def slugify(text: str) -> str:
-    """Lowercase, ascii-alphanumeric-and-underscore. Stable for cache keys."""
+    """Lowercase, ascii-alphanumeric-and-underscore. Stable for cache keys.
+
+    Inputs that are non-empty but contain no ascii alphanumerics (CJK,
+    emoji-only, etc.) get a hash suffix so distinct queries don't all
+    collapse to ``"empty"`` — critical for the XHS tool whose dominant
+    query language is Chinese.
+    """
     cleaned = re.sub(r"[^a-zA-Z0-9]+", "_", text.lower()).strip("_")
-    return cleaned or "empty"
+    if cleaned:
+        return cleaned
+    if text.strip():
+        # All-non-ascii but non-empty input — preserve uniqueness.
+        return "x" + hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+    return "empty"
 
 
 # Cache keys longer than this get hashed so Windows file paths stay sane.
@@ -40,13 +51,18 @@ _KEY_LENGTH_LIMIT = 100
 
 
 def cache_key(*parts: str) -> str:
-    """Build a deterministic cache key from components.
+    """Build a deterministic cache key from positional components.
 
-    For short, human-friendly keys (≤ ``_KEY_LENGTH_LIMIT`` chars total) we
-    slugify and join with ``__``. For longer keys we hash to keep filenames
-    sane on Windows.
+    Empty / missing parts are kept as positional placeholders (rendered
+    as ``"_"``) so that ``cache_key("ramen")`` and
+    ``cache_key("ramen", "")`` produce DISTINCT keys. Two callers with
+    different argument shapes can never silently share a fixture file.
+
+    For short, human-friendly keys (≤ ``_KEY_LENGTH_LIMIT`` chars total)
+    we slugify and join with ``__``; longer keys are hashed (32 hex
+    chars = 128 bits, ample for collision avoidance).
     """
-    pieces = [slugify(p) for p in parts if p]
+    pieces = [slugify(p) if p else "_" for p in parts]
     joined = "__".join(pieces)
     if len(joined) <= _KEY_LENGTH_LIMIT:
         return joined
@@ -54,10 +70,14 @@ def cache_key(*parts: str) -> str:
 
 
 def load_json_fixture(directory: Path, key: str) -> list[dict[str, Any]]:
-    """Load ``directory/<key>.json`` as a list of dicts. Empty list on miss."""
+    """Load ``directory/<key>.json`` as a list of dicts. Empty list on miss.
+
+    Logs at WARNING (not INFO) so cache misses surface in CI log scans —
+    a typo'd fixture name should be loud, not silent.
+    """
     path = directory / f"{key}.json"
     if not path.exists():
-        logger.info("cache_miss", path=str(path))
+        logger.warning("cache_miss", path=str(path))
         return []
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, list):

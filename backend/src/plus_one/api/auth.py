@@ -89,7 +89,17 @@ async def request_link(
     # the hood. For v1 we just embed the raw token.
     link = f"{settings.frontend_base_url.rstrip('/')}/auth/exchange?token={token.token}"
     sender = get_email_sender()
-    await sender.send_magic_link(to=body.email, link=link)
+    try:
+        await sender.send_magic_link(to=body.email, link=link)
+    except NotImplementedError as exc:
+        # Default sender raises until SMTP is wired. Translate to a
+        # stable HTTP error so the caller sees 503 (service degraded)
+        # rather than an opaque 500. Set ALLOW_CONSOLE_EMAIL_SENDER=true
+        # in dev or wire SMTP to fix.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="email_sender_not_configured",
+        ) from exc
 
 
 @router.post(

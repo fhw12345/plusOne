@@ -11,9 +11,7 @@ from plus_one.core.agents.framework.skills import SkillRegistry
 # Skills live alongside the package source so they ship with the wheel.
 # This file is at tests/unit/agents/framework/test_bundled_skills.py
 # (4 levels deep below backend/), so parents[4] gets us to backend/.
-_BUNDLED_SKILLS_DIR = (
-    Path(__file__).resolve().parents[4] / "src" / "plus_one" / "skills"
-)
+_BUNDLED_SKILLS_DIR = Path(__file__).resolve().parents[4] / "src" / "plus_one" / "skills"
 
 
 @pytest.mark.unit
