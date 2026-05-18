@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — your readings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">switch to printed</button>
+
+<div class="shell">
+
+  <!-- Top nav strip -->
+  <nav class="nav-strip" style="margin-bottom: 32px;">
+    <p class="crest" style="margin-right: auto;">
+      <span class="crest-dot"></span>PLUS &middot; ONE
+    </p>
+    <a class="is-on" href="index.html">your readings</a>
+    <span class="sep"></span>
+    <a href="trip-new.html">new reading</a>
+    <span class="sep"></span>
+    <a href="companions.html">who you bring</a>
+    <span class="sep"></span>
+    <a href="profile.html">about you</a>
+    <span class="sep"></span>
+    <a href="#" class="muted">log out</a>
+  </nav>
+
+  <!-- Hero -->
+  <header style="position: relative; padding: 12px 0 32px;">
+    <span class="tape tape--yellow" style="top: -8px; left: 240px; width: 96px; height: 24px; transform: rotate(-3deg);"></span>
+    <h1 class="hand-xxl">your readings</h1>
+    <p class="scrawl" style="font-size: 19px; max-width: 540px; margin-top: 14px;">
+      every place i've looked into for you. the freshest one is up top.
+    </p>
+
+    <div style="position: absolute; top: 18px; right: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 14px;">
+      <span class="stamp" style="--stamp-tilt: 5deg;">
+        Notebook 01<span class="ymd">opened apr 2026</span>
+      </span>
+      <a href="trip-new.html" class="btn btn--red">+ new reading</a>
+    </div>
+  </header>
+
+  <!-- Gallery: trips as collage of mixed cards -->
+  <section class="gallery" style="margin-top: 28px;">
+
+    <!-- Most recent (in progress) -->
+    <a href="trip-detail.html" class="photo-card" style="--tilt: -2deg; text-decoration: none;">
+      <span class="tape tape--mint cnr"></span>
+      <span class="heart">★</span>
+      <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=720&q=80" alt="Tokyo nightscape" />
+      <p class="cap">Tokyo <span class="jp">東京</span></p>
+      <p class="scrawl">for Yuna &amp; Wei &middot; tonkotsu, quiet counters</p>
+      <span class="verdict verdict--soft" style="font-size: 14px; right: 16px; bottom: 16px;">
+        <span style="display:inline-block; width:7px; height:7px; background: hsl(var(--red)); border-radius: 50%; vertical-align: 1px; margin-right: 6px; animation: pulse 1.4s var(--ease-soft) infinite;"></span>
+        still scribbling
+      </span>
+    </a>
+
+    <!-- Done trip with a stamp -->
+    <a href="#" class="photo-card" style="--tilt: 1.5deg; text-decoration: none;">
+      <span class="tape tape--blue cnr"></span>
+      <img src="https://images.unsplash.com/photo-1480796927426-f609979314bd?w=720&q=80" alt="Kyoto temple" />
+      <p class="cap">Kyoto <span class="jp">京都</span></p>
+      <p class="scrawl">solo trip &middot; quiet temples, kissaten, no shrines after 11am</p>
+      <span class="verdict" style="font-size: 16px;">pinned ★</span>
+    </a>
+
+    <!-- Typed-label fallback (no photo) -->
+    <a href="#" class="photo-card is-typed" style="--tilt: -1deg; text-decoration: none;">
+      <span class="tape tape--yellow cnr"></span>
+      <div class="photo" data-label="Taipei · 台北"></div>
+      <p class="cap">Taipei <span class="jp">台北</span></p>
+      <p class="scrawl">for Yuna &middot; night markets but the calm kind</p>
+      <span class="verdict verdict--soft">pinned mar 2026</span>
+    </a>
+
+    <!-- An "arriving" placeholder card -->
+    <article class="photo-card" style="--tilt: 2deg; background: hsl(var(--paper-2));">
+      <span class="tape tape--mint cnr"></span>
+      <div class="photo" style="background:
+        repeating-linear-gradient(135deg, hsl(var(--kraft) / .35) 0 14px, hsl(var(--paper-3)) 14px 28px);
+        display:flex; align-items: center; justify-content: center;">
+        <span class="type">arriving by next post</span>
+      </div>
+      <p class="cap muted" style="font-style: italic;">Seoul &mdash; coming soon</p>
+      <p class="scrawl">queued for the weekend.</p>
+    </article>
+
+    <!-- One aborted trip — telegram tone but in scrapbook voice -->
+    <article class="ticket" style="--tilt: -0.5deg; margin-bottom: 0; align-self: start;">
+      <div class="stamp-row">
+        <span class="type" style="color: hsl(var(--signal-snag));">hit a wall</span>
+        <span class="type-sm">osaka &middot; 11 may</span>
+      </div>
+      <div class="perforation"></div>
+      <p class="body">couldn't get through to my notes app. saved your inputs &mdash; <a href="#" class="link-hand" style="font-size: 16px;">try this one again</a>?</p>
+    </article>
+
+    <article class="photo-card" style="--tilt: -.8deg;">
+      <span class="tape tape--red cnr"></span>
+      <img src="https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f?w=720&q=80" alt="bangkok food" />
+      <p class="cap">Bangkok <span class="jp">曼谷</span></p>
+      <p class="scrawl">with parents &middot; mild food, walkable, no all-day temples</p>
+      <span class="verdict">this one ★</span>
+    </article>
+
+  </section>
+
+  <!-- Empty-state hint scrap -->
+  <p class="annot" style="display: inline-block; margin-top: 60px; font-size: 16px;">
+    ↑ click any card to flip it open.
+  </p>
+
+  <footer style="margin-top: 100px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+    <p class="type">PLUS &middot; ONE &middot; reading no. 047 in progress &middot; v0.1</p>
+  </footer>
+</div>
+
+</body>
+</html>

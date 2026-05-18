@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plus One — design mockups index</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./_shared.css" />
+  <style>
+    body { padding: 96px 32px; }
+    .index-wrap { max-width: 720px; margin: 0 auto; }
+    .index-list { margin-top: 48px; border-top: 1px solid hsl(var(--rule)); }
+    .index-list a {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 24px;
+      align-items: baseline;
+      padding: 22px 0;
+      border-bottom: 1px solid hsl(var(--rule));
+      color: hsl(var(--ink));
+      transition: padding-left var(--dur) var(--ease);
+    }
+    .index-list a:hover { padding-left: 8px; }
+    .index-list a .num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: hsl(var(--ink-3));
+    }
+    .index-list a .title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+    }
+    .index-list a .title .file {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: hsl(var(--ink-3));
+      letter-spacing: 0.06em;
+      text-transform: lowercase;
+      margin-left: 12px;
+    }
+    .index-list a .arrow {
+      color: hsl(var(--brass));
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+    }
+  </style>
+</head>
+<body>
+  <div class="index-wrap">
+    <span class="eyebrow flanked">Plus One &middot; design mockups</span>
+    <h1 class="display-lg" style="margin-top: 24px;">Seven readings.</h1>
+    <p class="dek" style="margin-top: 18px; max-width: 44ch;">Each file shows a desktop and mobile preview side-by-side. Open in any browser. Spec lives one folder up at <span class="mono" style="font-size: 12px;">docs/design/DESIGN_SPEC.md</span>.</p>
+
+    <nav class="index-list">
+      <a href="./login.html"><span class="num">01</span><span class="title">Sign in.<span class="file">login.html</span></span><span class="arrow">OPEN &rarr;</span></a>
+      <a href="./auth-exchange.html"><span class="num">02</span><span class="title">Magic-link arrival.<span class="file">auth-exchange.html</span></span><span class="arrow">OPEN &rarr;</span></a>
+      <a href="./trip-new.html"><span class="num">03</span><span class="title">A new reading.<span class="file">trip-new.html</span></span><span class="arrow">OPEN &rarr;</span></a>
+      <a href="./trip-detail.html"><span class="num">04</span><span class="title">Reading in progress.<span class="file">trip-detail.html</span></span><span class="arrow">OPEN &rarr;</span></a>
+      <a href="./profile.html"><span class="num">05</span><span class="title">About you.<span class="file">profile.html</span></span><span class="arrow">OPEN &rarr;</span></a>
+      <a href="./companions.html"><span class="num">06</span><span class="title">Companions.<span class="file">companions.html</span></span><span class="arrow">OPEN &rarr;</span></a>
+      <a href="./trip-history.html"><span class="num">07</span><span class="title">Your trips.<span class="file">trip-history.html</span></span><span class="arrow">OPEN &rarr;</span></a>
+    </nav>
+  </div>
+</body>
+</html>

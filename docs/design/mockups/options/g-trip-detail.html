@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Option G — Vintage Exploration / Map Journal — trip-detail sketch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Special+Elite&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --parchment: #ECDFC4;
+    --parchment-2: #E2D2B0;
+    --parchment-3: #D4BF95;
+    --vellum: #F4E9D0;
+    --ink: #2A1F12;
+    --ink-2: #5A4528;
+    --ink-3: #8C7349;
+    --sepia: #7A4F22;
+    --stamp-red: #A53326;
+    --stamp-blue: #2E5273;
+    --stamp-green: #4F6B3A;
+    --gold: #B58E3F;
+    --route: #A53326;
+    --font-d: 'Old Standard TT', 'Times New Roman', serif;
+    --font-h: 'IM Fell English', 'Old Standard TT', serif;
+    --font-sc: 'IM Fell English SC', serif;
+    --font-t: 'Special Elite', 'Courier New', monospace;
+    --font-jp: 'Noto Serif JP', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    color: var(--ink);
+    font-family: var(--font-d);
+    font-size: 15px;
+    line-height: 1.55;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(122,79,34,.12) 0%, transparent 60%),
+      var(--parchment);
+    background-attachment: fixed;
+  }
+
+  /* parchment grain via SVG noise */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none;
+    opacity: .35;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0.55  0 0 0 0 0.40  0 0 0 0 0.20  0 0 0 0.22 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+  body::after {
+    /* darkened edges of an old page */
+    content: '';
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(74,46,15,.28) 100%);
+  }
+
+  .pg {
+    max-width: 1240px; margin: 0 auto;
+    padding: 36px 36px 80px;
+    position: relative;
+  }
+
+  /* MASTHEAD — feels like a 1930s travel-bureau letterhead */
+  .masthead {
+    text-align: center;
+    padding: 18px 0 26px;
+    border-top: 4px double var(--ink);
+    border-bottom: 4px double var(--ink);
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .masthead .small-top {
+    font-family: var(--font-sc);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+  }
+  .masthead .titleline {
+    font-family: var(--font-h);
+    font-size: 38px;
+    font-style: italic;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+  }
+  .masthead .ornament {
+    color: var(--sepia);
+    letter-spacing: 0.6em;
+    font-size: 16px;
+    margin: 6px 0;
+  }
+  .masthead .small-bot {
+    font-family: var(--font-sc);
+    font-size: 10px;
+    letter-spacing: 0.36em;
+    color: var(--ink-3);
+  }
+
+  /* corner ornaments */
+  .corner {
+    position: absolute;
+    width: 60px; height: 60px;
+    border: 1px solid var(--ink-2);
+  }
+  .corner.tl { top: -8px; left: -8px; border-right: none; border-bottom: none; }
+  .corner.tr { top: -8px; right: -8px; border-left: none; border-bottom: none; }
+  .corner.bl { bottom: -8px; left: -8px; border-right: none; border-top: none; }
+  .corner.br { bottom: -8px; right: -8px; border-left: none; border-top: none; }
+
+  /* HEADER ROW: title + stamps */
+  .head-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+    border-bottom: 1px dotted var(--ink-3);
+  }
+  .h-pretitle {
+    font-family: var(--font-sc);
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    color: var(--sepia);
+    margin-bottom: 12px;
+  }
+  .h-title {
+    font-family: var(--font-h);
+    font-style: italic;
+    font-size: 92px;
+    line-height: 0.95;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .h-title .jp {
+    font-family: var(--font-jp);
+    font-style: normal;
+    font-size: 0.32em;
+    color: var(--stamp-red);
+    margin-left: 24px;
+    vertical-align: 32px;
+  }
+  .h-sub {
+    font-family: var(--font-d);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-2);
+    margin-top: 14px;
+  }
+
+  /* stamps */
+  .stamps { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+  .stamp {
+    border: 2px solid currentColor;
+    padding: 10px 16px;
+    font-family: var(--font-sc);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: var(--stamp-red);
+    border-radius: 4px;
+    line-height: 1.2;
+    text-align: center;
+    opacity: .85;
+    background: rgba(255,255,255,.04);
+    box-shadow: 0 2px 0 rgba(0,0,0,.06);
+  }
+  .stamp .ymd { display: block; font-size: 9px; margin-top: 4px; letter-spacing: 0.18em; }
+  .stamp.r1 { transform: rotate(-7deg); }
+  .stamp.r2 { transform: rotate(4deg); color: var(--stamp-blue); }
+  .stamp.r3 { transform: rotate(-3deg); color: var(--stamp-green); }
+
+  /* MAIN GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 36px;
+  }
+
+  /* LEFT — TELEGRAM (the SSE feed) */
+  .telegram {
+    background: var(--vellum);
+    border: 1px solid var(--ink-2);
+    padding: 28px 26px 30px;
+    position: relative;
+    box-shadow: 4px 4px 0 var(--ink-2), 4px 4px 0 1px var(--ink-2);
+  }
+  .telegram::before {
+    /* perforated tape edge top */
+    content: '';
+    position: absolute; left: 0; right: 0; top: -1px; height: 8px;
+    background-image: radial-gradient(circle at 4px 0, var(--parchment) 3px, transparent 3.5px);
+    background-size: 12px 8px;
+    background-repeat: repeat-x;
+    background-position: top;
+  }
+  .telegram .from {
+    text-align: center;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--ink-3);
+  }
+  .telegram .from .lab {
+    font-family: var(--font-sc); font-size: 10px; letter-spacing: 0.3em; color: var(--ink-3);
+  }
+  .telegram .from .name {
+    font-family: var(--font-h);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink);
+    margin-top: 4px;
+  }
+  .telegram .live-bug {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: var(--font-t);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--stamp-red);
+    border: 1px solid var(--stamp-red);
+    padding: 2px 8px;
+  }
+  .telegram .live-bug::before {
+    content: '●'; margin-right: 6px; animation: blink 1.4s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: .25; } }
+
+  .telegram .dispatch {
+    padding: 10px 0 14px;
+    border-bottom: 1px dotted var(--ink-3);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: baseline;
+  }
+  .telegram .dispatch:last-child { border-bottom: none; }
+  .telegram .dispatch .stop {
+    font-family: var(--font-t);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.18em;
+  }
+  .telegram .dispatch .body {
+    font-family: var(--font-t);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+  .telegram .dispatch .body em { color: var(--sepia); font-style: normal; }
+  .telegram .dispatch.now .body { color: var(--ink-2); }
+  .telegram .dispatch.now .body::after {
+    content: ' ▏';
+    color: var(--stamp-red);
+    animation: caret .8s steps(2) infinite;
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  .telegram .signoff {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--ink-3);
+    text-align: center;
+    font-family: var(--font-h);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--sepia);
+  }
+  .telegram .signoff small {
+    display: block;
+    font-family: var(--font-sc);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: var(--ink-3);
+    margin-top: 6px;
+    font-style: normal;
+  }
+
+  /* RIGHT: MAP + PLACE CARDS */
+  .map-card {
+    background: var(--vellum);
+    border: 1px solid var(--ink-2);
+    padding: 22px;
+    margin-bottom: 28px;
+    box-shadow: 4px 4px 0 var(--ink-2);
+    position: relative;
+  }
+  .map-card .map-h {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-sc);
+    font-size: 11px; letter-spacing: 0.28em; color: var(--ink-2);
+    border-bottom: 1px solid var(--ink-3);
+    padding-bottom: 8px; margin-bottom: 14px;
+  }
+  .map-svg {
+    width: 100%; height: 280px;
+    background: rgba(244,233,208,.6);
+    border: 1px solid var(--ink-3);
+  }
+  .legend {
+    margin-top: 14px;
+    display: flex; flex-wrap: wrap; gap: 14px;
+    font-family: var(--font-d);
+    font-size: 12px; color: var(--ink-2);
+  }
+  .legend .li {
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .legend .li .pin {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 1.5px solid var(--ink); background: var(--stamp-red);
+  }
+  .legend .li .pin.gem { background: var(--gold); }
+  .legend .li .pin.warn { background: var(--stamp-blue); }
+  .legend .li .pin.skip { background: var(--vellum); }
+
+  /* place card row — looks like an entry in a logbook */
+  .entry {
+    background: var(--vellum);
+    border: 1px solid var(--ink-2);
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    box-shadow: 3px 3px 0 var(--ink-2);
+    position: relative;
+  }
+  .entry::before {
+    /* drop-cap-ish initial-letter spot */
+    content: '';
+    position: absolute;
+    left: 14px; top: 14px;
+    width: 6px; height: 6px;
+    background: var(--stamp-red);
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+  }
+  .entry .e-h {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px dotted var(--ink-3);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+  .entry .e-num {
+    font-family: var(--font-sc);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    color: var(--sepia);
+  }
+  .entry .e-name {
+    font-family: var(--font-h);
+    font-style: italic;
+    font-size: 28px;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  .entry .e-name .jp { font-family: var(--font-jp); font-style: normal; color: var(--sepia); font-size: 0.55em; margin-left: 10px; }
+  .entry .e-place {
+    font-family: var(--font-sc);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--ink-2);
+  }
+  .entry .e-body {
+    font-family: var(--font-d);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    margin-top: 12px;
+  }
+  .entry .e-body em { color: var(--sepia); font-style: italic; }
+  .entry .e-foot {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dotted var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-family: var(--font-t);
+    font-size: 11px;
+    color: var(--ink-2);
+    letter-spacing: 0.06em;
+  }
+  .entry .e-foot b { color: var(--ink); }
+  .entry .e-stamp {
+    position: absolute; top: 14px; right: 18px;
+    font-family: var(--font-sc);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--stamp-green);
+    border: 1.5px solid var(--stamp-green);
+    padding: 3px 8px;
+    border-radius: 2px;
+    transform: rotate(-3deg);
+    opacity: .85;
+  }
+  .entry .e-stamp.warn { color: var(--stamp-blue); border-color: var(--stamp-blue); }
+  .entry .e-stamp.skip { color: var(--ink-3); border-color: var(--ink-3); }
+
+  .entry.composing {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--vellum) 0 8px,
+      rgba(232, 215, 178, .85) 8px 16px
+    );
+  }
+  .entry.composing .e-name { color: var(--ink-2); font-style: italic; }
+  .entry.composing .e-body { color: var(--ink-2); font-style: italic; }
+  .entry.composing .placeholder { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .entry.composing .placeholder .ln { height: 7px; background: var(--ink-3); opacity: .35; border-radius: 1px; }
+  .entry.composing .placeholder .ln:nth-child(2) { width: 80%; }
+
+  /* COLOPHON */
+  .colophon {
+    margin-top: 36px;
+    padding: 16px 0;
+    border-top: 4px double var(--ink);
+    border-bottom: 4px double var(--ink);
+    text-align: center;
+    font-family: var(--font-sc);
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--ink-2);
+  }
+  .colophon b { color: var(--ink); }
+</style>
+</head>
+<body>
+  <div class="pg">
+
+    <header class="masthead">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <p class="small-top">Bureau of Plus One &middot; Independent Travel Reports &middot; Est. 2026</p>
+      <p class="titleline">A Reading from the Field</p>
+      <p class="ornament">❦ &middot; ❦ &middot; ❦</p>
+      <p class="small-bot">No. 047 &mdash; Tokyo, Spring 1404 of the Reiwa Era &mdash; for Two</p>
+    </header>
+
+    <section class="head-row">
+      <div>
+        <p class="h-pretitle">From our correspondent in &mdash;</p>
+        <h1 class="h-title">Tokyo<span class="jp">東京</span></h1>
+        <p class="h-sub">Compiled for the travelling party of <em>Yuna &amp; Wei</em>, with particular instruction to avoid the spots that tourists overrun.</p>
+      </div>
+      <div class="stamps">
+        <span class="stamp r1">In Progress<span class="ymd">12 · V · 2026</span></span>
+        <span class="stamp r2">Tokyo Bureau<span class="ymd">14:02 JST</span></span>
+        <span class="stamp r3">Reading 047<span class="ymd">cycle ii of iv</span></span>
+      </div>
+    </section>
+
+    <section class="grid">
+
+      <!-- LEFT: TELEGRAM (the SSE feed in human-voice postcard tone) -->
+      <aside class="telegram">
+        <div class="from">
+          <p class="lab">— Dispatches arriving from —</p>
+          <p class="name">our correspondent</p>
+          <span class="live-bug">Wire open</span>
+        </div>
+
+        <div class="dispatch">
+          <span class="stop">14:02</span>
+          <span class="body">LETTERS ARRIVING FROM <em>r/JapanTravel</em>. TWELVE SO FAR. STOP.</span>
+        </div>
+
+        <div class="dispatch">
+          <span class="stop">14:02:11</span>
+          <span class="body">SORTING NAMES THAT APPEAR IN MORE THAN ONE DISPATCH. SEVEN STAND. STOP.</span>
+        </div>
+
+        <div class="dispatch">
+          <span class="stop">14:02:18</span>
+          <span class="body">NOW OPENING THE <em>XIAOHONGSHU</em> POUCH. EIGHT NOTES FROM THE FIELD. STOP.</span>
+        </div>
+
+        <div class="dispatch now">
+          <span class="stop">14:02:31</span>
+          <span class="body">A DISAGREEMENT DETECTED &mdash; TSUKIJI. TWO SIDES TO HEAR. STAND BY.</span>
+        </div>
+
+        <p class="signoff">
+          &mdash; folding the map in roughly one minute &mdash;
+          <small>End of wire</small>
+        </p>
+      </aside>
+
+      <!-- RIGHT: HAND-DRAWN MAP + LOGBOOK ENTRIES -->
+      <section>
+
+        <article class="map-card">
+          <div class="map-h"><span>The Map &mdash; with three pins set</span><span>Tokyo &middot; central</span></div>
+          <svg class="map-svg" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- coast / river — wavy hand-drawn lines -->
+            <defs>
+              <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="6" stroke="#8C7349" stroke-width="0.6" opacity="0.4"/>
+              </pattern>
+              <filter id="rough">
+                <feTurbulence baseFrequency="0.04" numOctaves="2" result="t"/>
+                <feDisplacementMap in="SourceGraphic" in2="t" scale="1.5"/>
+              </filter>
+            </defs>
+
+            <!-- river -->
+            <path d="M 0,180 C 80,170 140,200 220,190 C 320,178 380,210 460,195 C 520,184 580,205 600,195 L 600,280 L 0,280 Z" fill="url(#hatch)" opacity="0.5" filter="url(#rough)"/>
+            <path d="M 0,180 C 80,170 140,200 220,190 C 320,178 380,210 460,195 C 520,184 580,205 600,195" stroke="#5A4528" stroke-width="0.8" fill="none" filter="url(#rough)"/>
+
+            <!-- districts as soft outlines -->
+            <path d="M 90,80 C 130,60 200,60 230,90 C 260,120 250,160 200,170 C 150,180 90,150 90,80 Z" stroke="#5A4528" stroke-width="0.7" fill="none" filter="url(#rough)" opacity="0.7"/>
+            <path d="M 320,50 C 370,40 440,55 460,90 C 480,130 460,160 410,165 C 360,170 310,140 320,50 Z" stroke="#5A4528" stroke-width="0.7" fill="none" filter="url(#rough)" opacity="0.7"/>
+            <path d="M 480,90 C 520,80 565,100 560,130 C 555,160 520,170 490,150 C 470,135 470,105 480,90 Z" stroke="#5A4528" stroke-width="0.7" fill="none" filter="url(#rough)" opacity="0.7"/>
+
+            <!-- district labels -->
+            <text x="160" y="120" font-family="IM Fell English" font-size="13" fill="#5A4528" font-style="italic">Sugamo</text>
+            <text x="380" y="100" font-family="IM Fell English" font-size="13" fill="#5A4528" font-style="italic">Chiyoda</text>
+            <text x="510" y="125" font-family="IM Fell English" font-size="13" fill="#5A4528" font-style="italic">Chuo</text>
+            <text x="220" y="240" font-family="IM Fell English" font-size="13" fill="#5A4528" font-style="italic">Shibuya</text>
+
+            <!-- compass -->
+            <g transform="translate(540, 40)">
+              <circle r="18" stroke="#5A4528" stroke-width="0.8" fill="none"/>
+              <path d="M 0,-15 L 4,0 L 0,15 L -4,0 Z" fill="#A53326"/>
+              <text x="0" y="-22" text-anchor="middle" font-family="IM Fell English SC" font-size="9" fill="#5A4528">N</text>
+            </g>
+
+            <!-- route dotted line -->
+            <path d="M 175,135 Q 280,100 390,110 T 520,125" stroke="#A53326" stroke-width="1.5" fill="none" stroke-dasharray="3 4" opacity="0.7" filter="url(#rough)"/>
+
+            <!-- pins -->
+            <g transform="translate(175,135)">
+              <circle r="7" fill="#B58E3F" stroke="#2A1F12" stroke-width="1.2"/>
+              <text x="14" y="4" font-family="IM Fell English" font-style="italic" font-size="13" fill="#2A1F12">i. Menya Saimi</text>
+            </g>
+            <g transform="translate(390,110)">
+              <circle r="7" fill="#2E5273" stroke="#2A1F12" stroke-width="1.2"/>
+              <text x="14" y="4" font-family="IM Fell English" font-style="italic" font-size="13" fill="#2A1F12">ii. Tsukiji (contested)</text>
+            </g>
+            <g transform="translate(220,225)">
+              <circle r="7" fill="none" stroke="#2A1F12" stroke-width="1.5"/>
+              <line x1="-5" y1="-5" x2="5" y2="5" stroke="#2A1F12" stroke-width="1.2"/>
+              <line x1="-5" y1="5" x2="5" y2="-5" stroke="#2A1F12" stroke-width="1.2"/>
+              <text x="14" y="4" font-family="IM Fell English" font-style="italic" font-size="13" fill="#2A1F12">iii. Ichiran (skip)</text>
+            </g>
+
+            <!-- a 'still surveying' question mark in jimbocho area -->
+            <g transform="translate(330, 140)" opacity="0.55">
+              <circle r="6" fill="#ECDFC4" stroke="#5A4528" stroke-width="1" stroke-dasharray="2 2"/>
+              <text x="-2.5" y="3" font-family="IM Fell English" font-size="9" fill="#5A4528">?</text>
+              <text x="14" y="4" font-family="IM Fell English" font-style="italic" font-size="12" fill="#5A4528">surveying…</text>
+            </g>
+          </svg>
+          <div class="legend">
+            <span class="li"><span class="pin gem"></span>local gem</span>
+            <span class="li"><span class="pin warn"></span>contested</span>
+            <span class="li"><span class="pin skip"></span>not recommended</span>
+            <span class="li" style="color: var(--ink-3); font-style: italic;">— & one being surveyed</span>
+          </div>
+        </article>
+
+        <!-- LOGBOOK ENTRIES -->
+        <article class="entry">
+          <div class="e-h">
+            <span class="e-num">Entry I &middot; the first pin</span>
+            <span class="e-num" style="color: var(--ink-3);">12 sources</span>
+          </div>
+          <span class="e-stamp">Recommended</span>
+          <h3 class="e-name">Menya Saimi<span class="jp">麺屋彩未</span></h3>
+          <p class="e-place">Sugamo &middot; counter for four &middot; no English menu</p>
+          <p class="e-body">A quiet shio counter in the back streets of Sugamo. Reddit calls the broth <em>thin, almost transparent</em>; Xiaohongshu calls the room <em>「最安静的拉面店」</em> &mdash; the quietest in town. Both, agreeable. We&rsquo;d send you on a weekday morning.</p>
+          <div class="e-foot">
+            <span>You match <b>0.91</b></span>
+            <span>Yuna match <b>0.78</b></span>
+            <span>Best <b>weekday a.m.</b></span>
+          </div>
+        </article>
+
+        <article class="entry">
+          <div class="e-h">
+            <span class="e-num">Entry II &middot; a contested mark</span>
+            <span class="e-num" style="color: var(--ink-3);">28 sources</span>
+          </div>
+          <span class="e-stamp warn">Two sides</span>
+          <h3 class="e-name">Tsukiji Outer Market<span class="jp">築地</span></h3>
+          <p class="e-place">Chuo &middot; the market and its surroundings</p>
+          <p class="e-body">Two communities, two opinions. English-speaking travellers call it <em>essential</em>; Chinese-speaking travellers call it <em>a tourist set-piece</em>. On the egg-roll stand, however, both communities agree without reservation.</p>
+          <div class="e-foot">
+            <span>EN says <b>visit</b></span>
+            <span>ZH says <b>skip</b></span>
+            <span>Egg roll <b>unanimous</b></span>
+          </div>
+        </article>
+
+        <article class="entry">
+          <div class="e-h">
+            <span class="e-num">Entry III &middot; a polite warning</span>
+            <span class="e-num" style="color: var(--ink-3);">41 sources</span>
+          </div>
+          <span class="e-stamp skip">Avoid this branch</span>
+          <h3 class="e-name">Ichiran &mdash; Shibuya branch</h3>
+          <p class="e-place">Shibuya &middot; the chain you may know</p>
+          <p class="e-body">The chain itself is well enough; the location is not. Eight in ten Chinese sources warn off this particular branch &mdash; long queues, premium pricing for an ordinary bowl. The <em>Ueno branch</em> is recommended without dispute.</p>
+          <div class="e-foot">
+            <span>Verdict <b>skip</b></span>
+            <span>Better <b>Ueno</b></span>
+          </div>
+        </article>
+
+        <article class="entry composing">
+          <div class="e-h">
+            <span class="e-num">Entry IV &middot; arriving by next post</span>
+            <span class="e-num" style="color: var(--ink-3);">surveying&hellip;</span>
+          </div>
+          <h3 class="e-name">A kissaten in Jimbocho&hellip;</h3>
+          <p class="e-place">Chiyoda &middot; among the bookshops</p>
+          <p class="e-body">A small coffee room next to the used bookshops &mdash; cross-checking five Reddit comments against three Xiaohongshu posts before settling on the right one.</p>
+          <div class="placeholder"><span class="ln"></span><span class="ln"></span><span class="ln"></span></div>
+        </article>
+
+      </section>
+    </section>
+
+    <p class="colophon">
+      Bureau of <b>Plus One</b> &middot; set in <b>Old Standard</b> &amp; <b>IM Fell</b> &middot; printed on parchment &middot; tokyo
+    </p>
+
+  </div>
+</body>
+</html>

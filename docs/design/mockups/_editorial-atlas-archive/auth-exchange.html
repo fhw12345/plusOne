@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plus One — magic link landing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./_shared.css" />
+  <style>
+    .arrival { padding: 80px 0 96px; max-width: 580px; margin: 0 auto; }
+    .arrival-feed {
+      margin-top: 48px;
+      padding-left: 36px;
+      position: relative;
+    }
+    .arrival-feed::before {
+      content: ''; position: absolute;
+      left: 9px; top: 6px; bottom: 6px;
+      width: 1px; background: hsl(var(--rule));
+    }
+    .arrival-row {
+      position: relative;
+      padding: 14px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+    }
+    .arrival-row .marker {
+      position: absolute;
+      left: -36px; top: 18px;
+      width: 19px; height: 19px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: hsl(var(--paper));
+    }
+    .arrival-row .glyph {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: hsl(var(--ink-2));
+    }
+    .arrival-row.in-flight .glyph { background: hsl(var(--paper)); border: 1px solid hsl(var(--ink-3)); animation: pulse 1.6s ease-in-out infinite; }
+    .arrival-row .label {
+      font-size: 15px;
+      color: hsl(var(--ink));
+    }
+    .arrival-row.in-flight .label { color: hsl(var(--ink-3)); font-style: italic; font-family: var(--font-display); font-variation-settings: 'opsz' 24; font-weight: 300; }
+    .arrival-foot {
+      margin-top: 56px;
+      font-size: 13px;
+      color: hsl(var(--ink-3));
+      letter-spacing: 0.02em;
+    }
+    .arrival-foot a {
+      color: hsl(var(--ink-2));
+      border-bottom: 1px solid hsl(var(--brass));
+      padding-bottom: 1px;
+    }
+
+    /* error variant */
+    .frayed .display-md { color: hsl(var(--ink)); }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-shell-header">
+      <span>plus one · mockup</span>
+      <span class="file">auth-exchange.html · loading + error states</span>
+    </div>
+    <div class="preview-grid">
+
+      <!-- DESKTOP — loading state -->
+      <div class="preview-frame">
+        <div class="label"><span>desktop · 1280 · loading</span><span>/auth/exchange?token=&hellip;</span></div>
+        <div class="canvas">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav"><span class="caption">Verifying&hellip;</span></nav>
+              </div>
+            </header>
+
+            <main>
+              <div class="arrival stagger">
+                <span class="eyebrow flanked">Arriving</span>
+                <h1 class="display-lg" style="margin-top: 22px;">Letting you in.</h1>
+                <p class="dek" style="margin-top: 18px;">A moment while we open the page&hellip;</p>
+                <div class="hairline" style="margin-top: 32px;"></div>
+
+                <div class="arrival-feed">
+                  <div class="arrival-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <span class="label">Magic link verified</span>
+                  </div>
+                  <div class="arrival-row">
+                    <span class="marker"><span class="glyph" style="background: hsl(var(--status-complete));"></span></span>
+                    <span class="label">Identity confirmed &mdash; <span class="caption">you@example.com</span></span>
+                  </div>
+                  <div class="arrival-row in-flight">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <span class="label">Loading your readings</span>
+                  </div>
+                </div>
+
+                <div class="arrival-foot">
+                  You will be redirected. <a href="#">Take me there now &rarr;</a>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE — error state ("frayed link") -->
+      <div class="preview-frame" style="max-width: 380px;">
+        <div class="label"><span>mobile · 390 · error</span><span>/auth/exchange (token expired)</span></div>
+        <div class="canvas" style="width: 380px;">
+          <div class="page" style="min-height: 760px;">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#" style="font-size: 18px;"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav"><span class="caption">&mdash;</span></nav>
+              </div>
+            </header>
+
+            <main>
+              <div class="arrival frayed stagger" style="padding: 48px 24px 64px;">
+                <span class="eyebrow flanked">A frayed link</span>
+                <h1 class="display-md" style="margin-top: 18px;">This link has gone quiet.</h1>
+                <p class="dek" style="margin-top: 16px;">Magic links are good for fifteen minutes. Yours has lapsed.</p>
+                <div class="hairline" style="margin-top: 28px;"></div>
+
+                <div class="arrival-feed">
+                  <div class="arrival-row">
+                    <span class="marker"><span class="glyph" style="background: hsl(var(--status-aborted)); transform: rotate(45deg); border-radius: 1px; width: 10px; height: 10px;"></span></span>
+                    <span class="label" style="font-family: var(--font-display); font-variation-settings: 'opsz' 24; font-style: italic; font-weight: 300; color: hsl(var(--ink-2));">Token expired or already used</span>
+                  </div>
+                </div>
+
+                <div style="margin-top: 40px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+                  <a href="#" class="btn btn-ghost">Send a new link <span class="arrow">&rarr;</span></a>
+                  <span class="helper">Or <a href="#" style="color: hsl(var(--ink-2)); border-bottom: 1px solid hsl(var(--brass)); padding-bottom: 1px;">return to sign-in</a>.</span>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

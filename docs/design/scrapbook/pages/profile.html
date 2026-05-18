@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — about you</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">switch to printed</button>
+
+<div class="shell" style="max-width: 980px;">
+
+  <nav class="nav-strip" style="margin-bottom: 32px;">
+    <p class="crest" style="margin-right: auto;">
+      <span class="crest-dot"></span>PLUS &middot; ONE
+    </p>
+    <a href="index.html">your readings</a>
+    <span class="sep"></span>
+    <a href="trip-new.html">new reading</a>
+    <span class="sep"></span>
+    <a href="companions.html">who you bring</a>
+    <span class="sep"></span>
+    <a class="is-on" href="profile.html">about you</a>
+  </nav>
+
+  <header style="position: relative; padding: 8px 0 30px;">
+    <span class="tape tape--yellow" style="top: -6px; left: 160px; width: 90px; height: 24px; transform: rotate(-4deg);"></span>
+    <h1 class="hand-xxl">about you</h1>
+    <p class="scrawl" style="font-size: 19px; max-width: 580px; margin-top: 14px;">
+      the kind of trip you want, in your own words. i'll use this on every reading.
+    </p>
+    <span class="stamp" style="position: absolute; right: 0; top: 24px; --stamp-tilt: 5deg;">
+      Profile<span class="ymd">last updated 9 may 2026</span>
+    </span>
+  </header>
+
+  <!-- Two-column: notebook page + insert -->
+  <section style="display: grid; grid-template-columns: 1.4fr .9fr; gap: 36px; align-items: start;">
+
+    <!-- Main profile form, as a notebook page with rule lines -->
+    <form style="position: relative; padding: 36px 40px 44px; background: hsl(var(--paper-2)); box-shadow: 0 14px 28px -14px hsl(0 0% 0% / .22); border: 1px solid hsl(var(--kraft));">
+
+      <span class="tape tape--mint" style="top: -12px; left: 40px; width: 110px; height: 24px; transform: rotate(-3deg);"></span>
+
+      <div class="field">
+        <label for="name">you go by</label>
+        <input id="name" type="text" value="Haowen">
+      </div>
+
+      <div class="field">
+        <label for="eat">how you eat</label>
+        <textarea id="eat" rows="3">noodles &gt; rice. love offal. spicy is fine, sweet desserts no. always one good coffee a day. don't make me eat fancy.</textarea>
+      </div>
+
+      <div class="field">
+        <label for="walk">how you walk</label>
+        <textarea id="walk" rows="2">all day, gladly. but not in 30°+. shaded streets > shopping streets. willing to detour for an alley.</textarea>
+      </div>
+
+      <div class="field">
+        <label>quiet or loud</label>
+        <div style="display: flex; gap: 14px; padding-top: 10px;">
+          <button type="button" class="chip is-on" style="--tilt: -2deg;">quiet</button>
+          <button type="button" class="chip" style="--tilt: 1deg; background: hsl(var(--paper-2));">in between</button>
+          <button type="button" class="chip" style="--tilt: -1deg; background: hsl(var(--paper-2));">loud is fine</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="break">dealbreakers</label>
+        <textarea id="break" rows="2">no all-day tours. no places that mostly serve tourists. no "iconic" anything &mdash; if it's on every list, i don't want it.</textarea>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 18px; margin-top: 28px;">
+        <button class="btn btn--red" type="button">pin it</button>
+        <span class="annot" style="font-size: 16px;" id="saved" hidden>pinned ★</span>
+      </div>
+    </form>
+
+    <!-- Right column: insert page -->
+    <aside style="position: relative;">
+
+      <!-- A taped insert that explains "what i'll do with this" -->
+      <div style="position: relative; padding: 24px 26px 26px; background: hsl(var(--paper)); border: 1px solid hsl(var(--kraft)); transform: rotate(1.2deg);">
+        <span class="tape tape--blue" style="top: -10px; left: 40px; width: 80px; height: 20px; transform: rotate(-5deg);"></span>
+        <p class="type" style="margin-bottom: 12px;">how i use this</p>
+        <p class="scrawl" style="font-size: 16px;">
+          when i read a place i score it against this page. anything that says <em style="color: hsl(var(--red)); font-style: normal;">no all-day tours</em> &mdash; i won't even put it on the card.
+        </p>
+        <p class="scrawl" style="margin-top: 10px; font-size: 16px;">
+          you can change this any time. i'll catch the new version on your next reading.
+        </p>
+      </div>
+
+      <!-- Stamp / category dividers like a notebook tab -->
+      <div style="margin-top: 36px;">
+        <p class="type" style="margin-bottom: 14px;">your tabs</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+          <span class="chip" style="--tilt: -1.5deg;">food</span>
+          <span class="chip chip--blue" style="--tilt: 2deg;">walk</span>
+          <span class="chip chip--yellow" style="--tilt: -2deg;">noise</span>
+          <span class="chip chip--red" style="--tilt: 1.5deg;">dealbreaker</span>
+        </div>
+        <p class="scrawl muted" style="font-size: 14px; margin-top: 14px;">
+          (tabs are auto-pulled from what you write. nothing to set up.)
+        </p>
+      </div>
+
+      <!-- Danger row -->
+      <div style="margin-top: 56px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+        <p class="type" style="margin-bottom: 14px;">housekeeping</p>
+        <a href="#" class="link-hand" style="display: block; margin-bottom: 12px;">export all my readings</a>
+        <a href="#" class="link-hand" style="display: block; margin-bottom: 12px;">log out everywhere</a>
+        <a href="#" class="link-hand" style="display: block; color: hsl(var(--signal-snag));">delete the whole notebook</a>
+      </div>
+
+    </aside>
+
+  </section>
+
+  <footer style="margin-top: 100px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+    <p class="type">PLUS &middot; ONE &middot; about you &middot; v0.1</p>
+  </footer>
+</div>
+
+</body>
+</html>

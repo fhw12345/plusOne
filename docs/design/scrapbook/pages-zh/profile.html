@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — 关于你</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+<link rel="stylesheet" href="../scrapbook-zh.css">
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">换成打印体</button>
+
+<div class="shell" style="max-width: 980px;">
+
+  <nav class="nav-strip" style="margin-bottom: 32px;">
+    <p class="crest" style="margin-right: auto;">
+      <span class="crest-dot"></span><span class="lat-type">PLUS · ONE</span>
+    </p>
+    <a href="#">你的记录</a>
+    <span class="sep"></span>
+    <a href="trip-new.html">新的一次</a>
+    <span class="sep"></span>
+    <a href="#">一起去的人</a>
+    <span class="sep"></span>
+    <a class="is-on" href="profile.html">关于你</a>
+  </nav>
+
+  <header style="position: relative; padding: 8px 0 30px;">
+    <span class="tape tape--yellow" style="top: -6px; left: 160px; width: 90px; height: 24px; transform: rotate(-4deg);"></span>
+    <h1 class="hand-xxl">关于你</h1>
+    <p class="lede" style="max-width: 580px; margin-top: 14px;">
+      你想要的那种旅行，用你自己的话讲。我每次记录都会照着这页。
+    </p>
+    <span class="stamp" style="position: absolute; right: 0; top: 24px; --stamp-tilt: 5deg;">
+      个人档<span class="ymd">9 MAY 2026 更新</span>
+    </span>
+  </header>
+
+  <section style="display: grid; grid-template-columns: 1.4fr .9fr; gap: 36px; align-items: start;">
+
+    <form style="position: relative; padding: 36px 40px 44px; background: hsl(var(--paper-2)); box-shadow: 0 14px 28px -14px hsl(0 0% 0% / .22); border: 1px solid hsl(var(--kraft));">
+
+      <span class="tape tape--mint" style="top: -12px; left: 40px; width: 110px; height: 24px; transform: rotate(-3deg);"></span>
+
+      <div class="field">
+        <label for="name">怎么称呼你</label>
+        <input id="name" type="text" value="浩文">
+      </div>
+
+      <div class="field">
+        <label for="eat">怎么吃</label>
+        <textarea id="eat" rows="3">面 &gt; 饭。内脏类爱吃。辣的 ok，甜品就算了。每天要一杯好咖啡。别带我去那种"高级"餐厅。</textarea>
+      </div>
+
+      <div class="field">
+        <label for="walk">怎么走</label>
+        <textarea id="walk" rows="2">能走一天，但不要 30°C 以上的太阳。有树荫的小街 &gt; 商业街。为了一条小巷愿意绕路。</textarea>
+      </div>
+
+      <div class="field">
+        <label>安静还是热闹</label>
+        <div style="display: flex; gap: 14px; padding-top: 10px;">
+          <button type="button" class="chip is-on" style="--tilt: -2deg;">安静</button>
+          <button type="button" class="chip" style="--tilt: 1deg; background: hsl(var(--paper-2));">看情况</button>
+          <button type="button" class="chip" style="--tilt: -1deg; background: hsl(var(--paper-2));">热闹也行</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="break">底线</label>
+        <textarea id="break" rows="2">不要一整天的旅行团。不去那种主要做游客生意的店。不要"必去"&mdash; 出现在所有清单上的，我都不想去。</textarea>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 18px; margin-top: 28px;">
+        <button class="btn btn--red" type="button">钉上去</button>
+        <span class="annot">钉上了 <span class="glyph">★</span></span>
+      </div>
+    </form>
+
+    <aside style="position: relative;">
+
+      <div style="position: relative; padding: 24px 26px 26px; background: hsl(var(--paper)); border: 1px solid hsl(var(--kraft)); transform: rotate(1.2deg);">
+        <span class="tape tape--blue" style="top: -10px; left: 40px; width: 80px; height: 20px; transform: rotate(-5deg);"></span>
+        <p class="type" style="margin-bottom: 12px;">我怎么用这个</p>
+        <p class="scrawl" style="font-size: 16px;">
+          每次读一个地方时，我都会拿这页跟它对一下。你写了 <em style="color: hsl(var(--red)); font-style: normal;">不要一整天的旅行团</em>&mdash; 那这种我连卡都不会做给你。
+        </p>
+        <p class="scrawl" style="margin-top: 10px; font-size: 16px;">
+          随时可以改。下一次记录会用新的版本。
+        </p>
+      </div>
+
+      <div style="margin-top: 36px;">
+        <p class="type" style="margin-bottom: 14px;">你的标签</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+          <span class="chip" style="--tilt: -1.5deg;">吃</span>
+          <span class="chip chip--blue" style="--tilt: 2deg;">走</span>
+          <span class="chip chip--yellow" style="--tilt: -2deg;">噪音</span>
+          <span class="chip chip--red" style="--tilt: 1.5deg;">底线</span>
+        </div>
+        <p class="scrawl" style="font-size: 15px; margin-top: 14px;">
+          （标签是从你写的字里自动拎出来的。不用自己设。）
+        </p>
+      </div>
+
+      <div style="margin-top: 56px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+        <p class="type" style="margin-bottom: 14px;">琐事</p>
+        <a href="#" class="link-hand" style="display: block; margin-bottom: 12px;">导出我的所有记录</a>
+        <a href="#" class="link-hand" style="display: block; margin-bottom: 12px;">所有设备退出登录</a>
+        <a href="#" class="link-hand" style="display: block; color: hsl(var(--signal-snag));">删掉整本笔记</a>
+      </div>
+
+    </aside>
+
+  </section>
+
+  <footer style="margin-top: 100px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+    <p class="type"><span class="lat-type">PLUS · ONE · v0.1</span> · 关于你</p>
+  </footer>
+</div>
+
+</body>
+</html>

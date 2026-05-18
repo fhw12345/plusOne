@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — 东京 · 第 47 次 · 已完成</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+<link rel="stylesheet" href="../scrapbook-zh.css">
+<style>
+  /* Tab strip — only used on the complete page */
+  .tabs {
+    display: flex; gap: 4px; align-items: flex-end;
+    border-bottom: 1px dotted hsl(var(--kraft));
+    margin: 12px 0 28px;
+    padding: 0 4px;
+  }
+  .tabs button {
+    font-family: var(--font-cjk-type);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    color: hsl(var(--ink-2));
+    padding: 10px 16px 12px;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: transparent;
+    cursor: pointer;
+    transform: rotate(-0.5deg);
+    transition: background var(--dur-quick) var(--ease);
+  }
+  .tabs button:nth-child(even) { transform: rotate(0.4deg); }
+  .tabs button:hover { background: hsl(var(--tape-yellow) / .4); }
+  .tabs button.is-on {
+    background: hsl(var(--paper-2));
+    border-color: hsl(var(--kraft));
+    color: hsl(var(--ink));
+    position: relative;
+    z-index: 2;
+    margin-bottom: -1px;
+  }
+  .tabs button .count {
+    font-family: var(--font-type);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: hsl(var(--ink-3));
+    margin-left: 8px;
+  }
+</style>
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">换成打印体</button>
+
+<div class="shell">
+
+  <nav class="nav-strip" style="margin-bottom: 22px;">
+    <p class="crest" style="margin-right: auto;">
+      <span class="crest-dot"></span><span class="lat-type">PLUS · ONE</span>
+    </p>
+    <a href="#">你的记录</a>
+    <span class="sep"></span>
+    <a href="trip-new.html">新的一次</a>
+    <span class="sep"></span>
+    <a href="#">一起去的人</a>
+    <span class="sep"></span>
+    <a href="profile.html">关于你</a>
+  </nav>
+
+  <header style="position: relative; padding: 20px 0 18px;">
+    <span class="tape tape--mint" style="top: -6px; left: 60px; width: 110px; height: 26px; transform: rotate(-6deg);"></span>
+    <span class="tape tape--yellow" style="top: 6px; right: 240px; width: 110px; height: 22px; transform: rotate(4deg);"></span>
+
+    <p class="crest" style="margin-bottom: 6px;">
+      <span class="crest-dot" style="background: hsl(var(--signal-done)); animation: none;"></span>第 47 次记录 · 12 May 2026 钉好
+    </p>
+    <h1 class="hand-xxl">东京<span class="jp" style="font-size: .4em; color: hsl(var(--red)); margin-left: 22px; vertical-align: 18px; letter-spacing: 0;">Tokyo</span></h1>
+    <p class="lede" style="margin-top: 14px; transform: rotate(-.5deg);">
+      给 <span class="highlight">雯雯 &amp; 小威</span> &mdash; tonkotsu，不要游客陷阱
+    </p>
+
+    <div style="position: absolute; right: 24px; top: 24px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+      <span class="stamp stamp--green">已钉好<span class="ymd">12 MAY 2026</span></span>
+    </div>
+  </header>
+
+  <!-- TL;DR scrap at top, since this is the complete page -->
+  <div class="tldr" style="--tilt: -.5deg; margin-top: 24px; max-width: 760px;">
+    <small>tl;dr</small>
+    主力放在 <em>巣鸭</em> 和 <em>神保町</em>。涉谷的吃的全跳过。
+    周二中午去面屋彩未 &mdash; 队伍最短。
+  </div>
+
+  <!-- Tab strip — Local Gems / Tourist Traps / Together -->
+  <div class="tabs" style="margin-top: 36px;">
+    <button class="is-on">本地宝 <span class="count">5</span></button>
+    <button>游客陷阱 <span class="count">3</span></button>
+    <button>一起去 <span class="count">4</span></button>
+  </div>
+
+  <!-- Cards — gallery -->
+  <section class="gallery">
+
+    <article class="photo-card" style="--tilt: -1.5deg;">
+      <span class="tape tape--yellow cnr"></span>
+      <span class="heart">♥</span>
+      <img src="https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=900&q=80" alt="拉面" />
+      <p class="cap">面屋彩未 <span class="jp">麺屋彩未</span></p>
+      <p class="scrawl">巣鸭 · 12 个来源</p>
+      <p class="scrawl" style="margin-top: 8px;">
+        小店，吧台 8 个位子，老板娘一直在切葱花。盐味拉面汤底偏淡但很干净，叉烧入口即化。没有英文菜单，但你指一下就行 &mdash; 老板们见过中国客人，会比手势。<br>
+        小红书上一条说「<span class="annot">最安静的拉面店，吃完不想说话</span>」。reddit r/<span class="lat">ramen</span> 里 12 个人独立提到。
+      </p>
+      <p class="match-row" style="margin-top: 10px;">
+        <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:78%"></i></span></span>
+        <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:91%"></i></span></span>
+      </p>
+      <span class="verdict">就这家 <span class="glyph">★</span></span>
+    </article>
+
+    <article class="photo-card" style="--tilt: 1.5deg;">
+      <span class="tape tape--blue cnr"></span>
+      <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=900&q=80" alt="夜市" />
+      <p class="cap">三平 <span class="jp">三平酒場</span></p>
+      <p class="scrawl">巣鸭 · 8 个来源</p>
+      <p class="scrawl" style="margin-top: 8px;">
+        下班 salaryman 的地盘。烤鸡肉串、煮物、清酒一升瓶。氛围像深夜食堂的现实版。小威吃不了带壳的话注意 &mdash; 海螺和螺蛳那两道跳过就好。
+      </p>
+      <p class="match-row" style="margin-top: 10px;">
+        <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:72%"></i></span></span>
+        <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:85%"></i></span></span>
+      </p>
+      <span class="verdict">去。</span>
+    </article>
+
+    <article class="photo-card is-typed" style="--tilt: -1deg;">
+      <span class="tape tape--mint cnr"></span>
+      <div class="photo" data-label="怀旧喫茶 · 神保町"></div>
+      <p class="cap">怀旧喫茶 <span class="jp">純喫茶</span></p>
+      <p class="scrawl">神保町 · 5 个来源</p>
+      <p class="scrawl" style="margin-top: 8px;">
+        烟熏过的红木、手冲咖啡、没有 wifi。中老板会用磨豆机的声音和你对话。雯雯应该会喜欢。
+      </p>
+      <p class="match-row" style="margin-top: 10px;">
+        <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:88%"></i></span></span>
+        <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:64%"></i></span></span>
+      </p>
+      <span class="verdict">给雯雯。</span>
+    </article>
+
+    <article class="photo-card" style="--tilt: 1deg;">
+      <span class="tape tape--red cnr"></span>
+      <img src="https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f?w=900&q=80" alt="日式定食" />
+      <p class="cap">阿吽 <span class="jp">阿吽</span></p>
+      <p class="scrawl">高田马场 · 9 个来源</p>
+      <p class="scrawl" style="margin-top: 8px;">
+        汤咖喱专门店。学生区，便宜，量大，但味道 5 个独立中文来源都给到 4.5/5。小威说想吃辣的话就这家。
+      </p>
+      <p class="match-row" style="margin-top: 10px;">
+        <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:60%"></i></span></span>
+        <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:88%"></i></span></span>
+      </p>
+      <span class="verdict">值得绕路。</span>
+    </article>
+
+  </section>
+
+  <!-- A second strip: contested entries (tickets) sit below the gallery -->
+  <h2 class="hand-xl" style="margin-top: 56px; margin-bottom: 16px;">有争议的几个</h2>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 22px;">
+    <article class="ticket" style="--tilt: -.4deg;">
+      <div class="stamp-row">
+        <span class="type">两面之词 &mdash; 自己看</span>
+        <span class="type-sm">筑地外市场 · 中央区</span>
+      </div>
+      <div class="perforation"></div>
+      <p class="body"><span class="lat">EN</span> 说<em>必去</em>。<span class="lat">ZH</span> 说<em>布景</em>。两边都说鸡蛋卷那家好。其它的，除非你就是想拍照，不然跳过。</p>
+    </article>
+
+    <article class="ticket" style="--tilt: .8deg;">
+      <div class="stamp-row">
+        <span class="type">跳过</span>
+        <span class="type-sm">涩谷一兰 · 涩谷</span>
+      </div>
+      <div class="perforation"></div>
+      <p class="body">41 个来源，<span class="lat">ZH</span> 那边 10 个里 8 个说这家分店专做游客生意。一兰想吃的话，<em>上野店</em> 评价好很多 &mdash; 同样的汤，少一半人。</p>
+    </article>
+  </div>
+
+  <!-- Saved sources strip — like the back-of-the-book bibliography -->
+  <section style="margin-top: 80px;">
+    <h2 class="hand-xl" style="margin-bottom: 14px;">我看过的</h2>
+    <p class="scrawl" style="margin-bottom: 22px;">
+      共 14 个来源 &mdash; 9 个 reddit 帖子，4 个 小红书 笔记，1 个 google maps 评论合集
+    </p>
+    <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px;">
+      <li class="scrawl" style="font-size: 16px;">· r/<span class="lat">JapanTravel</span> &mdash; 「<span class="lat">underrated tokyo ramen 2025</span>」</li>
+      <li class="scrawl" style="font-size: 16px;">· 小红书 &mdash; 「东京拉面不踩雷指南」</li>
+      <li class="scrawl" style="font-size: 16px;">· r/<span class="lat">ramen</span> &mdash; 「<span class="lat">shio in tokyo - menya saimi sleeper</span>」</li>
+      <li class="scrawl" style="font-size: 16px;">· 小红书 &mdash; 「神保町，去十次也不腻」</li>
+      <li class="scrawl" style="font-size: 16px;">· r/<span class="lat">Tokyo</span> &mdash; 「<span class="lat">tsukiji is now a tourist setpiece</span>」</li>
+      <li class="scrawl" style="font-size: 16px;">· <span class="lat">google places</span> &mdash; 阿吽 高田马场 (137 条中文评论)</li>
+    </ul>
+  </section>
+
+  <footer style="margin-top: 100px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft)); display: flex; justify-content: space-between; align-items: center; gap: 14px;">
+    <p class="type"><span class="lat-type">PLUS · ONE · v0.1</span> · 第 47 次 · 已钉好</p>
+    <a href="#" class="link-hand" style="font-size: 18px;">← 回到所有记录</a>
+  </footer>
+</div>
+
+</body>
+</html>

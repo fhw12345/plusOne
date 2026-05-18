@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — Scrapbook system index</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="scrapbook.css">
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">switch to printed</button>
+
+<div class="shell" style="max-width: 880px;">
+
+  <header style="position: relative; padding: 40px 0 28px;">
+    <span class="tape tape--mint" style="top: 36px; left: 0; width: 110px; height: 26px; transform: rotate(-6deg);"></span>
+    <p class="crest" style="margin-bottom: 8px;"><span class="crest-dot"></span>PLUS &middot; ONE &middot; design system &middot; direction D</p>
+    <h1 class="hand-xxl">scrapbook.</h1>
+    <p class="scrawl" style="font-size: 19px; max-width: 580px; margin-top: 14px;">
+      handcraft notebook system. paper grain, washi tape, red-marker verdicts, the agent hidden behind a friend's voice.
+    </p>
+  </header>
+
+  <section style="margin-top: 32px;">
+    <p class="type" style="margin-bottom: 16px;">the 8 pages</p>
+    <div class="gallery">
+      <a href="pages/login.html" class="photo-card is-typed" style="--tilt: -1.5deg; text-decoration: none;">
+        <span class="tape tape--mint cnr"></span>
+        <div class="photo" data-label="say hello"></div>
+        <p class="cap">login</p>
+        <p class="scrawl">magic-link email form &middot; envelope feel</p>
+      </a>
+      <a href="pages/auth-exchange.html" class="photo-card is-typed" style="--tilt: 1.5deg; text-decoration: none;">
+        <span class="tape tape--yellow cnr"></span>
+        <div class="photo" data-label="letting you in"></div>
+        <p class="cap">auth exchange</p>
+        <p class="scrawl">unpacking the sticky-note &middot; pencil progress</p>
+      </a>
+      <a href="pages/index.html" class="photo-card is-typed" style="--tilt: -1deg; text-decoration: none;">
+        <span class="tape tape--blue cnr"></span>
+        <div class="photo" data-label="your readings"></div>
+        <p class="cap">index / home</p>
+        <p class="scrawl">collage of past readings + current</p>
+      </a>
+      <a href="pages/trip-history.html" class="photo-card is-typed" style="--tilt: 2deg; text-decoration: none;">
+        <span class="tape tape--mint cnr"></span>
+        <div class="photo" data-label="all readings"></div>
+        <p class="cap">trip history</p>
+        <p class="scrawl">binder-spine timeline &middot; month dividers</p>
+      </a>
+      <a href="pages/trip-new.html" class="photo-card is-typed" style="--tilt: -2deg; text-decoration: none;">
+        <span class="tape tape--yellow cnr"></span>
+        <div class="photo" data-label="new reading"></div>
+        <p class="cap">trip-new</p>
+        <p class="scrawl">intake sheet &middot; companion chips &middot; sticky-tip</p>
+      </a>
+      <a href="pages/trip-detail.html" class="photo-card" style="--tilt: 1deg; text-decoration: none;">
+        <span class="tape tape--red cnr"></span>
+        <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=720&q=80" alt="Tokyo">
+        <p class="cap">trip-detail &middot; the hero</p>
+        <p class="scrawl">left collage + right scratchpad &middot; all 8 SSE events shown</p>
+        <span class="verdict verdict--soft" style="font-size: 14px;">start here ★</span>
+      </a>
+      <a href="pages/profile.html" class="photo-card is-typed" style="--tilt: -1.5deg; text-decoration: none;">
+        <span class="tape tape--blue cnr"></span>
+        <div class="photo" data-label="about you"></div>
+        <p class="cap">profile</p>
+        <p class="scrawl">ruled-line form &middot; tabs auto-pulled</p>
+      </a>
+      <a href="pages/companions.html" class="photo-card is-typed" style="--tilt: 2.5deg; text-decoration: none;">
+        <span class="tape tape--mint cnr"></span>
+        <div class="photo" data-label="who you bring"></div>
+        <p class="cap">companions</p>
+        <p class="scrawl">people-as-polaroids &middot; per-axis match bars</p>
+      </a>
+    </div>
+  </section>
+
+  <section style="margin-top: 70px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px;">
+    <div class="ticket" style="--tilt: -.5deg;">
+      <div class="stamp-row">
+        <span class="type">design tokens</span>
+        <span class="type-sm">single source of truth</span>
+      </div>
+      <p class="body">color, type, motion, layout &mdash; mirrored from <em>scrapbook.css</em> :root.</p>
+      <p style="margin-top: 12px;"><a href="TOKENS.md" class="link-hand" style="font-size: 18px;">TOKENS.md →</a></p>
+    </div>
+    <div class="ticket" style="--tilt: .7deg;">
+      <div class="stamp-row">
+        <span class="type">copy / voice</span>
+        <span class="type-sm">all 8 SSE events + every UI string</span>
+      </div>
+      <p class="body">the agent is hidden. copy is the design surface.</p>
+      <p style="margin-top: 12px;"><a href="VOICE.md" class="link-hand" style="font-size: 18px;">VOICE.md →</a></p>
+    </div>
+  </section>
+
+  <!-- 中文 — Chinese pages + pressure-test findings -->
+  <section lang="zh-Hans" style="margin-top: 80px;">
+    <link rel="stylesheet" href="scrapbook-zh.css">
+    <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 18px;">
+      <h2 class="hand-xl" style="transform: rotate(-.8deg);">中文 <span style="font-size: 22px; color: hsl(var(--ink-3));">&mdash; bilingual pressure-test</span></h2>
+      <span class="type-sm">6 pages &middot; 简体 + 1 繁體</span>
+      <span style="flex: 1; border-bottom: 1px dotted hsl(var(--kraft));"></span>
+    </div>
+    <p class="scrawl" style="max-width: 720px; margin-bottom: 14px;">
+      平行的中文版本，用来压力测试字体搭配。
+    </p>
+    <p class="scrawl" style="max-width: 720px; margin-bottom: 28px; padding: 14px 18px; background: hsl(var(--paper-2)); border-left: 3px solid hsl(var(--red));">
+      <strong style="color: hsl(var(--red));">v2 修订 &mdash; 可读性优先。</strong>
+      v1 把正文和标题都用手写体 (Ma Shan Zheng) &mdash; 用户反馈说太花、看不清。v2 已修：正文标题全部改为 Noto Serif SC 印刷体，手写体只保留在小注释 (`.annot` / `.margin-note` / `.signature`)。纸张更浅，纸纹与胶带透明度降低。证明截图见 <a href="screenshots-zh-v2/" class="link-hand">screenshots-zh-v2/</a>。详细取舍见 BILINGUAL-NOTES.md §0。
+    </p>
+    <p class="scrawl" style="max-width: 720px; margin-bottom: 28px; padding: 14px 18px; background: hsl(var(--paper-2)); border-left: 3px solid hsl(var(--red));">
+      <strong style="color: hsl(var(--red));">v3 加固 &mdash; 小注释也要看清。</strong>
+      v2 留了个软规则：`.annot` / `.margin-note` 还可以用手写中文「短片段」。实际内容一上去就破功 &mdash; 用户拎出四个串「面屋彩未在 12 个不同的帖子里出现 / ★ / ↓ / 我在做什么 / →」全都糊。v3 已修：`.annot` / `.margin-note` 强制 Noto Serif SC 16-17px 全墨；手写中文只剩 `.signature` (≤6 字) 和 `.doodle` (装饰非文字) 两个槽；★ ↓ → 等装饰字符全部包进 `.glyph` 走 Segoe UI Symbol 18px。还修了一个 cascade bug：之前 Latin 手写 bridge 把 CJK 拉回 Liu Jian Mao Cao。证明截图见 <a href="screenshots-zh-v3/" class="link-hand">screenshots-zh-v3/</a>。详细见 BILINGUAL-NOTES.md §0.1。
+    </p>
+
+    <div class="gallery">
+      <a href="pages-zh/login.html" class="photo-card is-typed" style="--tilt: -1.5deg; text-decoration: none;">
+        <span class="tape tape--mint cnr"></span>
+        <div class="photo" data-label="打个招呼"></div>
+        <p class="cap">login &mdash; 让我进来</p>
+        <p class="scrawl">magic-link form &middot; CJK 按钮平衡修正</p>
+      </a>
+      <a href="pages-zh/trip-new.html" class="photo-card is-typed" style="--tilt: 1.5deg; text-decoration: none;">
+        <span class="tape tape--yellow cnr"></span>
+        <div class="photo" data-label="新的一次"></div>
+        <p class="cap">trip-new &mdash; 去哪儿？</p>
+        <p class="scrawl">长自由文本压力测试 &middot; 同伴卡片</p>
+      </a>
+      <a href="pages-zh/trip-detail.html" class="photo-card" style="--tilt: -1deg; text-decoration: none;">
+        <span class="tape tape--red cnr"></span>
+        <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=720&q=80" alt="Tokyo">
+        <p class="cap">trip-detail（进行中）&mdash; 东京</p>
+        <p class="scrawl">8 个 SSE 文案 &middot; 便签 &middot; 直播</p>
+        <span class="verdict verdict--soft" style="font-size: 14px;">
+          <span style="display:inline-block; width:7px; height:7px; background: hsl(var(--red)); border-radius: 50%; vertical-align: 1px; margin-right: 6px; animation: pulse 1.4s var(--ease-soft) infinite;"></span>
+          直播
+        </span>
+      </a>
+      <a href="pages-zh/trip-detail-complete.html" class="photo-card" style="--tilt: 2deg; text-decoration: none;">
+        <span class="tape tape--mint cnr"></span>
+        <img src="https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=720&q=80" alt="拉面">
+        <p class="cap">trip-detail（已钉好）&mdash; 东京</p>
+        <p class="scrawl">3 个 tab &middot; 报告卡 &middot; 中文 review &middot; 来源</p>
+        <span class="verdict" style="font-size: 14px;">native test ★</span>
+      </a>
+      <a href="pages-zh/profile.html" class="photo-card is-typed" style="--tilt: -1.5deg; text-decoration: none;">
+        <span class="tape tape--blue cnr"></span>
+        <div class="photo" data-label="关于你"></div>
+        <p class="cap">profile &mdash; 关于你</p>
+        <p class="scrawl">手写输入字体: ZCOOL XiaoWei</p>
+      </a>
+      <a href="pages-zh/trip-detail-kyoto-mixed.html" class="photo-card is-typed" style="--tilt: 2.5deg; text-decoration: none;">
+        <span class="tape tape--yellow cnr"></span>
+        <div class="photo" data-label="京都 · 繁體 + 中英混排"></div>
+        <p class="cap">京都 &mdash; mixed-language 样本</p>
+        <p class="scrawl">繁體 + 段落里的 Latin token &middot; unicode-range 妙用</p>
+      </a>
+    </div>
+
+    <div style="margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="ticket" style="--tilt: -.4deg;">
+        <div class="stamp-row">
+          <span class="type">中文 voice corpus</span>
+          <span class="type-sm">SSE + UI + 错误</span>
+        </div>
+        <p class="body">8 个事件 + 所有按钮文案，<em>用中文写</em> &mdash; 不是英文翻译。</p>
+        <p style="margin-top: 12px;"><a href="VOICE-zh.md" class="link-hand" style="font-size: 18px;">VOICE-zh.md →</a></p>
+      </div>
+      <div class="ticket" style="--tilt: .6deg;">
+        <div class="stamp-row">
+          <span class="type">bilingual findings</span>
+          <span class="type-sm">什么过关 / 什么破了</span>
+        </div>
+        <p class="body">字体替换、行高、中英混排 kerning、按钮长度 &mdash; 万一被否决还有 Plan B。</p>
+        <p style="margin-top: 12px;"><a href="BILINGUAL-NOTES.md" class="link-hand" style="font-size: 18px;">BILINGUAL-NOTES.md →</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-top: 56px;">
+    <p class="type" style="margin-bottom: 12px;">a11y</p>
+    <p class="scrawl">
+      every page has a <em style="color: hsl(var(--red)); font-style: normal;">switch to printed</em> toggle (top-right). it strips tilt, paper grain, vignette, wavy underlines, and tape. body type swaps to Plus Jakarta. headlines stay Caveat but flat. honors <code style="font-family: var(--font-type); font-size: 13px;">prefers-reduced-motion</code> automatically.
+    </p>
+  </section>
+
+  <footer style="margin-top: 80px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+    <p class="type">PLUS &middot; ONE &middot; scrapbook system &middot; direction D &middot; 2026-05-18</p>
+  </footer>
+</div>
+
+</body>
+</html>

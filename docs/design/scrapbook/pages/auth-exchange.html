@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — letting you in</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">switch to printed</button>
+
+<div class="shell" style="max-width: 720px;">
+
+  <p class="crest" style="margin-top: 18px;">
+    <span class="crest-dot"></span>PLUS &middot; ONE &middot; letting you in
+  </p>
+
+  <section style="margin-top: 80px; position: relative;">
+
+    <!-- the actual link, drawn as a sticky-note ticket being unpacked -->
+    <div style="position: relative; max-width: 580px;">
+
+      <span class="stamp" style="position: absolute; top: -22px; right: 24px;">
+        verifying<span class="ymd">just a sec</span>
+      </span>
+
+      <h1 class="hand-xxl">unpacking the link&hellip;</h1>
+
+      <!-- a "sticky note" pulled out of an envelope -->
+      <div style="position: relative; margin-top: 50px; padding: 30px 32px; background: hsl(var(--tape-yellow) / .85); box-shadow: 0 10px 20px -8px hsl(0 0% 0% / .22); transform: rotate(-1.5deg); max-width: 440px;">
+        <p class="hand" style="font-size: 26px; line-height: 1.18;">
+          <span class="muted type" style="display: block; margin-bottom: 8px;">your magic link</span>
+          welcome back.<br>
+          pinning your notes&hellip;
+        </p>
+        <p class="scrawl" style="margin-top: 14px;">
+          i'll redirect you in a sec.
+        </p>
+      </div>
+
+      <!-- progress shown as 3 pencil ticks getting filled -->
+      <div style="display: flex; align-items: center; gap: 14px; margin-top: 56px;">
+        <span class="type">progress</span>
+        <span style="display: inline-flex; gap: 6px;">
+          <i style="width: 24px; height: 6px; background: hsl(var(--red)); display: inline-block;"></i>
+          <i style="width: 24px; height: 6px; background: hsl(var(--red)); display: inline-block; animation: pulse 1.4s var(--ease-soft) infinite;"></i>
+          <i style="width: 24px; height: 6px; background: hsl(var(--kraft)); display: inline-block;"></i>
+        </span>
+        <span class="annot" style="font-size: 14px;">unpacking, then pinning</span>
+      </div>
+
+      <!-- error branch (visual only — would conditionally render) -->
+      <details style="margin-top: 60px;">
+        <summary class="scrawl" style="cursor: pointer; color: hsl(var(--ink-3));">if something looks wrong</summary>
+        <div style="margin-top: 18px; display: grid; gap: 18px;">
+
+          <div class="ticket" style="--tilt: -.6deg;">
+            <div class="stamp-row">
+              <span class="type">stale link</span>
+              <span class="type-sm">expires after 15 min</span>
+            </div>
+            <p class="body">this link's gone stale &mdash; let me <a href="login.html" class="link-hand" style="font-size: 16px;">send a fresh one</a>.</p>
+          </div>
+
+          <div class="ticket" style="--tilt: 1deg;">
+            <div class="stamp-row">
+              <span class="type">bad link</span>
+              <span class="type-sm">token didn't match</span>
+            </div>
+            <p class="body">this link doesn't look right. <a href="login.html" class="link-hand" style="font-size: 16px;">start over</a>?</p>
+          </div>
+
+        </div>
+      </details>
+
+    </div>
+
+  </section>
+
+  <footer style="margin-top: 140px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+    <p class="type">PLUS &middot; ONE &middot; v0.1</p>
+  </footer>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Option B — Live Atelier — trip-detail sketch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #161A1F;
+    --bg-2: #1B1F26;
+    --bg-3: #232831;
+    --line: #2C313A;
+    --line-2: #3A4150;
+    --text: #E5E1D6;
+    --text-2: #B0AB9C;
+    --text-3: #6E6A60;
+    --paper: #F2EEE7;
+    --paper-ink: #15181F;
+    --paper-ink-2: #3F454F;
+    --paper-rule: #D8D2C5;
+    --cobalt: #5577E0;
+    --cobalt-deep: #3556CC;
+    --reddit: #FF6B35;
+    --xhs: #E63E50;
+    --google: #4D8AF0;
+    --warn: #C97A3F;
+    --moss: #6FA28C;
+    --font-d: 'Newsreader', 'Tiempos Headline', Georgia, serif;
+    --font-b: 'Inter', system-ui, sans-serif;
+    --font-m: 'JetBrains Mono', ui-monospace, monospace;
+    --font-cn: 'Noto Serif SC', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-b); font-size: 14px; line-height: 1.55; }
+  .shell { padding: 32px; min-height: 100vh; background: #0E1115; }
+  .shell-h { max-width: 1500px; margin: 0 auto 18px; color: var(--text-2); font-family: var(--font-m); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; }
+  .shell-h .file { color: var(--cobalt); text-transform: none; letter-spacing: 0.04em; }
+  .frame { max-width: 1500px; margin: 0 auto; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .label { background: #0F1318; color: var(--text-3); font-family: var(--font-m); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; padding: 10px 16px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); }
+
+  /* top instrument bar */
+  .topbar { padding: 14px 24px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr auto auto auto; gap: 32px; align-items: center; background: var(--bg-2); }
+  .logo { font-family: var(--font-d); font-size: 18px; letter-spacing: -0.01em; }
+  .logo .dot { display: inline-block; width: 5px; height: 5px; background: var(--cobalt); border-radius: 50%; margin: 0 5px; vertical-align: 3px; }
+  .breadcrumb { font-family: var(--font-m); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+  .breadcrumb b { color: var(--text); font-weight: 500; }
+  .stat { font-family: var(--font-m); font-size: 11px; color: var(--text-2); display: flex; gap: 6px; align-items: baseline; font-variant-numeric: tabular-nums; }
+  .stat b { color: var(--text); font-size: 14px; font-weight: 500; }
+  .live-badge { background: var(--cobalt-deep); color: var(--paper); padding: 4px 10px; border-radius: 2px; font-family: var(--font-m); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; }
+  .live-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--paper); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+
+  /* head strip */
+  .head { padding: 28px 32px 22px; border-bottom: 1px solid var(--line); background: var(--bg); display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
+  .h1 { font-family: var(--font-d); font-weight: 400; font-size: 44px; letter-spacing: -0.02em; line-height: 1.05; color: var(--text); }
+  .h1 .cn { font-family: var(--font-cn); color: var(--text-2); font-size: 0.55em; margin-left: 12px; vertical-align: 4px; }
+  .h1-sub { font-family: var(--font-m); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); margin-top: 8px; }
+  .progress-block { font-family: var(--font-m); display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .progress-block .row { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
+  .progress-block .timer { font-size: 28px; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+  .progress-bar { width: 220px; height: 2px; background: var(--line); position: relative; overflow: hidden; }
+  .progress-bar::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 38%; background: var(--cobalt); }
+
+  /* THE HERO — three-rail dual-source feed */
+  .rails { display: grid; grid-template-columns: 1fr 1.2fr 1fr; min-height: 580px; border-bottom: 1px solid var(--line); }
+  .rail { padding: 22px 22px 32px; position: relative; }
+  .rail.left { border-right: 1px solid var(--line); background: linear-gradient(to right, rgba(255,107,53,.04), transparent 80%); }
+  .rail.right { border-left: 1px solid var(--line); background: linear-gradient(to left, rgba(230,62,80,.04), transparent 80%); }
+  .rail.center { background: linear-gradient(to bottom, transparent, rgba(85,119,224,.05) 100%); }
+
+  .rail-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .rail-head .name { font-family: var(--font-m); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+  .rail.left .rail-head .name { color: var(--reddit); }
+  .rail.right .rail-head .name { color: var(--xhs); }
+  .rail.center .rail-head .name { color: var(--cobalt); }
+  .rail-head .lang { font-family: var(--font-m); font-size: 10px; color: var(--text-3); letter-spacing: 0.14em; }
+
+  .src-card { padding: 12px 14px; border: 1px solid var(--line); background: var(--bg-2); margin-bottom: 8px; border-radius: 2px; transition: border-color .2s ease; }
+  .src-card.matched { border-color: var(--line-2); }
+  .src-card .src-meta { font-family: var(--font-m); font-size: 10px; color: var(--text-3); letter-spacing: 0.1em; }
+  .src-card .src-meta b { color: var(--text-2); }
+  .src-card .src-quote { font-family: var(--font-d); font-style: italic; font-weight: 300; font-size: 14px; color: var(--text); margin-top: 6px; line-height: 1.4; font-variation-settings: 'opsz' 20; }
+  .src-card .src-quote.cn { font-family: var(--font-cn); font-style: normal; font-size: 13.5px; }
+  .src-card.matched .src-quote { color: var(--paper); }
+
+  /* center synthesis: matched candidates as horizontal pills */
+  .syn-list { display: flex; flex-direction: column; gap: 10px; }
+  .syn-item { display: grid; grid-template-columns: 16px 1fr auto; gap: 12px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 2px; align-items: center; }
+  .syn-item.disagree { border-color: var(--warn); background: linear-gradient(to right, rgba(201,122,63,.08), var(--bg-2) 60%); }
+  .syn-item .glyph { width: 8px; height: 8px; border-radius: 50%; background: var(--cobalt); justify-self: center; }
+  .syn-item.disagree .glyph { background: var(--warn); }
+  .syn-item .name { font-family: var(--font-d); font-size: 17px; color: var(--text); letter-spacing: -0.01em; }
+  .syn-item .name .cn { font-family: var(--font-cn); color: var(--text-2); font-size: 0.7em; margin-left: 6px; }
+  .syn-item .micro { display: flex; gap: 6px; align-items: center; }
+  .syn-item .micro .b { width: 22px; height: 4px; background: var(--reddit); border-radius: 1px; }
+  .syn-item .micro .b.x { background: var(--xhs); }
+  .syn-item .micro .n { font-family: var(--font-m); font-size: 10px; color: var(--text-3); margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+  .controller-quote { margin-top: 28px; padding: 16px; border: 1px solid var(--line-2); border-left: 2px solid var(--cobalt); background: var(--bg-2); border-radius: 2px; }
+  .controller-quote .lab { font-family: var(--font-m); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cobalt); }
+  .controller-quote .body { font-family: var(--font-d); font-style: italic; font-weight: 300; font-size: 16px; color: var(--text); margin-top: 6px; font-variation-settings: 'opsz' 20; line-height: 1.5; }
+
+  /* connecting hairlines between left/center/right matched items */
+  .connector {
+    position: absolute; height: 1px; background: var(--line-2);
+  }
+  .conn-l { left: 100%; right: -45px; top: 80px; }
+  .conn-r { right: 100%; left: -45px; top: 80px; }
+
+  /* footer status */
+  .foot { padding: 14px 24px; display: flex; justify-content: space-between; font-family: var(--font-m); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+  .foot .left-stats { display: flex; gap: 24px; }
+  .foot .left-stats span b { color: var(--text); }
+
+  /* preview of completed report (peek at right edge) */
+  .report-peek { padding: 28px 32px; border-top: 1px solid var(--line); background: var(--paper); color: var(--paper-ink); }
+  .report-peek .lab { font-family: var(--font-m); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--paper-ink-2); }
+  .report-peek p { font-family: var(--font-d); font-weight: 300; font-size: 22px; line-height: 1.4; color: var(--paper-ink); margin-top: 10px; max-width: 60ch; letter-spacing: -0.005em; }
+  .report-peek .hint { font-family: var(--font-m); font-size: 10px; color: var(--paper-ink-2); margin-top: 16px; letter-spacing: 0.14em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="shell-h">
+      <span>option b · live atelier</span>
+      <span class="file">b-trip-detail.html · the agent at work, in public</span>
+    </div>
+
+    <div class="frame">
+      <div class="label"><span>desktop · 1500 · cycle running</span><span>/trips/abc123</span></div>
+
+      <header class="topbar">
+        <span class="logo">Plus<span class="dot"></span>One</span>
+        <span class="breadcrumb">Trips &middot; <b>Tokyo</b> &middot; reading 047</span>
+        <span class="stat">sources <b>22</b></span>
+        <span class="stat">confirmed <b>7</b> &middot; disagreements <b>2</b></span>
+        <span class="live-badge"><span class="dot"></span>Live &middot; depth 2/4</span>
+      </header>
+
+      <section class="head">
+        <div>
+          <h1 class="h1">Tokyo<span class="cn">東京</span></h1>
+          <p class="h1-sub">For Yuna and Wei &middot; tonkotsu, no tourist traps, vegetarian-friendly.</p>
+        </div>
+        <div class="progress-block">
+          <span class="row">Elapsed</span>
+          <span class="timer">00:31</span>
+          <span class="row">~01:30 expected</span>
+          <div class="progress-bar"></div>
+        </div>
+      </section>
+
+      <section class="rails">
+
+        <!-- LEFT: REDDIT -->
+        <div class="rail left">
+          <div class="rail-head">
+            <span class="name">&middot;&middot; Reddit</span>
+            <span class="lang">EN &middot; 14 posts</span>
+          </div>
+          <div class="src-card matched" style="position: relative;">
+            <span class="src-meta">r/ramen &middot; <b>4 comments</b> &middot; cited 3</span>
+            <p class="src-quote">&ldquo;The thinnest broth I&rsquo;ve ever had &mdash; in a good way. Counter for four, no English menu.&rdquo;</p>
+            <span class="connector conn-l"></span>
+          </div>
+          <div class="src-card matched">
+            <span class="src-meta">r/JapanTravel &middot; <b>22 comments</b></span>
+            <p class="src-quote">&ldquo;Tsukiji Outer is essential. Egg roll stand alone is worth the trip.&rdquo;</p>
+          </div>
+          <div class="src-card">
+            <span class="src-meta">r/ramen &middot; <b>2 comments</b></span>
+            <p class="src-quote">&ldquo;Ichiran Shibuya is a tourist trap. Try Ichiran in Ueno instead.&rdquo;</p>
+          </div>
+          <div class="src-card" style="opacity: .55;">
+            <span class="src-meta">r/Tokyo &middot; <b>pulling&hellip;</b></span>
+          </div>
+        </div>
+
+        <!-- CENTER: SYNTHESIS -->
+        <div class="rail center">
+          <div class="rail-head">
+            <span class="name">&middot;&middot; Synthesis</span>
+            <span class="lang">Joiner + Controller</span>
+          </div>
+
+          <div class="syn-list">
+            <div class="syn-item">
+              <span class="glyph"></span>
+              <span class="name">Menya Saimi <span class="cn">麺屋彩未</span></span>
+              <span class="micro">
+                <span class="b" title="Reddit"></span><span class="n">3</span>
+                <span class="b x" title="XHS"></span><span class="n">9</span>
+              </span>
+            </div>
+            <div class="syn-item disagree">
+              <span class="glyph"></span>
+              <span class="name">Tsukiji Outer <span class="cn">築地</span></span>
+              <span class="micro">
+                <span class="b"></span><span class="n">14</span>
+                <span class="b x"></span><span class="n">14</span>
+              </span>
+            </div>
+            <div class="syn-item">
+              <span class="glyph" style="background: var(--warn);"></span>
+              <span class="name">Ichiran Shibuya</span>
+              <span class="micro">
+                <span class="b"></span><span class="n">8</span>
+                <span class="b x"></span><span class="n">11</span>
+              </span>
+            </div>
+            <div class="syn-item" style="opacity: .55; border-style: dashed;">
+              <span class="glyph" style="background: transparent; border: 1px solid var(--text-3); animation: pulse 1.4s ease-in-out infinite;"></span>
+              <span class="name" style="font-style: italic; font-weight: 300; color: var(--text-2);">composing&hellip;</span>
+              <span class="micro"></span>
+            </div>
+          </div>
+
+          <div class="controller-quote">
+            <span class="lab">Controller &middot; depth 2 &middot; 00:31</span>
+            <p class="body">&ldquo;Need ZH disagreement signals on Tsukiji before settling the verdict. Pulling 6 more XHS posts and re-scoring.&rdquo;</p>
+          </div>
+        </div>
+
+        <!-- RIGHT: XHS -->
+        <div class="rail right">
+          <div class="rail-head">
+            <span class="name">小红书 &middot;&middot;</span>
+            <span class="lang">ZH &middot; 8 posts</span>
+          </div>
+          <div class="src-card matched" style="position: relative;">
+            <span class="src-meta">xhs:tokyo:ramen &middot; <b>9 likes</b></span>
+            <p class="src-quote cn">&ldquo;东京拉面里最安静的一间，店主从不说话，汤几乎是透明的。&rdquo;</p>
+            <span class="connector conn-r"></span>
+          </div>
+          <div class="src-card matched">
+            <span class="src-meta">xhs:tokyo &middot; <b>14 likes</b></span>
+            <p class="src-quote cn">&ldquo;筑地外市场不是本地人会去的地方，价格虚高，但是煎蛋卷确实好吃。&rdquo;</p>
+          </div>
+          <div class="src-card">
+            <span class="src-meta">xhs:tokyo:ramen &middot; <b>11 likes</b></span>
+            <p class="src-quote cn">&ldquo;一兰渋谷店性价比极低，建议去池袋或上野的分店。&rdquo;</p>
+          </div>
+          <div class="src-card" style="opacity: .55;">
+            <span class="src-meta">xhs:tokyo &middot; <b>pulling&hellip;</b></span>
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <div class="left-stats">
+          <span>Cycle <b>002</b></span>
+          <span>Iteration <b>2/4</b></span>
+          <span>Tokens <b>14.2k</b></span>
+          <span>Cost <b>$0.41</b></span>
+        </div>
+        <span>autoscroll <b style="color: var(--cobalt);">on</b> &middot; press space to pause</span>
+      </footer>
+
+      <section class="report-peek">
+        <span class="lab">Report &middot; assembling below as cycle completes</span>
+        <p>Lean into Sugamo and Jimbocho. Skip Shibuya for food. Tsukiji Outer is contested &mdash; the egg-roll stand is the only consensus.</p>
+        <span class="hint">&darr; full report opens here at 01:30</span>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

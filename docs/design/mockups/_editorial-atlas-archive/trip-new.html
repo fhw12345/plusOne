@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plus One — new trip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./_shared.css" />
+  <style>
+    .trip-new-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 64px;
+      padding: 24px 0 96px;
+      align-items: start;
+    }
+    .trip-new-form {
+      display: flex; flex-direction: column; gap: 40px;
+    }
+    .companion-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .companion-add {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      border: 1px dashed hsl(var(--rule-strong));
+      border-radius: 999px;
+      font-size: 12px;
+      color: hsl(var(--ink-3));
+      cursor: pointer;
+      transition: all var(--dur) var(--ease);
+    }
+    .companion-add:hover { color: hsl(var(--brass)); border-color: hsl(var(--brass)); }
+
+    .brief {
+      padding: 32px;
+      border: 1px solid hsl(var(--rule));
+      background: hsl(var(--paper-elevated));
+      border-radius: var(--radius-md);
+      position: sticky;
+      top: 92px;
+    }
+    .brief h4 { margin-bottom: 18px; }
+    .brief p { color: hsl(var(--ink-2)); font-size: 14px; line-height: 1.6; }
+    .brief .silver-line {
+      margin: 22px 0;
+      height: 1px;
+      background: hsl(var(--rule));
+    }
+    .brief .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 13px;
+      color: hsl(var(--ink-3));
+    }
+    .brief .stat strong {
+      font-family: var(--font-display);
+      font-weight: 400;
+      color: hsl(var(--ink));
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .submit-row {
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+      padding-top: 32px;
+      border-top: 1px solid hsl(var(--rule));
+    }
+    @container page (max-width: 640px) {
+      .trip-new-grid { grid-template-columns: 1fr; gap: 32px; }
+      .brief { position: relative; top: 0; padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-shell-header">
+      <span>plus one · mockup</span>
+      <span class="file">trip-new.html · destination + free text + companions</span>
+    </div>
+    <div class="preview-grid">
+
+      <!-- DESKTOP -->
+      <div class="preview-frame">
+        <div class="label"><span>desktop · 1280</span><span>/trips/new</span></div>
+        <div class="canvas">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <a href="#" class="active">New</a>
+                  <a href="#">Trips</a>
+                  <a href="#">Companions</a>
+                  <span class="avatar">H</span>
+                </nav>
+              </div>
+            </header>
+
+            <main class="wrap-wide">
+              <section class="editorial-band stagger">
+                <span class="eyebrow flanked">A new reading</span>
+                <h1 class="display-lg">Where will you go?</h1>
+                <p class="dek" style="max-width: 52ch;">Tell me a place, and a few words about the kind of trip you want. I&rsquo;ll read what locals are quietly saying in two languages and bring you a short, sourced report.</p>
+                <div class="hairline"></div>
+              </section>
+
+              <section class="trip-new-grid">
+                <div class="trip-new-form">
+                  <div class="field">
+                    <label class="field-label">Destination</label>
+                    <input class="input" value="Tokyo" />
+                    <span class="helper">In MVP, only Tokyo is fully covered. Kyoto and Osaka next.</span>
+                  </div>
+
+                  <div class="field">
+                    <label class="field-label">Companions</label>
+                    <div class="companion-row">
+                      <span class="chip"><span class="initial">Y</span>Yuna<span class="x">&times;</span></span>
+                      <span class="chip"><span class="initial">W</span>Wei<span class="x">&times;</span></span>
+                      <span class="companion-add">+ add a companion</span>
+                    </div>
+                    <span class="helper">Their preferences will weight the recommendations.</span>
+                  </div>
+
+                  <div class="field">
+                    <label class="field-label">What matters</label>
+                    <textarea class="textarea" rows="6">tonkotsu and shio ramen counters, bookshops in Jimbocho, no tourist-trap pricing, vegetarian-friendly when possible, slow mornings and quiet evenings.</textarea>
+                    <span class="helper">Free-form. The more specific, the more useful the disagreement signals.</span>
+                  </div>
+
+                  <div class="field">
+                    <label class="field-label">Dates &middot; optional</label>
+                    <div style="display: flex; gap: 16px;">
+                      <input class="input body-input" placeholder="from" value="2026-06-12" />
+                      <input class="input body-input" placeholder="to" value="2026-06-19" />
+                    </div>
+                  </div>
+
+                  <div class="submit-row">
+                    <button class="btn btn-primary">Begin reading <span class="arrow">&rarr;</span></button>
+                    <span class="helper" style="font-style: italic; font-family: var(--font-display); font-variation-settings: 'opsz' 24; font-weight: 300; font-size: 15px;">~ ninety seconds.</span>
+                  </div>
+                </div>
+
+                <aside class="brief">
+                  <span class="eyebrow">About</span>
+                  <h4 class="title" style="margin-top: 12px; margin-bottom: 18px;">What Plus One does.</h4>
+                  <p>It reads Reddit and Xiaohongshu in both languages, calls out sponsored content, and surfaces where Chinese and English communities <em>disagree</em> &mdash; with receipts.</p>
+                  <div class="silver-line"></div>
+                  <div class="stat"><span>Sources read per trip</span><strong class="num">~120</strong></div>
+                  <div class="silver-line"></div>
+                  <div class="stat"><span>Average reading time</span><strong class="num">90<span style="font-size: 11px; letter-spacing: 0.1em; margin-left: 4px;">SEC</span></strong></div>
+                  <div class="silver-line"></div>
+                  <div class="stat"><span>Cost per report</span><strong class="num">&lt; $1</strong></div>
+                </aside>
+              </section>
+            </main>
+
+            <footer class="site-footer">
+              <div class="site-footer-inner">
+                <div>
+                  <span class="footer-mark">Plus<span class="dot"></span>One</span>
+                  <p class="footer-tag">Travel with another perspective.</p>
+                </div>
+                <div><h4>Read</h4><ul><li><a href="#">New trip</a></li><li><a href="#">Your trips</a></li><li><a href="#">Companions</a></li></ul></div>
+                <div><h4>About</h4><ul><li><a href="#">How it works</a></li><li><a href="#">Sources</a></li><li><a href="#">Methodology</a></li></ul></div>
+                <div><h4>Quiet</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Delete account</a></li><li><a href="#">Export data</a></li></ul></div>
+              </div>
+            </footer>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE -->
+      <div class="preview-frame" style="max-width: 380px;">
+        <div class="label"><span>mobile · 390</span><span>/trips/new</span></div>
+        <div class="canvas" style="width: 380px;">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#" style="font-size: 18px;"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <span class="avatar" style="width: 26px; height: 26px; font-size: 11px;">H</span>
+                </nav>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="editorial-band stagger" style="padding: 36px 0 24px;">
+                <span class="eyebrow flanked">A new reading</span>
+                <h1 class="display-md">Where will you go?</h1>
+                <p class="dek">Tell me a place and what kind of trip.</p>
+                <div class="hairline"></div>
+              </section>
+
+              <section style="display: flex; flex-direction: column; gap: 28px; padding-bottom: 64px;">
+                <div class="field">
+                  <label class="field-label">Destination</label>
+                  <input class="input" value="Tokyo" style="font-size: 22px;" />
+                </div>
+
+                <div class="field">
+                  <label class="field-label">Companions</label>
+                  <div class="companion-row">
+                    <span class="chip"><span class="initial">Y</span>Yuna<span class="x">&times;</span></span>
+                    <span class="chip"><span class="initial">W</span>Wei<span class="x">&times;</span></span>
+                    <span class="companion-add">+ add</span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="field-label">What matters</label>
+                  <textarea class="textarea" rows="5">tonkotsu ramen, no tourist traps, vegetarian-friendly, slow mornings.</textarea>
+                </div>
+
+                <button class="btn btn-primary" style="align-self: flex-start;">Begin reading <span class="arrow">&rarr;</span></button>
+                <span class="helper" style="font-style: italic; font-family: var(--font-display); font-variation-settings: 'opsz' 24; font-weight: 300; font-size: 14px;">~ ninety seconds.</span>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
