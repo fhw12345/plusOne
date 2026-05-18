@@ -60,6 +60,12 @@ frontend/out/
 frontend/build/
 frontend/tsconfig.tsbuildinfo
 
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.cache/
+frontend/blob-report/
+
 # PWA generated
 frontend/public/sw.js
 frontend/public/workbox-*.js

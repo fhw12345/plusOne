@@ -152,16 +152,93 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: http://localhost:8000
 
+  # === Frontend E2E (Playwright) ===
+  frontend-e2e:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      CI: "true"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve Playwright version
+        id: playwright-version
+        run: |
+          version=$(node -p "require('@playwright/test/package.json').version")
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          # Key on the Playwright version itself, not the lockfile — avoids
+          # invalidating the browser cache on unrelated dep bumps.
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps (cache hit path)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run e2e
+        run: pnpm e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+
+      - name: Upload test results (traces, screenshots, videos)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: frontend/test-results/
+          retention-days: 7
+
   # === Aggregate gate (required check on main) ===
   ci-pass:
-    needs: [backend, frontend]
+    needs: [backend, frontend, frontend-e2e]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Verify all required jobs passed
         run: |
           if [ "${{ needs.backend.result }}" = "failure" ] || \
-             [ "${{ needs.frontend.result }}" = "failure" ]; then
+             [ "${{ needs.frontend.result }}" = "failure" ] || \
+             [ "${{ needs.frontend-e2e.result }}" = "failure" ]; then
             echo "❌ A required job failed"
             exit 1
           fi

@@ -107,6 +107,18 @@ plus-one/
 - **Commits**: conventional commits encouraged (`feat:`, `fix:`, `chore:`, `docs:`)
 - **ADRs**: every load-bearing decision gets an ADR in `docs/adr/`
 
+### E2E (Playwright)
+
+~~~bash
+just frontend-e2e-install   # one-time: download chromium binary
+just frontend-build         # build for production (e2e runs against pnpm start)
+just frontend-e2e           # run headless
+just frontend-e2e-ui        # interactive UI mode for debugging
+
+# All browsers locally:
+cd frontend && PLAYWRIGHT_ALL_BROWSERS=1 pnpm e2e
+~~~
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) (TODO) for full dev workflow.
 
 ## License
