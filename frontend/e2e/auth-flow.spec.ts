@@ -6,8 +6,8 @@ import { test, expect } from "@playwright/test";
 //
 //   1.  visit /login, submit email
 //   2.  test harness reads the latest magic-link token (dev-only endpoint
-//       to be added by Code Agent: GET /api/auth/dev/last-link)
-//   3.  open /auth/verify?token=...
+//       to be added by Code Agent: GET /api/auth/dev/last-link?email=...)
+//   3.  open /auth/exchange?token=...  (matches the URL backend emails)
 //   4.  land on /app, see authed-state UI
 //   5.  sign out -> back at landing
 //
@@ -24,14 +24,16 @@ test.describe("auth flow (magic link, happy path)", () => {
     await expect(page.getByText(/check your inbox|email sent|link sent/i)).toBeVisible();
 
     // Step 2: harness fetches the token (dev-only endpoint)
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
-    const lastLink = await request.get(`${apiBase}/api/auth/dev/last-link?email=${email}`);
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    const lastLink = await request.get(
+      `${apiBase}/api/auth/dev/last-link?email=${encodeURIComponent(email)}`,
+    );
     expect(lastLink.status(), "dev last-link endpoint must respond").toBe(200);
     const { token } = (await lastLink.json()) as { token: string };
     expect(token, "magic-link token must be non-empty").toBeTruthy();
 
     // Step 3+4: exchange and land in the authed area
-    await page.goto(`/auth/verify?token=${encodeURIComponent(token)}`);
+    await page.goto(`/auth/exchange?token=${encodeURIComponent(token)}`);
     await expect(page).toHaveURL(/\/app(\/|$)/);
     await expect(page.getByText(email)).toBeVisible();
 
