@@ -132,7 +132,7 @@ Two new endpoints, both in `backend/src/plus_one/api/auth.py`:
   link is captured and the endpoint returns 404.
 - The endpoint **must NOT** be exposed when the sender is `_SmtpEmailSender`.
 - **Note on link vs token:** the e2e harness only needs the raw token —
-  it then navigates `/auth/verify?token=<>` on the *frontend* origin and
+  it then navigates `/auth/exchange?token=<>` on the *frontend* origin and
   lets the frontend page POST to `/api/auth/exchange`. Returning the full
   link would leak the frontend origin into the API surface unnecessarily.
 
@@ -155,14 +155,14 @@ All paths relative to `frontend/`.
 | Path | Purpose |
 |------|---------|
 | `lib/schemas/auth.ts` | zod schemas: `RequestLinkBody`, `ExchangeBody`, `ExchangeResponse`, `MeResponse`, `DevLastLinkResponse` (`{ token: string }`). Re-export inferred TS types. |
-| `lib/api/client.ts` | Thin `apiFetch(path, init)` wrapper. Reads base URL from `process.env.NEXT_PUBLIC_API_BASE_URL` (falling back to `process.env.NEXT_PUBLIC_API_URL`, then `http://localhost:8000`). See §10 for why both names are read. Injects `Authorization: Bearer ${token}` when a token is in the auth store (read via `useAuthStore.getState()`, *not* a hook — this is called from non-component code too). Throws `ApiError` (custom class) with `{status, body}` on non-2xx. |
+| `lib/api/client.ts` | Thin `apiFetch(path, init)` wrapper. Reads base URL from `process.env.NEXT_PUBLIC_API_URL` (fallback `http://localhost:8000`). Injects `Authorization: Bearer ${token}` when a token is in the auth store (read via `useAuthStore.getState()`, *not* a hook — this is called from non-component code too). Throws `ApiError` (custom class) with `{status, body}` on non-2xx. |
 | `lib/api/auth.ts` | Typed wrappers: `requestLink(email)`, `exchange(token)`, `getMe()`, `logout()`. (`getDevLastLink` is e2e-harness-only — `auth-flow.spec.ts` calls the endpoint directly via Playwright `request.get`; do NOT add it to the app's API client surface.) Each calls `apiFetch` and parses with the matching zod schema. |
 | `store/auth.ts` | zustand store. Shape: `{ token: string \| null, user: { id: number, email: string } \| null, setSession(token, user), clearSession() }`. Uses `persist` middleware with `localStorage`, `name: "plus-one-auth"`. **`skipHydration: true`** so the store does not read localStorage during SSR (avoids hydration mismatch — see R1). |
 | `hooks/useHasHydrated.ts` | Tiny `useSyncExternalStore`-based hook returning `true` once the persist middleware has finished rehydrating. Components that render based on auth state gate on this. |
 | `hooks/useCurrentUser.ts` | Returns `{ user, isAuthenticated, signOut }`. `signOut` calls `apiFetch('/api/auth/logout', {method:'POST'})` (best-effort; ignore errors), then `clearSession()`, then `router.push('/')`. |
 | `components/providers.tsx` | Client component (`"use client"`). Wraps children in `<QueryClientProvider client={queryClient}>`. `queryClient` defined at module scope with safe defaults: `staleTime: 30_000`, `refetchOnWindowFocus: false`. |
 | `app/login/page.tsx` | Client component. **Heading text must match `/sign in/i`** (h1) per `auth-login-page.spec.ts:14`. RHF + zod resolver. Email input must have a label matching `/email/i`. Submit button accessible name must match `/send.*link\|magic link/i`. Validation message for invalid email must match `/valid email\|invalid email/i` and surface **before any network call**. Success copy must match `/check your inbox\|email sent\|link sent/i`. On 503 (`email_sender_not_configured` from backend) render an inline error. |
-| `app/auth/verify/page.tsx` | **Client component**, NOT server. Path **must be `/auth/verify`** per `auth-flow.spec.ts:34`. Reads `?token=...` via `useSearchParams`, calls `exchange(token)` on mount, then `getMe()`, sets session via store, then `router.replace('/app')`. While in flight: `<p>Signing you in…</p>`. On failure: `<p>This sign-in link is invalid or expired. <Link href="/login">Request a new one</Link>.</p>`. (Backend currently builds the email link with path `/auth/exchange` — see §6 R7 for the resolution.) |
+| `app/auth/exchange/page.tsx` | **Client component**, NOT server. Path **must be `/auth/exchange`** per `auth-flow.spec.ts:36`. Reads `?token=...` via `useSearchParams`, calls `exchange(token)` on mount, then `getMe()`, sets session via store, then `router.replace('/app')`. While in flight: `<p>Signing you in…</p>`. On failure: `<p>This sign-in link is invalid or expired. <Link href="/login">Request a new one</Link>.</p>`. The backend already builds the email link with path `/auth/exchange` — no R7 backend change needed. |
 | `app/app/page.tsx` | Client component. Gated on `useHasHydrated()`. If hydrated and `!isAuthenticated`, render `<RedirectToLogin />` (returns `null`, calls `router.replace('/login')` in an effect). If authed: must render the user's email string verbatim somewhere visible (e.g. `<h1>Hello, {user.email}</h1>`) so `auth-flow.spec.ts:36` `expect(page.getByText(email)).toBeVisible()` passes. Must include a sign-out control whose accessible name matches `/sign out\|log out/i`. |
 | `app/layout.tsx` (modify) | Wrap `{children}` in `<Providers>`. No other changes. |
 | `app/page.tsx` (modify) | Add `<Link href="/login">Sign in</Link>` (accessible name matches `/sign in/i`) below the construction notice. Preserve existing heading + tagline copy verbatim. |
@@ -190,15 +190,15 @@ change the implementation):
 - After valid submit, copy matching `/check your inbox|email sent|link sent/i` is visible within 5s.
 - After invalid email submit, copy matching `/valid email|invalid email/i` is visible — **without any network call** (zod resolver fires client-side first).
 - `GET /api/auth/dev/last-link?email=<>` returns 200 with JSON `{ token: string }` where token is non-empty.
-- After visiting `/auth/verify?token=<encoded>`, URL becomes one matching `/\/app(\/|$)/`.
+- After visiting `/auth/exchange?token=<encoded>`, URL becomes one matching `/\/app(\/|$)/`.
 - On the post-auth page, the email string used during sign-in is visible (`page.getByText(email)`).
 - That page has a button matching `/sign out|log out/i`.
 - After clicking sign-out, URL becomes `/` exactly and a link matching `/sign in/i` is visible.
 
 **Backend port wiring:** `auth-flow.spec.ts:27` reads
-`process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"`. The
+`process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"`. The
 Playwright `webServer` for the backend (§4.4) must therefore listen on
-`:8000`. The `NEXT_PUBLIC_API_BASE_URL` env var only needs to be set if a
+`:8000`. The `NEXT_PUBLIC_API_URL` env var only needs to be set if a
 non-default port is used.
 
 ### 4.4 Test wiring (`playwright.config.ts`)
@@ -310,11 +310,12 @@ independently before the next is started:
 6. **Providers** (`components/providers.tsx`) and wire into `app/layout.tsx`.
 7. **`/login` page** + RHF + zod + submit handler.
 8. **`/auth/exchange` page** — verify locally that pasting a console-logged
-   link works end-to-end before moving on.
+   link works end-to-end before moving on. Backend email link already
+   uses `/auth/exchange`; no R7 backend rewrite required.
 9. **`/app` page** + sign-out flow.
 10. **Update landing** (`app/page.tsx`) to add Sign-in link.
 11. **Update `playwright.config.ts`** `webServer` array.
-12. **Write three e2e specs** — run after each one is added.
+12. **Activate the e2e fixmes** in order: landing extension → `auth-login-page` (3 cases) → `auth-flow` (1 case). Run after each activation.
 13. **Run all gates locally**: build + lint + format:check + typecheck + test +
     e2e + `just backend-check`.
 14. **Manual screenshots** of `/login` and `/app` (authed) saved to
@@ -333,7 +334,7 @@ independently before the next is started:
 | R4 | **Dev-only `last-link` endpoint accidentally enabled in prod.** | Guard by `settings.app_env == "development"` at request time. Integration test asserts 404 when `app_env="production"`. CI env in prod-like workflows must set `APP_ENV=production` (already standard practice). |
 | R5 | **E2E flake from real network.** | No `page.waitForTimeout(...)` allowed. Use `expect.poll()`, `expect(locator).toBeVisible()` (auto-retries), and `page.waitForURL()` for navigation. The dev `last-link` endpoint should be polled with `expect.poll` not slept on, since the backend write happens during the `request-link` HTTP response and may race with the read on first request. |
 | R6 | **CORS preflight failures.** Backend currently hard-codes `allow_origins=["http://localhost:3000"]` at `backend/src/plus_one/main.py:46` with `allow_credentials=True`. | Matches our frontend origin exactly. Document in PR description that any change to frontend port requires updating this list — no action needed in this PR. |
-| R7 | **Magic-link route mismatch.** Backend builds the link as `${frontend_base_url}/auth/exchange?token=...`. If frontend route is named differently the email link 404s. | This PRD pins the route to `/auth/exchange`. Code Agent must use that exact path, not `/auth/verify`. |
+| R7 | **Magic-link route — resolved, no fix needed.** Backend builds the link as `${frontend_base_url}/auth/exchange?token=...` (see `backend/src/plus_one/api/auth.py:90`). E2E and this PRD pin the frontend route to `/auth/exchange`. The two already agree. | No backend edit. Ship `app/auth/exchange/page.tsx` as the frontend handler. |
 | R8 | **Spec-vs-implementation endpoint names.** Original brief referred to `request_magic_link` / `verify_magic_link`. Real backend uses `request-link` / `exchange`. | This PRD uses the real names. All API client wrappers and tests must follow. |
 | R9 | **Postgres in CI startup time** pushes the job above its current budget. | Backend job already does this — copy its setup verbatim. If runtime becomes an issue, follow-up by sharing the Postgres container across jobs (out of scope here). |
 
@@ -342,9 +343,9 @@ independently before the next is started:
 **Order matters — G1 is the binding goal; gate on it first.**
 
 1. **(G1)** `cd frontend && pnpm exec playwright test --project=chromium` runs
-   exactly 3 spec files and all pass. Output shows ≥7 test cases passing
-   (landing has 1, login-page has ≥1, flow has ≥1; teams may split flow into
-   smaller cases).
+   exactly 4 spec files (landing, app-shell, auth-login-page, auth-flow) and
+   all 8 cases pass. No `.fixme` remains in any of the auth specs. No new
+   spec files were created for these scenarios.
 2. `cd frontend && pnpm build` exits 0 with no warnings about hydration or
    unused exports.
 3. `cd frontend && pnpm lint` exits 0.
@@ -381,10 +382,41 @@ authed shell at `/app` and adds the trip-input UI under it.
 - **Code style:** the repo uses Prettier (4-arg pre-existing config at
   `frontend/.prettierrc.json`) and ESLint with `eslint-config-next`. No
   comments unless the *why* is non-obvious.
-- **Naming consistency:** the existing `.env.example` uses
-  `NEXT_PUBLIC_API_URL`. Do not introduce `NEXT_PUBLIC_API_BASE_URL` as
-  originally specced — reuse the existing var.
+- **Naming consistency:** `.env.example` already documents `NEXT_PUBLIC_API_URL`,
+  and the committed `e2e/auth-flow.spec.ts:27` reads the same name. No
+  reconciliation needed — `lib/api/client.ts` reads
+  `process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"`.
 - **Testing convention:** `e2e/landing.spec.ts` has a console-error
   allow-list pattern that filters favicon/PWA noise. New specs should
   reuse the same pattern (factor into `e2e/_console-errors.ts` if it gets
   copy-pasted to all three).
+
+## 10. Frozen contracts from commit `29daa08`
+
+Locked surface area Code Agent must satisfy bit-for-bit. Source of truth is
+the committed spec files; this table summarizes for convenience.
+
+| Surface | Locked value | Source |
+|---------|--------------|--------|
+| Frontend verify route | `/auth/exchange` | `auth-flow.spec.ts:36` |
+| Authed landing route | matches `/\/app(\/|$)/` (i.e. `/app` or `/app/...`) | `auth-flow.spec.ts:37` |
+| Dev token endpoint | `GET /api/auth/dev/last-link?email=<encoded>` | `auth-flow.spec.ts:28-30` |
+| Dev token endpoint response | `{ token: string }`, status 200 when present | `auth-flow.spec.ts:31-33` |
+| API base URL env var (read by e2e harness) | `NEXT_PUBLIC_API_URL`, fallback `http://localhost:8000` | `auth-flow.spec.ts:27` |
+| Login page `<h1>` | matches `/sign in/i` | `auth-login-page.spec.ts:14` |
+| Login email input | `page.getByLabel(/email/i)` | `auth-login-page.spec.ts:15, 21, 31` |
+| Login submit button | `getByRole("button", { name: /send.*link\|magic link/i })` | `auth-login-page.spec.ts:16, 22, 32` |
+| Login success copy | matches `/check your inbox\|email sent\|link sent/i` | `auth-login-page.spec.ts:25` |
+| Login validation copy | matches `/valid email\|invalid email/i` and fires client-side | `auth-login-page.spec.ts:35` |
+| Authed view content | must render the user's email string verbatim | `auth-flow.spec.ts:38` |
+| Sign-out control | matches `/sign out\|log out/i` (button role) | `auth-flow.spec.ts:41` |
+| Post sign-out URL | exactly `/` | `auth-flow.spec.ts:42` |
+| Landing sign-in link | matches `/sign in/i` (link role) | `auth-flow.spec.ts:43` |
+| Backend endpoints (unchanged) | `POST /api/auth/request-link` (204), `POST /api/auth/exchange` (200 `{access_token, token_type, expires_in_minutes}`), `POST /api/auth/logout` (204) | `backend/src/plus_one/api/auth.py` |
+| Backend addition #1 | `GET /api/auth/me` → `{id: int, email: str}`, 401 via `CurrentUser` | this PRD §4.1 |
+| Backend addition #2 | `GET /api/auth/dev/last-link?email=<>` → `{token: str}`, 404 when not dev | this PRD §4.1 |
+| Email link path (backend) | **change** `auth.py:90` from `/auth/exchange` → `/auth/exchange` (already correct; no change needed) | this PRD §6 R7 |
+
+If during implementation Code Agent finds a contract here unworkable,
+**send-message team-lead BEFORE editing any test**. The default is to bend
+the implementation to fit the test.
