@@ -11,12 +11,47 @@ recording double.
 from __future__ import annotations
 
 from typing import Protocol
+from urllib.parse import parse_qs, urlparse
 
 import structlog
 
 from plus_one.config import settings
 
 logger = structlog.get_logger()
+
+
+# Dev-only in-memory map: email -> most-recently-issued raw magic-link token.
+# Populated by `_ConsoleEmailSender.send_magic_link`. Consumed by the
+# `GET /api/auth/dev/last-link` endpoint (which is itself env-guarded).
+# Lives in module scope so a single uvicorn process accumulates entries
+# across test cases; a fresh process starts empty (good for e2e isolation).
+_DEV_LAST_LINKS: dict[str, str] = {}
+
+
+def get_dev_last_token(email: str) -> str | None:
+    """Return the most recent raw magic-link token issued for ``email``.
+
+    Returns ``None`` if no link has been issued in this process yet, or
+    if the console sender was not used (e.g. SMTP path didn't populate
+    the map). Dev/test only — guarded by the calling endpoint.
+    """
+    return _DEV_LAST_LINKS.get(email)
+
+
+def _record_dev_link(email: str, link: str) -> None:
+    """Best-effort capture of the raw token from a constructed magic-link URL.
+
+    Silently no-ops if the URL has no ``token`` query param — the dev
+    endpoint will surface that as a 404 to the caller.
+    """
+    # Dev helper must never crash a send; swallow any URL parse failure.
+    try:
+        parsed = urlparse(link)
+        tokens = parse_qs(parsed.query).get("token", [])
+        if tokens and tokens[0]:
+            _DEV_LAST_LINKS[email] = tokens[0]
+    except Exception:
+        logger.debug("dev_link_capture_failed", email=email)
 
 
 class EmailSender(Protocol):
@@ -34,6 +69,9 @@ class _ConsoleEmailSender:
     """
 
     async def send_magic_link(self, *, to: str, link: str) -> None:
+        # Record the raw token in the dev-only map BEFORE logging, so the
+        # /api/auth/dev/last-link endpoint can serve it to the e2e harness.
+        _record_dev_link(to, link)
         logger.warning(
             "magic_link_console_only",
             recipient=to,

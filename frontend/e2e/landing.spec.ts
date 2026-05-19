@@ -41,6 +41,7 @@ test.describe("landing page", () => {
     await expect(page).toHaveTitle("Plus One — AI travel planner");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Plus One");
     await expect(page.getByText("AI travel planner", { exact: false })).toBeVisible();
+    await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
 
     expect(unexpectedErrors, `unexpected console errors:\n${unexpectedErrors.join("\n")}`).toEqual(
       [],

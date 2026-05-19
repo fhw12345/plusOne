@@ -16,13 +16,15 @@ from __future__ import annotations
 
 from typing import Annotated
 
+from email_validator import EmailNotValidError, validate_email
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from plus_one.config import settings
-from plus_one.core.auth.email import get_email_sender
+from plus_one.core.auth.deps import CurrentUser  # noqa: TC001 - FastAPI dep used at runtime
+from plus_one.core.auth.email import get_dev_last_token, get_email_sender
 from plus_one.core.auth.jwt import create_access_token
 from plus_one.core.auth.tokens import (
     MagicLinkAlreadyConsumedError,
@@ -40,11 +42,39 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 # === Schemas ============================================================
 
 
+def _normalize_email_for_signup(value: str) -> str:
+    """Validate an email and return its normalized form.
+
+    Wraps ``email_validator`` with ``test_environment=True`` so reserved TLDs
+    like ``.test`` (RFC 2606) are accepted — the e2e harness uses
+    ``@plusone.test`` addresses and the default :class:`EmailStr` rejects
+    them as a reserved name. ``check_deliverability=False`` keeps the
+    validator pure-syntax (no DNS lookup, no MX probe) which is the right
+    default for an account-creation endpoint anyway.
+    """
+    try:
+        result = validate_email(
+            value,
+            check_deliverability=False,
+            test_environment=True,
+        )
+    except EmailNotValidError as exc:
+        raise ValueError(str(exc)) from exc
+    return result.normalized
+
+
 class RequestLinkBody(BaseModel):
-    email: EmailStr
+    email: str
     # Where the user came from — frontend tells us so the email link
     # can deep-link them back. Optional for now (not used in v1).
     return_to: str | None = Field(default=None, max_length=500)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def _validate_email(cls, v: object) -> str:
+        if not isinstance(v, str):
+            raise ValueError("email must be a string")
+        return _normalize_email_for_signup(v)
 
 
 class ExchangeBody(BaseModel):
@@ -55,6 +85,22 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in_minutes: int
+
+
+class MeResponse(BaseModel):
+    """Current-user identity payload returned by ``GET /api/auth/me``."""
+
+    id: str
+    email: str
+
+
+class DevLastLinkResponse(BaseModel):
+    """Dev-only payload for ``GET /api/auth/dev/last-link``.
+
+    Locked to ``{"token": str}`` by the e2e contract — do not widen.
+    """
+
+    token: str
 
 
 # === Endpoints ==========================================================
@@ -175,3 +221,43 @@ async def logout(response: Response) -> None:
         key=settings.auth_cookie_name,
         path="/",
     )
+
+
+@router.get(
+    "/me",
+    response_model=MeResponse,
+    summary="Get current authenticated user",
+    description=(
+        "Returns the identity associated with the Bearer token in the "
+        "``Authorization`` header. Returns 401 if no/invalid token."
+    ),
+)
+async def me(user: CurrentUser) -> MeResponse:
+    return MeResponse(id=str(user.id), email=user.email)
+
+
+@router.get(
+    "/dev/last-link",
+    response_model=DevLastLinkResponse,
+    summary="[dev] Read the most-recent magic-link token for an email",
+    description=(
+        "Dev/test only. Returns 404 unless ``APP_ENV=development`` AND the "
+        "console email sender has captured a link for the given address. "
+        "The e2e harness uses this to drive the magic-link happy path "
+        "without parsing logs."
+    ),
+)
+async def dev_last_link(email: str) -> DevLastLinkResponse:
+    # Env guard at *request time* — same binary serves dev and prod.
+    if settings.app_env != "development":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found",
+        )
+    token = get_dev_last_token(email)
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No magic-link issued for this email",
+        )
+    return DevLastLinkResponse(token=token)

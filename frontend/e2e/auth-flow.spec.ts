@@ -14,7 +14,7 @@ import { test, expect } from "@playwright/test";
 // Scaffolded as fixme until those pages land.
 
 test.describe("auth flow (magic link, happy path)", () => {
-  test.fixme("request → verify → authed → sign out", async ({ page, request }) => {
+  test("request → verify → authed → sign out", async ({ page, request }) => {
     const email = `e2e+${Date.now()}@plusone.test`;
 
     // Step 1: request a link

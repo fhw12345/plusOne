@@ -75,3 +75,69 @@ def test_request_link_returns_204_with_console_sender_optin(
     client = TestClient(_make_app())
     resp = client.post("/api/auth/request-link", json={"email": "x@example.com"})
     assert resp.status_code == 204
+
+
+@pytest.mark.unit
+def test_dev_last_link_returns_404_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Env-guard: the dev endpoint must 404 when app_env != development."""
+    monkeypatch.setattr(settings, "app_env", "production")
+    client = TestClient(_make_app())
+    resp = client.get("/api/auth/dev/last-link", params={"email": "x@example.com"})
+    assert resp.status_code == 404
+
+
+@pytest.mark.unit
+def test_dev_last_link_returns_404_when_no_link_issued(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Dev env, but no link captured yet for this email → 404."""
+    from plus_one.core.auth import email as email_mod
+
+    monkeypatch.setattr(settings, "app_env", "development")
+    monkeypatch.setattr(email_mod, "_DEV_LAST_LINKS", {})
+    client = TestClient(_make_app())
+    resp = client.get(
+        "/api/auth/dev/last-link",
+        params={"email": "nobody@example.com"},
+    )
+    assert resp.status_code == 404
+
+
+@pytest.mark.unit
+def test_dev_last_link_returns_token_after_console_send(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Console sender populates the map; dev endpoint returns the token."""
+    from plus_one.core.auth import email as email_mod
+
+    monkeypatch.setattr(settings, "app_env", "development")
+    monkeypatch.setattr(email_mod, "_DEV_LAST_LINKS", {})
+
+    sender = email_mod._ConsoleEmailSender()
+    import asyncio
+
+    asyncio.run(
+        sender.send_magic_link(
+            to="captured@example.com",
+            link="http://localhost:3000/auth/exchange?token=abcdef0123456789",
+        )
+    )
+
+    client = TestClient(_make_app())
+    resp = client.get(
+        "/api/auth/dev/last-link",
+        params={"email": "captured@example.com"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body == {"token": "abcdef0123456789"}
+
+
+@pytest.mark.unit
+def test_me_returns_401_without_token() -> None:
+    """`/api/auth/me` must 401 when no Authorization header is present."""
+    client = TestClient(_make_app())
+    resp = client.get("/api/auth/me")
+    assert resp.status_code == 401

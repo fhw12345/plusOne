@@ -158,12 +158,45 @@ jobs:
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: plus_one
+          POSTGRES_PASSWORD: dev
+          POSTGRES_DB: plus_one
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U plus_one"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
     defaults:
       run:
         working-directory: frontend
     env:
       NEXT_PUBLIC_API_URL: http://localhost:8000
       CI: "true"
+      # Backend env consumed by the uvicorn process started by Playwright's
+      # webServer[1]. Pass via the runner env so the spawned child inherits.
+      APP_ENV: development
+      ALLOW_CONSOLE_EMAIL_SENDER: "true"
+      AUTH_COOKIE_SECURE: "false"
+      DATABASE_URL: postgresql+asyncpg://plus_one:dev@localhost:5432/plus_one
+      REDIS_URL: redis://localhost:6379/0
+      MAESTRO_BASE_URL: http://localhost:23333/api/anthropic
+      MAESTRO_AUTH_TOKEN: dummy-for-ci
+      JWT_SECRET: dummy-for-ci
 
     steps:
       - uses: actions/checkout@v4
@@ -180,8 +213,28 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.4"
+          enable-cache: true
+
+      - name: Set up Python
+        working-directory: backend
+        run: uv python install 3.12
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: uv sync --frozen
+
+      - name: Apply DB migrations
+        working-directory: backend
+        run: uv run alembic upgrade head
+        # Tolerate the case where alembic is not yet configured for this branch.
+        continue-on-error: true
 
       - name: Resolve Playwright version
         id: playwright-version

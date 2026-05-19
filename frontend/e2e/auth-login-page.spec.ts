@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test";
 // When the page lands, drop `.fixme` to activate the assertion.
 
 test.describe("login page", () => {
-  test.fixme("renders email input and submit button", async ({ page }) => {
+  test("renders email input and submit button", async ({ page }) => {
     const response = await page.goto("/login");
     expect(response?.status(), "GET /login should return 200").toBe(200);
 
@@ -16,7 +16,7 @@ test.describe("login page", () => {
     await expect(page.getByRole("button", { name: /send.*link|magic link/i })).toBeVisible();
   });
 
-  test.fixme("submitting a valid email shows confirmation copy", async ({ page }) => {
+  test("submitting a valid email shows confirmation copy", async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel(/email/i).fill("e2e@plusone.test");
     await page.getByRole("button", { name: /send.*link|magic link/i }).click();
@@ -27,7 +27,7 @@ test.describe("login page", () => {
     });
   });
 
-  test.fixme("blocks submission for an obviously invalid email", async ({ page }) => {
+  test("blocks submission for an obviously invalid email", async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel(/email/i).fill("not-an-email");
     await page.getByRole("button", { name: /send.*link|magic link/i }).click();
