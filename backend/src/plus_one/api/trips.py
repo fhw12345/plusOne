@@ -88,11 +88,11 @@ async def create_trip(
         query_parts.append(body.free_text)
     query = " | ".join(query_parts)
 
-    background.add_task(run_trip, trip.id, query)
     # Pre-create the per-trip event queue BEFORE the response so the
     # client can race straight to GET /stream and not lose events.
     # Reviewer B1: register before BackgroundTask schedules run_trip.
     register(trip.id)
+    background.add_task(run_trip, trip.id, query)
     return CreateTripResponse(trip_id=trip.id, status=trip.status)
 
 

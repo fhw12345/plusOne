@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import type { TripEvent } from "@/lib/schemas/events";
 import { openTripStream, type TripStreamHandle } from "@/lib/sse";
@@ -141,10 +141,6 @@ export function useTripStream(tripId: string | null): UseTripStreamResult {
   }
 
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  // Reset any module-level state when the hook unmounts entirely (handled
-  // automatically by the bus refcount). Effect kept for symmetry / future
-  // teardown hooks.
-  useEffect(() => () => void 0, []);
   return snapshot;
 }
 

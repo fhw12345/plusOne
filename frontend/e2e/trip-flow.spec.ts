@@ -36,7 +36,10 @@ test.describe("trip flow (happy path)", () => {
       page.locator("[data-trip-status='complete'], [data-trip-status='aborted']"),
     ).toBeVisible({ timeout: 60_000 });
 
-    // Report content references the destination we asked for
+    // In this e2e environment PLUS_ONE_ALLOW_REAL_LLM=0 forces the cycle to
+    // abort with an empty report (see playwright.config.ts). So the most
+    // meaningful destination check is that the page header still reflects
+    // the trip we created — the report region itself is empty by design.
     await expect(page.getByText(/Tokyo/i)).toBeVisible();
   });
 });
