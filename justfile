@@ -58,6 +58,18 @@ frontend-build:
 
 frontend-check: frontend-lint frontend-typecheck
 
+# Install Playwright browser binaries (chromium only by default)
+frontend-e2e-install:
+    cd frontend && pnpm e2e:install
+
+# Run Playwright e2e tests headless (against pnpm start)
+frontend-e2e:
+    cd frontend && pnpm e2e
+
+# Run Playwright UI mode for local debugging
+frontend-e2e-ui:
+    cd frontend && pnpm e2e:ui
+
 # === Infra ===
 
 # Start local services (postgres + redis + langfuse)

@@ -6,3 +6,9 @@ public/sw.js
 public/workbox-*.js
 public/worker-*.js
 pnpm-lock.yaml
+
+# Playwright outputs
+playwright-report
+test-results
+playwright/.cache
+blob-report
