@@ -71,6 +71,9 @@ export default defineConfig({
         DATABASE_URL:
           process.env.DATABASE_URL ?? "postgresql+asyncpg://plus_one:dev@localhost:5432/plus_one",
         JWT_SECRET: process.env.JWT_SECRET ?? "dummy-for-e2e",
+        // forces MaestroProvider construction error → cycle_aborted → SSE
+        // emits a terminal event without external deps
+        PLUS_ONE_ALLOW_REAL_LLM: "0",
       },
     },
   ],

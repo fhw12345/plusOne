@@ -400,6 +400,7 @@ Each step compiles and runs independently before the next is started.
 | R8 | **`EventSource` not in jsdom.** Vitest unit tests of `lib/sse.ts` and `useTripStream` will need a fake. | Provide a small `class FakeEventSource` in the test file; assign to `globalThis.EventSource` in `beforeEach`. No production dep. |
 | R9 | **`useTripStream` re-render storms.** Naively `setState([...events, newEvent])` on every SSE frame is fine for ~5-20 events per cycle but would melt for streams of 1000s. | v1 streams emit O(10) events — non-issue. Append-to-array is correct and simple. Document the limit in a one-line comment so future-us doesn't reuse this for 1000-event streams. |
 | R10 | **`docs/handoff/REMAINING_WORK.md:180-188` is stale.** It says "prefer the cookie path" and "EventSource directly works". Both are false against current backend (see PRD §1 + §4.1). | This PRD is the authoritative source for PR B's auth approach. After merge, ship a small doc commit appending a "2026-05-19: superseded by `docs/prds/batch2f-pr-b-trips.md` §4.1" note to the handoff doc. Out of scope for the code PR. |
+| R7-followup | **e2e relies on `MaestroProvider` construction error to drive `cycle_aborted`.** Playwright sets `PLUS_ONE_ALLOW_REAL_LLM=0` in `webServer[1].env` so provider construction raises, the producer phase catches the `RuntimeError`, and `trip_runner.py:252` emits `cycle_aborted` — the SSE terminal event the e2e asserts on. | **Out of scope for this PR.** Follow-up batch should add a runtime LLM provider override (e.g. env var `PLUS_ONE_LLM_PROVIDER=mock` returning a stub provider, mirroring the test fixture) so e2e exercises the happy-path producer/joiner/controller cycle instead of the error path. Today's approach is fragile: any refactor that catches the `RuntimeError` differently or moves the guard breaks the e2e. |
 
 ## 7. Acceptance Criteria
 
@@ -475,35 +476,67 @@ Order matters — G1 is the binding goal; gate on it first.
 
 ## 10. Frozen contracts
 
-**Empty until team-lead commits the e2e scaffolds.** Two spec files
-must be pre-committed by team-lead before Code Agent dispatch:
+Locked at commit `9ba74c1` on `feat/batch2f-pr-b-trips`. Source files
+(all paths absolute under `C:\Users\haowenfeng\repo\newproject\`):
 
-- `frontend/e2e/trip-new-page.spec.ts` — 3 cases, all `test.fixme`, exact
-  assertion text from §4.3 table.
-- `frontend/e2e/trip-flow.spec.ts` — 1 case, `test.fixme`, exact
-  assertion text from §4.3 table.
-- `frontend/e2e/_helpers/auth.ts` — `signInE2E(page, request)` helper as
-  specified in §4.2 (last row). If team-lead chooses to also create the
-  helper file in the same commit, Code Agent uses it as-is; otherwise
-  Code Agent creates it as the first step of implementation since the
-  specs `import` it.
+- `frontend\e2e\_helpers\auth.ts` (33 lines)
+- `frontend\e2e\trip-new-page.spec.ts` (44 lines)
+- `frontend\e2e\trip-flow.spec.ts` (45 lines)
 
-Once those land at a known HEAD, this section will be populated with:
+Code Agent activates by removing `.fixme` only — **do not edit the spec
+bodies**. If any contract here proves unworkable, SendMessage
+team-lead BEFORE editing any test or spec file. Default is to bend the
+implementation to fit the test.
+
+### 10.1 `signInE2E` helper
 
 | Surface | Locked value | Source |
 |---------|--------------|--------|
-| trip-new heading | matches `/plan a trip\|new trip/i` | `trip-new-page.spec.ts:<line>` |
-| trip-new destination input | `page.getByLabel(/destination/i)` | `trip-new-page.spec.ts:<line>` |
-| trip-new submit button | `getByRole("button", { name: /plan\|start\|create/i })` | `trip-new-page.spec.ts:<line>` |
-| trip-new validation copy | matches `/required\|destination/i`, fires client-side | `trip-new-page.spec.ts:<line>` |
-| trip-detail URL | matches `/\/app\/trips\/[0-9a-f-]{36}/i` | `trip-new-page.spec.ts:<line>` + `trip-flow.spec.ts:<line>` |
-| progress feed testid | `data-testid="progress-feed"` | `trip-flow.spec.ts:<line>` |
-| progress feed text | matches `/started\|producer\|joiner\|controller\|cycle aborted\|trip complete/i` (within 20s) | `trip-flow.spec.ts:<line>` |
-| terminal status attribute | `data-trip-status="complete"` or `"aborted"` (within 60s) | `trip-flow.spec.ts:<line>` |
-| report content visible | destination string echoes back | `trip-flow.spec.ts:<line>` |
+| Helper signature | `async function signInE2E(page: Page, request: APIRequestContext): Promise<{ email: string }>` | `frontend/e2e/_helpers/auth.ts:10-13` |
+| Generated email format | `` `e2e+${Date.now()}-${Math.random().toString(36).slice(2, 8)}@plusone.test` `` (timestamp + base36 suffix; unique across `fullyParallel: true` workers) | `frontend/e2e/_helpers/auth.ts:14` |
+| Flow | `/login` → fill email → click `/send.*link\|magic link/i` → wait for `/check your inbox\|email sent\|link sent/i` → `GET /api/auth/dev/last-link?email=<encoded>` (status 200, `{token}` non-empty) → `/auth/exchange?token=<encoded>` → wait for URL `/\/app(\/|$)/` → return `{email}` | `frontend/e2e/_helpers/auth.ts:16-32` |
+| Returns | `{ email: string }` | `frontend/e2e/_helpers/auth.ts:32` |
+
+The helper waits for the post-exchange redirect to `/\/app(\/|$)/`
+before returning, so callers can immediately `await page.goto("/app/trips/new")`
+without a flake (PRD §4.2 row spec).
+
+### 10.2 `trip-new-page.spec.ts` — 3 cases (all `test.fixme`)
+
+| # | Test name (verbatim) | Declaration line | Assertion lines | Locked contract |
+|---|----------------------|------------------|-----------------|-----------------|
+| 1 | `renders the trip form when authed` | `frontend/e2e/trip-new-page.spec.ts:16` | 20, 21, 22 | h1 matches `/plan a trip\|new trip/i`; `getByLabel(/destination/i)` visible; `getByRole("button", { name: /plan\|start\|create/i })` visible. **Does not assert the optional `free_text` label** — covered by trip-flow happy path. |
+| 2 | `blocks submission when destination is empty` | `frontend/e2e/trip-new-page.spec.ts:25` | 30, 33 | Sign in, goto `/app/trips/new`, click submit with both fields untouched, expect `/required\|destination/i` visible. Must fire client-side (zod resolver) — no `await page.waitForResponse`. |
+| 3 | `submitting a valid trip navigates to /app/trips/<id>` | `frontend/e2e/trip-new-page.spec.ts:36` | 40, 41, 43 | Sign in, goto `/app/trips/new`, fill `destination = "Tokyo"` only (do NOT fill `free_text`), click submit, expect URL matches `/\/app\/trips\/[0-9a-f-]{36}/i`. Does NOT assert SSE state — that's `trip-flow.spec.ts`'s job. |
+
+**Note on test 2's name:** team-lead's pre-commit uses `"blocks
+submission when destination is empty"` (verb noun). PRD draft §4.3 said
+`"blocks submit when destination is empty"`. The spec body is
+authoritative.
+
+### 10.3 `trip-flow.spec.ts` — 1 case (`test.fixme`)
+
+| # | Test name (verbatim) | Declaration line | Assertion lines | Locked contract |
+|---|----------------------|------------------|-----------------|-----------------|
+| 1 | `submit trip → live event → terminal status → report visible` | `frontend/e2e/trip-flow.spec.ts:18` | 27, 30-33, 37-39, 42 | (a) Sign in via `signInE2E`. (b) `/app/trips/new` → fill `destination = "Tokyo"` → click `/plan\|start\|create/i`. (c) URL matches `/\/app\/trips\/[0-9a-f-]{36}/i` within 10s. (d) `page.getByTestId("progress-feed")` contains text matching `/started\|producer\|joiner\|controller\|cycle aborted\|trip complete/i` within 20s. (e) `page.locator("[data-trip-status='complete'], [data-trip-status='aborted']")` visible within 60s — both terminal states satisfy the contract. (f) `Tokyo` text visible somewhere on the report view. |
+
+Comment block at `trip-flow.spec.ts:8-11` notes that with `ramen_basics`
+skill backing the fixture path, Tokyo SHOULD reach `complete` not
+`aborted`. The spec still accepts both so a fixture change does not
+silently break CI.
+
+### 10.4 Surfaces the implementation MUST provide (extracted from the locked specs)
+
+| Surface | Locked value | Source |
+|---------|--------------|--------|
+| Trip-new heading | `<h1>` text matches `/plan a trip\|new trip/i` | `trip-new-page.spec.ts:20` |
+| Destination input | reachable via `page.getByLabel(/destination/i)` | `trip-new-page.spec.ts:21, 40` |
+| Submit button | `getByRole("button", { name: /plan\|start\|create/i })` | `trip-new-page.spec.ts:22, 30, 41` + `trip-flow.spec.ts:25` |
+| Validation copy (empty destination) | text matches `/required\|destination/i`, fires client-side | `trip-new-page.spec.ts:33` |
+| Trip-detail URL pattern | `/\/app\/trips\/[0-9a-f-]{36}/i` | `trip-new-page.spec.ts:43` + `trip-flow.spec.ts:27` |
+| Progress feed container | `data-testid="progress-feed"` | `trip-flow.spec.ts:30` |
+| Progress feed event text | matches `/started\|producer\|joiner\|controller\|cycle aborted\|trip complete/i` (within 20s) | `trip-flow.spec.ts:30-33` |
+| Terminal status attribute | `data-trip-status="complete"` OR `data-trip-status="aborted"` on a visible element (within 60s) | `trip-flow.spec.ts:37-39` |
+| Report content echoes destination | `getByText(/Tokyo/i)` visible | `trip-flow.spec.ts:42` |
 | SSE auth wire | `GET /api/trips/{id}/stream?access_token=<jwt>` | this PRD §4.1 |
 | Backend addition | new dep `current_user_or_sse` in `backend/src/plus_one/core/auth/deps.py`; `trips.py:97-101` switches to it; uvicorn access-log scrubber filter installed in `backend/src/plus_one/main.py`. No other endpoint changes. | this PRD §4.1 |
-
-If Code Agent finds any of these contracts unworkable, **SendMessage
-team-lead BEFORE editing any test or spec file**. The default is to
-bend the implementation to fit the test.

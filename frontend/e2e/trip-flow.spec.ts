@@ -15,31 +15,28 @@ import { signInE2E } from "./_helpers/auth";
 // dominates, and CI is slow.
 
 test.describe("trip flow (happy path)", () => {
-  test.fixme(
-    "submit trip → live event → terminal status → report visible",
-    async ({ page, request }) => {
-      await signInE2E(page, request);
+  test("submit trip → live event → terminal status → report visible", async ({ page, request }) => {
+    await signInE2E(page, request);
 
-      await page.goto("/app/trips/new");
-      await page.getByLabel(/destination/i).fill("Tokyo");
-      await page.getByRole("button", { name: /plan|start|create/i }).click();
+    await page.goto("/app/trips/new");
+    await page.getByLabel(/destination/i).fill("Tokyo");
+    await page.getByRole("button", { name: /plan|start|create/i }).click();
 
-      await expect(page).toHaveURL(/\/app\/trips\/[0-9a-f-]{36}/i, { timeout: 10_000 });
+    await expect(page).toHaveURL(/\/app\/trips\/[0-9a-f-]{36}/i, { timeout: 10_000 });
 
-      // At least one progress event surfaces in the live feed
-      await expect(page.getByTestId("progress-feed")).toContainText(
-        /started|producer|joiner|controller|cycle aborted|trip complete/i,
-        { timeout: 20_000 },
-      );
+    // At least one progress event surfaces in the live feed
+    await expect(page.getByTestId("progress-feed")).toContainText(
+      /started|producer|joiner|controller|cycle aborted|trip complete/i,
+      { timeout: 20_000 },
+    );
 
-      // Trip lands on a terminal status (complete or aborted). Either is a
-      // success for *this* spec — content correctness is asserted next.
-      await expect(
-        page.locator("[data-trip-status='complete'], [data-trip-status='aborted']"),
-      ).toBeVisible({ timeout: 60_000 });
+    // Trip lands on a terminal status (complete or aborted). Either is a
+    // success for *this* spec — content correctness is asserted next.
+    await expect(
+      page.locator("[data-trip-status='complete'], [data-trip-status='aborted']"),
+    ).toBeVisible({ timeout: 60_000 });
 
-      // Report content references the destination we asked for
-      await expect(page.getByText(/Tokyo/i)).toBeVisible();
-    },
-  );
+    // Report content references the destination we asked for
+    await expect(page.getByText(/Tokyo/i)).toBeVisible();
+  });
 });

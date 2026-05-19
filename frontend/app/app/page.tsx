@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -60,6 +61,12 @@ export default function AppPage() {
       <p className="text-muted-foreground text-sm">
         Welcome to Plus One. Trip planning UI lands next.
       </p>
+      <Link
+        href="/app/trips/new"
+        className="border-foreground/20 rounded border px-3 py-2 text-sm font-medium"
+      >
+        Plan a trip
+      </Link>
     </main>
   );
 }

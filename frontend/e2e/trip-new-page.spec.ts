@@ -13,7 +13,7 @@ import { signInE2E } from "./_helpers/auth";
 // happy path in `trip-flow.spec.ts`.
 
 test.describe("trip new page", () => {
-  test.fixme("renders the trip form when authed", async ({ page, request }) => {
+  test("renders the trip form when authed", async ({ page, request }) => {
     await signInE2E(page, request);
     await page.goto("/app/trips/new");
 
@@ -22,7 +22,7 @@ test.describe("trip new page", () => {
     await expect(page.getByRole("button", { name: /plan|start|create/i })).toBeVisible();
   });
 
-  test.fixme("blocks submission when destination is empty", async ({ page, request }) => {
+  test("blocks submission when destination is empty", async ({ page, request }) => {
     await signInE2E(page, request);
     await page.goto("/app/trips/new");
 
@@ -33,7 +33,7 @@ test.describe("trip new page", () => {
     await expect(page.getByText(/required|destination/i)).toBeVisible();
   });
 
-  test.fixme("submitting a valid trip navigates to /app/trips/<id>", async ({ page, request }) => {
+  test("submitting a valid trip navigates to /app/trips/<id>", async ({ page, request }) => {
     await signInE2E(page, request);
     await page.goto("/app/trips/new");
 
