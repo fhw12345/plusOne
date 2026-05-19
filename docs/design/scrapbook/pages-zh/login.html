@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — 打个招呼</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+<link rel="stylesheet" href="../scrapbook-zh.css">
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">换成打印体</button>
+
+<div class="shell" style="max-width: 720px;">
+
+  <p class="crest" style="margin-top: 18px;">
+    <span class="crest-dot"></span><span class="lat-type">PLUS · ONE</span> · 打个招呼
+  </p>
+
+  <section style="position: relative; padding-top: 60px;">
+    <span class="tape tape--mint" style="top: 32px; left: 24px; width: 110px; height: 26px; transform: rotate(-5deg);"></span>
+    <span class="tape tape--yellow" style="top: 38px; right: 80px; width: 80px; height: 22px; transform: rotate(7deg);"></span>
+
+    <h1 class="hand-xxl" style="margin-bottom: 16px;">让我进来</h1>
+    <p class="lede" style="max-width: 460px; transform: rotate(-.4deg);">
+      我发个链接给你 &mdash; 像便签，只是从邮箱送过来。
+    </p>
+
+    <div style="margin-top: 56px; max-width: 480px; position: relative;">
+
+      <div style="position: relative; padding: 36px 38px 42px; background: hsl(var(--paper-2)); box-shadow: 0 16px 30px -16px hsl(0 0% 0% / .22), 0 2px 4px hsl(0 0% 0% / .08); transform: rotate(-1deg);">
+        <span class="tape tape--blue" style="top: -12px; left: 50%; width: 110px; height: 24px; transform: translateX(-50%) rotate(2deg);"></span>
+
+        <form onsubmit="event.preventDefault(); document.getElementById('post-submit').style.display='block'; this.style.opacity='.45'; this.style.pointerEvents='none';">
+          <div class="field">
+            <label for="email">你的邮箱</label>
+            <input id="email" type="email" autocomplete="email" placeholder="朋友@某个地方.com" required>
+            <span class="hint">我不会卖掉它，也不会拿去做别的。</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 18px; margin-top: 12px;">
+            <button class="btn" type="submit">把链接发过来</button>
+            <span class="annot"><span class="glyph">↑</span> 按这里</span>
+          </div>
+        </form>
+
+        <div id="post-submit" style="display: none; margin-top: 28px; padding-top: 22px; border-top: 1px dotted hsl(var(--kraft));">
+          <p class="hand" style="font-size: 24px;">
+            好 &mdash; 发了。<span class="highlight">去收件箱看看。</span>
+          </p>
+          <p class="scrawl" style="margin-top: 6px;">
+            链接长得像便签。点一下就进来了。
+          </p>
+        </div>
+      </div>
+
+      <p class="annot" style="margin-top: 36px; display: block; transform: rotate(-1.5deg);">
+        ps &mdash; 没收到的话，看一眼垃圾箱。有些邮箱比较多疑。
+      </p>
+    </div>
+  </section>
+
+  <footer style="margin-top: 120px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+    <p class="type"><span class="lat-type">PLUS · ONE · v0.1</span> · 东京 · 台北 · 所有安静的地方</p>
+  </footer>
+</div>
+
+</body>
+</html>

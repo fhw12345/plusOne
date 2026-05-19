@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Option A — Editorial Atlas (refined) — trip-detail sketch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F4F0E8;
+    --paper-2: #FAF7F0;
+    --ink: #15181F;
+    --ink-2: #3F454F;
+    --ink-3: #71767E;
+    --rule: #D8D2C5;
+    --rule-strong: #A39C8C;
+    --brass: #937642;
+    --brass-tint: #F0E6D2;
+    --brass-fill: #B58E4F;
+    --aborted: #8C4A3F;
+    --moss: #487060;
+    --font-d: 'Fraunces', 'Noto Serif SC', Georgia, serif;
+    --font-b: 'Inter Tight', system-ui, sans-serif;
+    --font-m: 'JetBrains Mono', ui-monospace, monospace;
+    --font-cn: 'Noto Serif SC', 'Source Han Serif SC', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-b); font-size: 16px; line-height: 1.55; }
+  .shell { padding: 32px; background: #1B1F26; min-height: 100vh; }
+  .shell-h { max-width: 1500px; margin: 0 auto 18px; color: #C9C2B0; font-family: var(--font-m); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; }
+  .shell-h .file { color: var(--brass-tint); text-transform: none; letter-spacing: 0.04em; }
+  .frame { max-width: 1500px; margin: 0 auto; background: var(--paper); border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); }
+  .label { background: #22262E; color: #C9C2B0; font-family: var(--font-m); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; padding: 10px 16px; display: flex; justify-content: space-between; border-bottom: 1px solid #2C313A; }
+
+  /* header band */
+  .head { display: grid; grid-template-columns: 1fr 320px; gap: 0; border-bottom: 1px solid var(--rule); }
+  .head-l { padding: 64px 56px 36px; }
+  .head-r { padding: 28px 32px; border-left: 1px solid var(--rule); background: var(--paper-2); display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow { font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; display: inline-flex; align-items: center; gap: 12px; }
+  .eyebrow::before, .eyebrow::after { content: ''; width: 16px; height: 1px; background: var(--rule-strong); }
+  .h1 { font-family: var(--font-d); font-weight: 400; font-size: 64px; letter-spacing: -0.025em; line-height: 1; margin-top: 22px; font-variation-settings: 'opsz' 144; }
+  .h1 .cn { font-family: var(--font-cn); font-weight: 400; color: var(--ink-2); font-size: 0.65em; margin-left: 14px; vertical-align: 6px; letter-spacing: 0; }
+  .for { font-family: var(--font-d); font-style: italic; font-weight: 300; font-size: 19px; color: var(--ink-2); margin-top: 18px; font-variation-settings: 'opsz' 24; }
+
+  /* status — running uses brass FILL, not subtle dot */
+  .pill-live {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--brass-fill); color: var(--paper);
+    padding: 6px 12px 6px 10px; border-radius: 999px;
+    font-family: var(--font-m); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    align-self: flex-start;
+  }
+  .pill-live .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--paper); animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+  .meta-r { font-size: 12px; color: var(--ink-3); display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .meta-r strong { color: var(--ink); font-family: var(--font-d); font-weight: 400; font-size: 22px; letter-spacing: -0.01em; line-height: 1.1; }
+  .meta-r .progress { height: 2px; background: var(--rule); margin-top: 8px; position: relative; overflow: hidden; }
+  .meta-r .progress::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 38%; background: var(--brass); animation: grow 4s ease-in-out infinite alternate; }
+  @keyframes grow { from { width: 35%; } to { width: 50%; } }
+
+  /* body — TWO COLUMN, content on left, marginalia (SSE) on right */
+  .body { display: grid; grid-template-columns: 1fr 280px; gap: 0; }
+  .col-content { padding: 48px 56px 64px; border-right: 1px solid var(--rule); }
+  .col-margin { padding: 32px 28px; background: linear-gradient(to bottom, var(--paper) 0%, var(--paper-2) 100%); }
+
+  /* report — composing in real time */
+  .tldr { padding-bottom: 30px; border-bottom: 1px solid var(--rule); }
+  .tldr p { font-family: var(--font-d); font-weight: 300; font-size: 28px; line-height: 1.35; letter-spacing: -0.01em; color: var(--ink); max-width: 28ch; margin-top: 14px; }
+  .tldr .caret { display: inline-block; width: 6px; height: 26px; background: var(--brass); vertical-align: -3px; margin-left: 4px; animation: caret 1s steps(2) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  .section-title { font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; margin: 36px 0 18px; }
+
+  .card { border: 1px solid var(--rule); border-left: 3px solid var(--brass); padding: 26px 28px; background: var(--paper-2); margin-bottom: 14px; border-radius: 2px; }
+  .card.composing { border-left-color: var(--rule-strong); }
+  .card .ctitle { font-family: var(--font-d); font-weight: 400; font-size: 28px; letter-spacing: -0.015em; }
+  .card .ctitle .cn { font-family: var(--font-cn); color: var(--ink-2); font-size: 0.6em; margin-left: 10px; vertical-align: 4px; }
+  .card .cmeta { display: flex; gap: 14px; font-size: 12px; color: var(--ink-3); margin-top: 8px; flex-wrap: wrap; align-items: center; }
+  .card .cmeta .sep { width: 3px; height: 3px; background: var(--rule-strong); border-radius: 50%; }
+  .card .cmeta .num { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .card .ctext { margin-top: 16px; font-size: 15px; line-height: 1.65; color: var(--ink); max-width: 56ch; }
+  .card .ctext em { font-family: var(--font-d); font-style: italic; font-variation-settings: 'opsz' 24; }
+  .card .placeholder { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .card .placeholder .line { height: 10px; background: linear-gradient(90deg, var(--rule) 0%, var(--paper-2) 50%, var(--rule) 100%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: 2px; }
+  .card .placeholder .line:nth-child(2) { width: 88%; }
+  .card .placeholder .line:nth-child(3) { width: 64%; }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  /* mobile dense scan-card (the fix) */
+  .scan-cards { margin-top: 24px; border-top: 1px dashed var(--rule); padding-top: 18px; }
+  .scan-row { display: grid; grid-template-columns: 22px 1fr auto; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--rule); align-items: baseline; font-size: 13px; }
+  .scan-row .glyph { color: var(--brass); font-family: var(--font-m); font-size: 11px; }
+  .scan-row .name { font-family: var(--font-d); font-size: 17px; color: var(--ink); letter-spacing: -0.005em; }
+  .scan-row .name small { font-family: var(--font-b); color: var(--ink-3); font-size: 12px; margin-left: 8px; letter-spacing: 0; }
+  .scan-row .right { font-family: var(--font-m); font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .scan-cards .label-row { display: flex; justify-content: space-between; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); padding-bottom: 8px; }
+
+  /* marginalia (SSE) — the reframe */
+  .marginalia .m-eyebrow { font-family: var(--font-m); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 16px; }
+  .m-row { padding: 14px 0; border-top: 1px dashed var(--rule); position: relative; padding-left: 22px; }
+  .m-row:first-of-type { border-top: none; }
+  .m-row::before { content: ''; position: absolute; left: 0; top: 22px; width: 7px; height: 7px; border-radius: 50%; background: var(--brass-fill); }
+  .m-row.in-flight::before { background: var(--paper); border: 1px solid var(--brass-fill); animation: blink 1.6s ease-in-out infinite; }
+  .m-row.done::before { background: var(--ink-2); }
+  .m-row .m-tag { font-family: var(--font-m); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+  .m-row .m-time { float: right; font-family: var(--font-m); font-size: 10px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .m-row .m-body { margin-top: 6px; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+  .m-row .m-quote { font-family: var(--font-d); font-style: italic; font-variation-settings: 'opsz' 24; color: var(--ink); font-size: 13px; }
+
+  .m-foot { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 11px; color: var(--ink-3); font-family: var(--font-m); letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="shell-h">
+      <span>option a · editorial atlas (refined)</span>
+      <span class="file">a-trip-detail.html · the marginalia reframe</span>
+    </div>
+    <div class="frame">
+      <div class="label"><span>desktop · 1500 · live</span><span>/trips/abc123</span></div>
+
+      <header class="head">
+        <div class="head-l">
+          <span class="eyebrow">Reading no. 047</span>
+          <h1 class="h1">Tokyo.<span class="cn">東京</span></h1>
+          <p class="for">for Yuna and Wei &mdash; tonkotsu, no tourist traps.</p>
+        </div>
+        <div class="head-r">
+          <span class="pill-live"><span class="dot"></span>Reading &middot; depth 2 / 4</span>
+          <div class="meta-r">
+            <span>Elapsed</span>
+            <strong>00:31</strong>
+            <span style="margin-top: 6px;">~01:30 expected</span>
+            <div class="progress"></div>
+          </div>
+        </div>
+      </header>
+
+      <section class="body">
+        <div class="col-content">
+          <div class="tldr">
+            <span class="eyebrow">TL;DR &middot; composing</span>
+            <p>Lean into Sugamo and Jimbocho. Skip Shibuya for food. <span class="caret"></span></p>
+          </div>
+
+          <h3 class="section-title">Together</h3>
+
+          <article class="card">
+            <h4 class="ctitle">Menya Saimi.<span class="cn">麺屋彩未</span></h4>
+            <div class="cmeta">
+              <span>Sugamo</span><span class="sep"></span>
+              <span><span class="num">12</span> sources</span><span class="sep"></span>
+              <span>You <span class="num">0.91</span></span><span class="sep"></span>
+              <span>Yuna <span class="num">0.78</span></span>
+            </div>
+            <p class="ctext">A quiet shio counter, no English menu. Reddit calls the broth <em>&ldquo;thin, almost transparent&rdquo;</em>; XHS calls the room <em>&ldquo;最安静的拉面店&rdquo;</em>. Both communities agree on technique; English sources mark it &ldquo;not novel&rdquo;, Chinese sources mark it &ldquo;peaceful&rdquo;. Both can be true.</p>
+          </article>
+
+          <article class="card composing">
+            <h4 class="ctitle" style="color: var(--ink-2);">Tsukiji Outer Market.<span class="cn">築地</span></h4>
+            <div class="cmeta">
+              <span>Chuo</span><span class="sep"></span>
+              <span><span class="num">28</span> sources</span><span class="sep"></span>
+              <span style="color: var(--aborted); letter-spacing: 0.06em; text-transform: uppercase;">High disagreement</span>
+            </div>
+            <div class="placeholder"><span class="line"></span><span class="line"></span><span class="line"></span></div>
+          </article>
+
+          <div class="scan-cards">
+            <div class="label-row"><span>Mobile preview &middot; scan-mode</span><span>tap to expand</span></div>
+            <div class="scan-row"><span class="glyph">★</span><span class="name">Menya Saimi.<small>Sugamo</small></span><span class="right">12 &middot; 0.91/0.78</span></div>
+            <div class="scan-row"><span class="glyph">⚠</span><span class="name">Tsukiji Outer.<small>Chuo</small></span><span class="right">28 &middot; disagree</span></div>
+            <div class="scan-row"><span class="glyph">✗</span><span class="name">Ichiran Shibuya.<small>Shibuya</small></span><span class="right">41 &middot; skip</span></div>
+            <div class="scan-row" style="opacity: .55;"><span class="glyph">○</span><span class="name" style="font-style: italic; font-weight: 300;">composing&hellip;</span><span class="right"></span></div>
+          </div>
+        </div>
+
+        <aside class="col-margin marginalia">
+          <p class="m-eyebrow">Marginalia &mdash; the reading, live</p>
+
+          <div class="m-row done">
+            <span class="m-tag">Producer &middot; depth 1</span>
+            <span class="m-time">00:04</span>
+            <p class="m-body">12 candidates from <code>r/JapanTravel</code>, <code>r/ramen</code>, <code>xhs:tokyo:ramen</code>.</p>
+          </div>
+
+          <div class="m-row done">
+            <span class="m-tag">Joiner &middot; depth 1</span>
+            <span class="m-time">00:11</span>
+            <p class="m-body">12 &rarr; 7 with &ge;2 sources. Strongest: Menya Saimi (12).</p>
+          </div>
+
+          <div class="m-row done">
+            <span class="m-tag">Controller &middot; depth 1</span>
+            <span class="m-time">00:18</span>
+            <p class="m-body"><span class="m-quote">&ldquo;Need ZH disagreement signals before settling.&rdquo;</span></p>
+          </div>
+
+          <div class="m-row done">
+            <span class="m-tag">Producer &middot; depth 2</span>
+            <span class="m-time">00:24</span>
+            <p class="m-body">Pulled XHS for Tsukiji and Ichiran specifically.</p>
+          </div>
+
+          <div class="m-row in-flight">
+            <span class="m-tag">Joiner &middot; depth 2</span>
+            <span class="m-time">00:31</span>
+            <p class="m-body">Cross-validating 6 ZH posts against EN baseline&hellip;</p>
+          </div>
+
+          <div class="m-foot">
+            22 sources read &middot; 7 confirmed &middot; 2 disagreements found
+          </div>
+        </aside>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

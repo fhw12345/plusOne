@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plus One — profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./_shared.css" />
+  <style>
+    .prof-table {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 0;
+      border-top: 1px solid hsl(var(--rule));
+    }
+    .prof-row {
+      display: contents;
+    }
+    .prof-row .key, .prof-row .val {
+      padding: 22px 0;
+      border-bottom: 1px solid hsl(var(--rule));
+    }
+    .prof-row .key {
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: hsl(var(--ink-3));
+      font-weight: 500;
+      align-self: start;
+      padding-top: 26px;
+    }
+    .prof-row .val {
+      color: hsl(var(--ink));
+      font-size: 17px;
+      font-family: var(--font-display);
+      font-weight: 300;
+      letter-spacing: -0.005em;
+    }
+    .prof-row .val.body { font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: hsl(var(--ink-2)); }
+    .prof-row .val .input { padding: 4px 0 8px; font-size: 17px; }
+
+    .prof-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .prof-tags .tag-item {
+      padding: 6px 12px;
+      border: 1px solid hsl(var(--rule));
+      border-radius: 999px;
+      background: hsl(var(--paper-elevated));
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: hsl(var(--ink-2));
+    }
+    .prof-tags .tag-item.hate { border-color: hsl(var(--status-aborted) / 0.3); color: hsl(var(--status-aborted)); }
+    .prof-tags .tag-item.add {
+      border-style: dashed;
+      color: hsl(var(--ink-3));
+      cursor: pointer;
+    }
+
+    .pace {
+      display: inline-flex; align-items: center; gap: 16px;
+      font-family: var(--font-body); font-size: 13px;
+      color: hsl(var(--ink-3));
+    }
+    .pace .track {
+      width: 240px; height: 1px;
+      background: hsl(var(--rule-strong));
+      position: relative;
+    }
+    .pace .track .knob {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 12px; height: 12px;
+      background: hsl(var(--paper));
+      border: 1px solid hsl(var(--ink));
+      border-radius: 50%;
+    }
+    .pace .marks {
+      display: flex; justify-content: space-between;
+      width: 240px;
+      font-family: var(--font-mono); font-size: 9px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: hsl(var(--ink-3));
+      margin-top: 8px;
+    }
+    .pace-wrap { display: flex; flex-direction: column; gap: 0; align-items: flex-start; }
+
+    .save-row {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid hsl(var(--rule));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .save-row .helper {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: 'opsz' 24;
+      font-weight: 300;
+      font-size: 15px;
+      color: hsl(var(--ink-2));
+    }
+
+    .danger-card {
+      margin-top: 48px;
+      padding: 24px 28px;
+      border: 1px solid hsl(var(--rule));
+      border-left: 3px solid hsl(var(--status-aborted));
+      background: hsl(var(--paper-elevated));
+      border-radius: var(--radius-sm);
+    }
+    .danger-card h4 { font-family: var(--font-display); font-size: 18px; color: hsl(var(--ink)); margin-bottom: 6px; font-weight: 400; }
+    .danger-card p { font-size: 14px; color: hsl(var(--ink-2)); line-height: 1.6; }
+    .danger-card .actions { margin-top: 16px; display: flex; gap: 14px; }
+
+    @container page (max-width: 640px) {
+      .prof-table { grid-template-columns: 1fr; }
+      .prof-row .key { padding: 18px 0 6px; border-bottom: none; }
+      .prof-row .val { padding: 0 0 18px; }
+      .pace .track, .pace .marks { width: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-shell-header">
+      <span>plus one · mockup</span>
+      <span class="file">profile.html · editorial table layout</span>
+    </div>
+    <div class="preview-grid">
+
+      <!-- DESKTOP -->
+      <div class="preview-frame">
+        <div class="label"><span>desktop · 1280</span><span>/profile</span></div>
+        <div class="canvas">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <a href="#">New</a><a href="#">Trips</a><a href="#">Companions</a>
+                  <span class="avatar">H</span>
+                </nav>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="editorial-band stagger">
+                <span class="eyebrow flanked">About you</span>
+                <h1 class="display-md">Your reading profile.</h1>
+                <p class="dek">The more truthful, the more useful the disagreement signals will be.</p>
+                <div class="hairline"></div>
+              </section>
+
+              <section style="padding: 24px 0 32px;">
+                <div class="prof-table">
+
+                  <div class="prof-row">
+                    <span class="key">Email</span>
+                    <span class="val body">you@example.com &middot; <a href="#" style="color: hsl(var(--brass)); border-bottom: 1px solid hsl(var(--brass)); padding-bottom: 1px; font-size: 12px; letter-spacing: 0.04em;">change</a></span>
+                  </div>
+
+                  <div class="prof-row">
+                    <span class="key">Display name</span>
+                    <span class="val"><input class="input" value="Hao" style="font-size: 17px;" /></span>
+                  </div>
+
+                  <div class="prof-row">
+                    <span class="key">Age range</span>
+                    <span class="val">30 &ndash; 45</span>
+                  </div>
+
+                  <div class="prof-row">
+                    <span class="key">Language</span>
+                    <span class="val">English &middot; <span style="color: hsl(var(--ink-3)); font-size: 14px; font-family: var(--font-body);">prefers reading sources in both</span></span>
+                  </div>
+
+                  <div class="prof-row">
+                    <span class="key">Pace</span>
+                    <span class="val">
+                      <div class="pace-wrap">
+                        <div class="pace">
+                          <span>Slow</span>
+                          <div class="track"><span class="knob"></span></div>
+                          <span>Fast</span>
+                        </div>
+                        <div class="marks"><span>slow</span><span>medium</span><span>fast</span></div>
+                      </div>
+                    </span>
+                  </div>
+
+                  <div class="prof-row">
+                    <span class="key">Loves</span>
+                    <span class="val">
+                      <div class="prof-tags">
+                        <span class="tag-item">ramen counters</span>
+                        <span class="tag-item">used books</span>
+                        <span class="tag-item">jazz kissaten</span>
+                        <span class="tag-item">slow mornings</span>
+                        <span class="tag-item">printed maps</span>
+                        <span class="tag-item add">+ add</span>
+                      </div>
+                    </span>
+                  </div>
+
+                  <div class="prof-row">
+                    <span class="key">Hates</span>
+                    <span class="val">
+                      <div class="prof-tags">
+                        <span class="tag-item hate">queues over 30 min</span>
+                        <span class="tag-item hate">pricing gimmicks</span>
+                        <span class="tag-item hate">cruises</span>
+                        <span class="tag-item add">+ add</span>
+                      </div>
+                    </span>
+                  </div>
+
+                  <div class="prof-row">
+                    <span class="key">Visited</span>
+                    <span class="val body">
+                      Tokyo &middot; 2024 &middot; <em>&ldquo;loved Sugamo, hated Shibuya at night&rdquo;</em><br/>
+                      Kyoto &middot; 2022 &middot; <em>&ldquo;temple-fatigue real, kissaten saved it&rdquo;</em>
+                    </span>
+                  </div>
+
+                </div>
+
+                <div class="save-row">
+                  <span class="helper">Changes apply to your next reading.</span>
+                  <button class="btn btn-primary">Save profile <span class="arrow">&rarr;</span></button>
+                </div>
+
+                <div class="danger-card">
+                  <h4>Quiet exits</h4>
+                  <p>You can export everything we know about you, or remove your account and all readings. Both are immediate and irreversible.</p>
+                  <div class="actions">
+                    <button class="btn btn-ghost">Export my data</button>
+                    <a href="#" style="color: hsl(var(--status-aborted)); border-bottom: 1px solid hsl(var(--status-aborted)); padding-bottom: 2px; font-size: 13px; align-self: center;">Delete my account</a>
+                  </div>
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE -->
+      <div class="preview-frame" style="max-width: 380px;">
+        <div class="label"><span>mobile · 390</span><span>/profile</span></div>
+        <div class="canvas" style="width: 380px;">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#" style="font-size: 18px;"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <span class="avatar" style="width: 26px; height: 26px; font-size: 11px;">H</span>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="editorial-band stagger" style="padding: 36px 0 20px;">
+                <span class="eyebrow flanked">About you</span>
+                <h1 class="display-sm">Your reading profile.</h1>
+                <p class="dek">The more truthful, the more useful.</p>
+                <div class="hairline"></div>
+              </section>
+
+              <section style="padding: 8px 0 48px;">
+                <div class="prof-table">
+                  <div class="prof-row">
+                    <span class="key">Email</span><span class="val body">you@example.com</span>
+                  </div>
+                  <div class="prof-row">
+                    <span class="key">Age range</span><span class="val">30 &ndash; 45</span>
+                  </div>
+                  <div class="prof-row">
+                    <span class="key">Loves</span>
+                    <span class="val">
+                      <div class="prof-tags">
+                        <span class="tag-item">ramen counters</span>
+                        <span class="tag-item">used books</span>
+                        <span class="tag-item">jazz kissaten</span>
+                        <span class="tag-item add">+ add</span>
+                      </div>
+                    </span>
+                  </div>
+                  <div class="prof-row">
+                    <span class="key">Hates</span>
+                    <span class="val">
+                      <div class="prof-tags">
+                        <span class="tag-item hate">long queues</span>
+                        <span class="tag-item hate">pricing gimmicks</span>
+                        <span class="tag-item add">+ add</span>
+                      </div>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="save-row" style="margin-top: 32px; padding-top: 24px;">
+                  <button class="btn btn-primary" style="flex: 1;">Save <span class="arrow">&rarr;</span></button>
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

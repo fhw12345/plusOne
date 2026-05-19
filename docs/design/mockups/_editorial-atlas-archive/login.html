@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plus One — login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./_shared.css" />
+  <style>
+    .login-page { min-height: 100%; display: flex; flex-direction: column; }
+    .login-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 32px;
+    }
+    .login-card {
+      max-width: 520px;
+      width: 100%;
+      padding: 64px 0;
+    }
+    .login-form { margin-top: 48px; display: flex; flex-direction: column; gap: 36px; }
+    .login-actions { display: flex; align-items: center; gap: 24px; }
+    .corner-mark {
+      position: absolute;
+      bottom: 24px; left: 32px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: hsl(var(--ink-3));
+    }
+    @container page (max-width: 640px) {
+      .login-card { padding: 32px 0; }
+      .login-form { margin-top: 28px; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-shell-header">
+      <span>plus one · mockup</span>
+      <span class="file">login.html · desktop 1280 / mobile 390</span>
+    </div>
+    <div class="preview-grid">
+
+      <!-- DESKTOP -->
+      <div class="preview-frame">
+        <div class="label"><span>desktop · 1280</span><span>/login</span></div>
+        <div class="canvas">
+          <div class="page" style="position: relative;">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <a href="#">Sign in</a>
+                </nav>
+              </div>
+            </header>
+
+            <main class="login-page">
+              <div class="login-main wrap-content">
+                <section class="login-card stagger">
+                  <span class="eyebrow flanked">A quiet arrival</span>
+                  <h1 class="display-xl" style="margin-top: 28px;">Plus One.</h1>
+                  <p class="dek" style="margin-top: 22px; max-width: 28ch;">Travel with another perspective &mdash; and another&rsquo;s.</p>
+                  <div class="hairline" style="margin-top: 40px;"></div>
+
+                  <form class="login-form" onsubmit="event.preventDefault()">
+                    <div class="field">
+                      <label class="field-label">Your email</label>
+                      <input class="input" type="email" placeholder="you@example.com" value="" />
+                    </div>
+                    <div class="login-actions">
+                      <button class="btn btn-primary" type="submit">Send link <span class="arrow">&rarr;</span></button>
+                      <span class="helper">We&rsquo;ll send a one-time link &mdash; no passwords.</span>
+                    </div>
+                  </form>
+                </section>
+              </div>
+            </main>
+
+            <span class="corner-mark">est. 2026 &middot; tokyo &middot; reading no. 001</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE -->
+      <div class="preview-frame" style="max-width: 380px;">
+        <div class="label"><span>mobile · 390</span><span>/login</span></div>
+        <div class="canvas" style="width: 380px;">
+          <div class="page" style="position: relative; min-height: 760px;">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#" style="font-size: 18px;"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <a href="#">Sign in</a>
+                </nav>
+              </div>
+            </header>
+
+            <main class="login-page">
+              <div class="login-main wrap-prose">
+                <section class="login-card stagger">
+                  <span class="eyebrow flanked">A quiet arrival</span>
+                  <h1 class="display-lg" style="margin-top: 18px;">Plus One.</h1>
+                  <p class="dek" style="margin-top: 16px;">Travel with another perspective.</p>
+                  <div class="hairline" style="margin-top: 28px;"></div>
+                  <form class="login-form" onsubmit="event.preventDefault()">
+                    <div class="field">
+                      <label class="field-label">Your email</label>
+                      <input class="input" type="email" placeholder="you@example.com" />
+                    </div>
+                    <button class="btn btn-primary" type="submit" style="align-self: flex-start;">Send link <span class="arrow">&rarr;</span></button>
+                    <span class="helper">We&rsquo;ll send a one-time link &mdash; no passwords.</span>
+                  </form>
+                </section>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

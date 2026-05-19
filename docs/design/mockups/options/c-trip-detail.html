@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Option C — Field Notebook — trip-detail sketch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Reckless:wght@300;400;500&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F8F4EC;
+    --paper-2: #FFFCF5;
+    --paper-3: #F1ECE0;
+    --ink: #231F1B;
+    --ink-2: #4A453E;
+    --ink-3: #7C7669;
+    --rule: #DAD3C2;
+    --rule-2: #B8B0A0;
+    --persimmon: #D45A2C;
+    --persimmon-tint: #FBE6DA;
+    --indigo: #2A4170;
+    --indigo-tint: #DCE3F0;
+    --moss: #5C8268;
+    --pencil: #989384;
+    --aborted: #A04A3F;
+    --font-d: 'Reckless', Georgia, 'Noto Serif SC', serif;
+    --font-b: 'Geist', system-ui, -apple-system, sans-serif;
+    --font-m: 'Geist Mono', ui-monospace, monospace;
+    --font-cn: 'Noto Serif SC', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-b); font-size: 15px; line-height: 1.5; }
+  .shell { padding: 32px; min-height: 100vh; background: #1F1A14; }
+  .shell-h { max-width: 1500px; margin: 0 auto 18px; color: #C9C0AC; font-family: var(--font-m); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; display: flex; justify-content: space-between; }
+  .shell-h .file { color: var(--persimmon); text-transform: none; letter-spacing: 0.04em; }
+
+  /* side-by-side: desktop + mobile to show both */
+  .grid { max-width: 1500px; margin: 0 auto; display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: start; }
+  .frame { background: var(--paper); border-radius: 6px; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); }
+  .label { background: #2A241B; color: #C9C0AC; font-family: var(--font-m); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 16px; display: flex; justify-content: space-between; border-bottom: 1px solid #3A3225; }
+
+  /* DESKTOP shared header */
+  .top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper-2);
+  }
+  .logo { font-family: var(--font-d); font-size: 18px; letter-spacing: -0.01em; }
+  .logo .dot { display: inline-block; width: 5px; height: 5px; background: var(--persimmon); border-radius: 50%; margin: 0 5px; vertical-align: 3px; }
+  .top .nav { display: flex; gap: 22px; font-size: 13px; color: var(--ink-2); }
+  .top .nav a { color: var(--ink-2); text-decoration: none; }
+  .top .nav a.active { color: var(--ink); border-bottom: 1.5px solid var(--persimmon); padding-bottom: 2px; }
+  .top .me { width: 28px; height: 28px; border-radius: 50%; background: var(--persimmon-tint); color: var(--persimmon); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-d); font-size: 13px; }
+
+  /* head: trip title row, compact */
+  .head { padding: 28px 32px 20px; }
+  .head .top-row { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .h1 { font-family: var(--font-d); font-weight: 400; font-size: 36px; letter-spacing: -0.015em; line-height: 1.05; }
+  .h1 .cn { font-family: var(--font-cn); color: var(--ink-2); font-size: 0.55em; margin-left: 10px; vertical-align: 4px; }
+  .for { color: var(--ink-3); font-size: 14px; margin-top: 6px; }
+  .for em { font-style: normal; color: var(--ink-2); }
+
+  .actions { display: flex; gap: 8px; }
+  .pill {
+    font-family: var(--font-m); font-size: 11px; letter-spacing: 0.06em;
+    padding: 6px 12px; border-radius: 999px; border: 1px solid var(--rule-2);
+    background: var(--paper-2); color: var(--ink-2);
+    display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  }
+  .pill svg { width: 12px; height: 12px; }
+
+  /* DRAWER — compressed live status */
+  .drawer {
+    margin: 0 32px;
+    padding: 14px 18px;
+    background: var(--paper-3);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 18px;
+    align-items: center;
+  }
+  .timeline {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-m); font-size: 11px;
+    color: var(--ink-2); letter-spacing: 0.04em;
+  }
+  .timeline .step { display: inline-flex; align-items: center; gap: 6px; }
+  .timeline .glyph { width: 8px; height: 8px; border-radius: 50%; background: var(--moss); }
+  .timeline .step.now .glyph { background: var(--persimmon); animation: blink 1.4s ease-in-out infinite; }
+  .timeline .step.next .glyph { background: var(--paper); border: 1px solid var(--pencil); }
+  .timeline .step.next { color: var(--ink-3); }
+  .timeline .arrow { color: var(--rule-2); font-size: 9px; }
+  @keyframes blink { 50% { opacity: .4; } }
+
+  .drawer .progress {
+    height: 4px; background: var(--paper-2); border: 1px solid var(--rule); border-radius: 999px; position: relative; overflow: hidden; min-width: 200px;
+  }
+  .drawer .progress::after {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 38%;
+    background: var(--persimmon); border-radius: 999px;
+    box-shadow: 0 0 8px rgba(212, 90, 44, .4);
+  }
+  .drawer .timer { font-family: var(--font-m); font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .drawer .timer b { color: var(--ink); }
+  .drawer .toggle { font-family: var(--font-m); font-size: 11px; color: var(--persimmon); cursor: pointer; }
+
+  /* CARDS — list rows that stream in */
+  .cards { padding: 24px 24px 40px; }
+  .card-row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: 14px;
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--rule);
+    align-items: start;
+    cursor: pointer;
+    transition: background .2s ease;
+  }
+  .card-row:hover { background: var(--paper-2); }
+  .card-row.gem .glyph { color: var(--persimmon); }
+  .card-row.warn .glyph { color: var(--aborted); }
+  .card-row.skip .glyph { color: var(--pencil); }
+  .card-row .glyph { font-family: var(--font-m); font-size: 14px; padding-top: 2px; text-align: center; }
+
+  .card-body .title { font-family: var(--font-d); font-size: 19px; line-height: 1.2; letter-spacing: -0.005em; color: var(--ink); }
+  .card-body .title .cn { font-family: var(--font-cn); color: var(--ink-2); font-size: 0.7em; margin-left: 6px; }
+  .card-body .meta {
+    display: flex; gap: 10px; font-size: 12px; color: var(--ink-3); margin-top: 4px; align-items: center; flex-wrap: wrap;
+  }
+  .card-body .meta .sep { width: 3px; height: 3px; background: var(--rule-2); border-radius: 50%; }
+  .card-body .dek {
+    margin-top: 6px; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; max-width: 64ch;
+  }
+
+  .card-body .scores { display: inline-flex; gap: 4px; align-items: center; margin-left: 4px; }
+  .scorebox { font-family: var(--font-m); font-size: 10px; padding: 2px 6px; background: var(--paper-3); color: var(--ink-2); border-radius: 2px; }
+  .scorebox.hi { background: var(--persimmon-tint); color: var(--persimmon); }
+
+  .row-actions {
+    display: flex; gap: 6px; align-self: center;
+    opacity: 0; transition: opacity .2s ease;
+  }
+  .card-row:hover .row-actions { opacity: 1; }
+  .icon-btn {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--paper-2); border: 1px solid var(--rule);
+    color: var(--ink-2); font-size: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .icon-btn:hover { background: var(--persimmon-tint); color: var(--persimmon); border-color: var(--persimmon); }
+
+  /* expanded card example */
+  .card-row.expanded { background: var(--paper-2); border-left: 2px solid var(--persimmon); padding-left: 22px; }
+  .card-row.expanded .row-actions { opacity: 1; }
+  .expanded-body {
+    grid-column: 2 / 4;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--rule);
+  }
+  .expanded-body p { font-family: var(--font-d); font-size: 16px; line-height: 1.6; color: var(--ink); font-weight: 300; max-width: 64ch; }
+  .expanded-body p em { font-style: italic; }
+  .expanded-body .sources {
+    margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; font-family: var(--font-m); font-size: 11px;
+  }
+  .expanded-body .src {
+    padding: 4px 10px; border: 1px solid var(--rule); background: var(--paper);
+    border-radius: 999px; color: var(--ink-2);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .expanded-body .src .badge { width: 8px; height: 8px; border-radius: 50%; }
+  .expanded-body .src .badge.r { background: #FF4500; }
+  .expanded-body .src .badge.x { background: var(--indigo); }
+
+  .composing-row {
+    padding: 14px 12px; color: var(--ink-3); font-style: italic; font-family: var(--font-d); font-weight: 300;
+    border-bottom: 1px solid var(--rule); font-size: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .composing-row .dot {
+    display: inline-flex; gap: 3px;
+  }
+  .composing-row .dot span {
+    width: 4px; height: 4px; border-radius: 50%; background: var(--persimmon);
+    animation: bounce 1.4s ease-in-out infinite;
+  }
+  .composing-row .dot span:nth-child(2) { animation-delay: .15s; }
+  .composing-row .dot span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+    30% { transform: translateY(-3px); opacity: 1; }
+  }
+
+  /* MOBILE FRAME */
+  .m-frame { width: 400px; }
+  .m-canvas { width: 400px; }
+  .m-canvas .head { padding: 20px 18px 14px; }
+  .m-canvas .h1 { font-size: 28px; }
+  .m-canvas .drawer { margin: 0 18px; padding: 12px 14px; grid-template-columns: 1fr; gap: 10px; }
+  .m-canvas .drawer .progress { min-width: 0; }
+  .m-canvas .timeline { flex-wrap: wrap; }
+  .m-canvas .cards { padding: 18px 8px 32px; }
+  .m-canvas .card-row { grid-template-columns: 22px 1fr; gap: 12px; padding: 12px 10px; }
+  .m-canvas .card-row .row-actions { grid-column: 1 / 3; opacity: 1; padding-left: 34px; padding-top: 8px; }
+  .m-canvas .card-body .title { font-size: 17px; }
+  .m-canvas .card-body .dek { font-size: 13px; }
+  .m-canvas .top { padding: 10px 16px; }
+
+  /* "is it done?" — large persimmon when done */
+  .done-pill {
+    background: var(--moss); color: var(--paper-2);
+    font-family: var(--font-m); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .live-pill {
+    background: var(--persimmon); color: var(--paper-2);
+    font-family: var(--font-m); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .live-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--paper-2); animation: blink 1.4s ease-in-out infinite; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="shell-h">
+      <span>option c · field notebook</span>
+      <span class="file">c-trip-detail.html · the working tool you carry</span>
+    </div>
+
+    <div class="grid">
+
+      <!-- DESKTOP -->
+      <div class="frame">
+        <div class="label"><span>desktop · 1100 · streaming</span><span>/trips/abc123</span></div>
+
+        <header class="top">
+          <span class="logo">Plus<span class="dot"></span>One</span>
+          <nav class="nav">
+            <a>New</a><a class="active">Trips</a><a>Companions</a>
+          </nav>
+          <span class="me">H</span>
+        </header>
+
+        <section class="head">
+          <div class="top-row">
+            <div>
+              <h1 class="h1">Tokyo<span class="cn">東京</span></h1>
+              <p class="for">for <em>Yuna</em> &amp; <em>Wei</em> &middot; tonkotsu, no tourist traps</p>
+            </div>
+            <div class="actions">
+              <span class="live-pill"><span class="dot"></span>Live</span>
+              <span class="pill">★ Save trip</span>
+              <span class="pill">↗ Share</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="drawer">
+          <div class="timeline">
+            <span class="step"><span class="glyph"></span>Reading sources</span>
+            <span class="arrow">→</span>
+            <span class="step now"><span class="glyph"></span>Cross-checking</span>
+            <span class="arrow">→</span>
+            <span class="step next"><span class="glyph"></span>Composing</span>
+          </div>
+          <div class="progress"></div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="timer"><b>00:31</b> / ~01:30</span>
+            <span class="toggle">▾ event log</span>
+          </div>
+        </section>
+
+        <section class="cards">
+
+          <div class="card-row gem expanded">
+            <span class="glyph">★</span>
+            <div class="card-body">
+              <h4 class="title">Menya Saimi<span class="cn">麺屋彩未</span></h4>
+              <div class="meta">
+                <span>Sugamo &middot; 12-min walk from station</span>
+                <span class="sep"></span>
+                <span>12 sources</span>
+                <span class="sep"></span>
+                <span class="scores">
+                  <span class="scorebox hi">You 0.91</span>
+                  <span class="scorebox">Yuna 0.78</span>
+                </span>
+              </div>
+              <p class="dek">Quiet shio counter, no English menu &mdash; broth so light it&rsquo;s almost transparent.</p>
+              <div class="expanded-body">
+                <p>Both communities agree on technique. <em>EN</em> sources call it &ldquo;not novel enough&rdquo; for a special trip; <em>ZH</em> sources call it 「最安静的拉面店」&mdash; the most peaceful one in town. Both are true; pick by mood.</p>
+                <div class="sources">
+                  <span class="src"><span class="badge r"></span>r/ramen &middot; 4 comments</span>
+                  <span class="src"><span class="badge x"></span>xhs:tokyo:ramen &middot; 9 likes</span>
+                  <span class="src"><span class="badge r"></span>r/JapanTravel &middot; 2 mentions</span>
+                </div>
+              </div>
+            </div>
+            <div class="row-actions">
+              <span class="icon-btn" title="Save">★</span>
+              <span class="icon-btn" title="Open in Maps">↗</span>
+            </div>
+          </div>
+
+          <div class="card-row warn">
+            <span class="glyph">⚠</span>
+            <div class="card-body">
+              <h4 class="title">Tsukiji Outer Market<span class="cn">築地</span></h4>
+              <div class="meta">
+                <span>Chuo</span><span class="sep"></span>
+                <span>28 sources</span><span class="sep"></span>
+                <span style="color: var(--aborted); text-transform: uppercase; font-family: var(--font-m); font-size: 11px; letter-spacing: 0.06em;">High disagreement</span>
+              </div>
+              <p class="dek">EN: essential. ZH: tourist set-piece. Egg-roll stand is the only consensus.</p>
+            </div>
+            <div class="row-actions">
+              <span class="icon-btn">★</span>
+              <span class="icon-btn">↗</span>
+            </div>
+          </div>
+
+          <div class="card-row skip">
+            <span class="glyph">✗</span>
+            <div class="card-body">
+              <h4 class="title">Ichiran Shibuya</h4>
+              <div class="meta">
+                <span>Shibuya</span><span class="sep"></span>
+                <span>41 sources</span><span class="sep"></span>
+                <span style="color: var(--pencil); text-transform: uppercase; font-family: var(--font-m); font-size: 11px; letter-spacing: 0.06em;">Skip &middot; try Ueno branch</span>
+              </div>
+              <p class="dek">8 of 10 ZH sources warn off this branch specifically. Chain is fine elsewhere.</p>
+            </div>
+            <div class="row-actions">
+              <span class="icon-btn">★</span>
+              <span class="icon-btn">↗</span>
+            </div>
+          </div>
+
+          <div class="composing-row">
+            <span class="dot"><span></span><span></span><span></span></span>
+            composing more &mdash; resolving Tsukiji disagreement&hellip;
+          </div>
+
+        </section>
+      </div>
+
+      <!-- MOBILE -->
+      <div class="frame m-frame">
+        <div class="label"><span>mobile · 400 · in tokyo, at noon</span><span>/trips/abc123</span></div>
+        <div class="m-canvas">
+          <header class="top">
+            <span class="logo" style="font-size: 16px;">Plus<span class="dot"></span>One</span>
+            <span class="me" style="width: 24px; height: 24px; font-size: 11px;">H</span>
+          </header>
+
+          <section class="head">
+            <div class="top-row">
+              <div>
+                <h1 class="h1">Tokyo<span class="cn">東京</span></h1>
+                <p class="for">for <em>Yuna</em> &amp; <em>Wei</em></p>
+              </div>
+              <span class="done-pill">✓ Done</span>
+            </div>
+          </section>
+
+          <section class="drawer">
+            <div class="timeline">
+              <span class="step"><span class="glyph"></span>Read</span>
+              <span class="arrow">→</span>
+              <span class="step"><span class="glyph"></span>Checked</span>
+              <span class="arrow">→</span>
+              <span class="step"><span class="glyph" style="background: var(--moss);"></span>Done</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="timer"><b>22</b> sources &middot; <b>86</b>s</span>
+              <span class="toggle">log ▾</span>
+            </div>
+          </section>
+
+          <section class="cards">
+            <div class="card-row gem">
+              <span class="glyph">★</span>
+              <div class="card-body">
+                <h4 class="title">Menya Saimi</h4>
+                <div class="meta">
+                  <span>Sugamo</span><span class="sep"></span>
+                  <span>12 src</span><span class="sep"></span>
+                  <span class="scorebox hi">0.91</span>
+                </div>
+                <p class="dek">Quiet shio counter, no English menu.</p>
+              </div>
+              <div class="row-actions">
+                <span class="icon-btn">★</span>
+                <span class="icon-btn">↗</span>
+              </div>
+            </div>
+
+            <div class="card-row warn">
+              <span class="glyph">⚠</span>
+              <div class="card-body">
+                <h4 class="title">Tsukiji Outer</h4>
+                <div class="meta">
+                  <span>Chuo</span><span class="sep"></span>
+                  <span>28 src</span><span class="sep"></span>
+                  <span style="color: var(--aborted); font-family: var(--font-m); font-size: 11px; text-transform: uppercase;">Disagree</span>
+                </div>
+                <p class="dek">EN: essential. ZH: set-piece.</p>
+              </div>
+              <div class="row-actions">
+                <span class="icon-btn">★</span>
+                <span class="icon-btn">↗</span>
+              </div>
+            </div>
+
+            <div class="card-row skip">
+              <span class="glyph">✗</span>
+              <div class="card-body">
+                <h4 class="title">Ichiran Shibuya</h4>
+                <div class="meta">
+                  <span>Shibuya</span><span class="sep"></span>
+                  <span style="color: var(--pencil); font-family: var(--font-m); font-size: 11px; text-transform: uppercase;">Skip</span>
+                </div>
+                <p class="dek">Try Ueno branch instead.</p>
+              </div>
+              <div class="row-actions">
+                <span class="icon-btn">★</span>
+                <span class="icon-btn">↗</span>
+              </div>
+            </div>
+
+          </section>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

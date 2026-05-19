@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plus One — companions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./_shared.css" />
+  <style>
+    .add-button-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px;
+      padding: 8px 0 32px;
+    }
+    .add-button-row .helper {
+      font-family: var(--font-display);
+      font-style: italic; font-variation-settings: 'opsz' 24; font-weight: 300;
+      color: hsl(var(--ink-2));
+      font-size: 16px;
+    }
+
+    .companion-list { border-top: 1px solid hsl(var(--rule)); }
+    .companion-row {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
+      gap: 24px;
+      padding: 28px 0;
+      border-bottom: 1px solid hsl(var(--rule));
+      align-items: start;
+    }
+    .companion-row:hover { background: hsl(var(--paper-elevated) / 0.6); }
+    .companion-portrait {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: hsl(var(--brass-tint));
+      color: hsl(var(--brass));
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 400;
+    }
+    .companion-portrait.b { background: hsl(var(--status-running) / 0.18); color: hsl(var(--status-running)); }
+    .companion-portrait.c { background: hsl(var(--status-complete) / 0.18); color: hsl(var(--status-complete)); }
+    .companion-name {
+      font-family: var(--font-display);
+      font-size: 26px; line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: hsl(var(--ink));
+      font-weight: 400;
+    }
+    .companion-meta {
+      margin-top: 6px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: hsl(var(--ink-3));
+      display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    }
+    .companion-meta .sep { width: 3px; height: 3px; background: hsl(var(--rule-strong)); border-radius: 50%; }
+    .companion-prefs {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 6px 14px;
+      font-size: 13px;
+      max-width: 64ch;
+    }
+    .companion-prefs dt {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: hsl(var(--ink-3));
+      align-self: center;
+    }
+    .companion-prefs dd { color: hsl(var(--ink-2)); }
+    .companion-prefs dd em { color: hsl(var(--ink)); font-style: normal; }
+
+    .companion-actions {
+      display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+    }
+    .companion-actions a {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: hsl(var(--ink-3));
+      cursor: pointer;
+    }
+    .companion-actions a:hover { color: hsl(var(--brass)); }
+    .companion-actions a.del:hover { color: hsl(var(--status-aborted)); }
+
+    .empty-quote {
+      margin-top: 64px;
+      text-align: center;
+      font-family: var(--font-display);
+      font-style: italic; font-variation-settings: 'opsz' 144; font-weight: 300;
+      color: hsl(var(--ink-3));
+      font-size: 18px;
+      max-width: 36ch;
+      margin-left: auto; margin-right: auto;
+    }
+
+    @container page (max-width: 640px) {
+      .companion-row { grid-template-columns: 44px 1fr; gap: 16px; padding: 22px 0; }
+      .companion-portrait { width: 44px; height: 44px; font-size: 20px; }
+      .companion-actions { grid-column: 1 / 3; flex-direction: row; align-self: flex-start; padding-left: 60px; }
+      .companion-name { font-size: 22px; }
+      .companion-prefs { grid-template-columns: 1fr; gap: 4px; }
+      .companion-prefs dt { padding-top: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-shell-header">
+      <span>plus one · mockup</span>
+      <span class="file">companions.html · contact-book layout</span>
+    </div>
+    <div class="preview-grid">
+
+      <!-- DESKTOP -->
+      <div class="preview-frame">
+        <div class="label"><span>desktop · 1280</span><span>/companions</span></div>
+        <div class="canvas">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <a href="#">New</a><a href="#">Trips</a><a href="#" class="active">Companions</a>
+                  <span class="avatar">H</span>
+                </nav>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="editorial-band stagger">
+                <span class="eyebrow flanked">Who you travel with</span>
+                <h1 class="display-md">Companions.</h1>
+                <p class="dek">Their tastes weight every reading. They don&rsquo;t need accounts &mdash; you fill them in.</p>
+                <div class="hairline"></div>
+              </section>
+
+              <section>
+                <div class="add-button-row">
+                  <button class="btn btn-ghost">+ Add a companion</button>
+                  <span class="helper">Three on file.</span>
+                </div>
+
+                <div class="companion-list">
+
+                  <article class="companion-row">
+                    <span class="companion-portrait">Y</span>
+                    <div>
+                      <h3 class="companion-name">Yuna.</h3>
+                      <div class="companion-meta">
+                        <span>partner</span>
+                        <span class="sep"></span>
+                        <span>vegetarian</span>
+                        <span class="sep"></span>
+                        <span>walks &le; 8 km/day</span>
+                      </div>
+                      <dl class="companion-prefs">
+                        <dt>loves</dt><dd><em>kissaten</em>, <em>used bookshops</em>, <em>onsen towns</em>, <em>matcha that isn&rsquo;t green slime</em></dd>
+                        <dt>hates</dt><dd><em>smoking sections</em>, <em>tour buses</em>, <em>set menus</em></dd>
+                      </dl>
+                    </div>
+                    <div class="companion-actions">
+                      <a>Edit</a>
+                      <a class="del">Remove</a>
+                    </div>
+                  </article>
+
+                  <article class="companion-row">
+                    <span class="companion-portrait b">W</span>
+                    <div>
+                      <h3 class="companion-name">Wei.</h3>
+                      <div class="companion-meta">
+                        <span>friend</span>
+                        <span class="sep"></span>
+                        <span>no constraints</span>
+                      </div>
+                      <dl class="companion-prefs">
+                        <dt>loves</dt><dd><em>izakaya counters</em>, <em>jazz</em>, <em>second-hand camera shops</em></dd>
+                        <dt>hates</dt><dd><em>queues</em>, <em>brunch</em></dd>
+                      </dl>
+                    </div>
+                    <div class="companion-actions">
+                      <a>Edit</a>
+                      <a class="del">Remove</a>
+                    </div>
+                  </article>
+
+                  <article class="companion-row">
+                    <span class="companion-portrait c">A</span>
+                    <div>
+                      <h3 class="companion-name">Ari.</h3>
+                      <div class="companion-meta">
+                        <span>family</span>
+                        <span class="sep"></span>
+                        <span>age 9</span>
+                        <span class="sep"></span>
+                        <span>nut allergy</span>
+                      </div>
+                      <dl class="companion-prefs">
+                        <dt>loves</dt><dd><em>trains</em>, <em>arcades</em>, <em>melon pan</em></dd>
+                        <dt>hates</dt><dd><em>museums longer than an hour</em></dd>
+                      </dl>
+                    </div>
+                    <div class="companion-actions">
+                      <a>Edit</a>
+                      <a class="del">Remove</a>
+                    </div>
+                  </article>
+
+                </div>
+
+                <p class="empty-quote">&ldquo;Travel with another perspective &mdash; and another&rsquo;s.&rdquo;</p>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE -->
+      <div class="preview-frame" style="max-width: 380px;">
+        <div class="label"><span>mobile · 390</span><span>/companions</span></div>
+        <div class="canvas" style="width: 380px;">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#" style="font-size: 18px;"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <span class="avatar" style="width: 26px; height: 26px; font-size: 11px;">H</span>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="editorial-band stagger" style="padding: 32px 0 16px;">
+                <span class="eyebrow flanked">Who you travel with</span>
+                <h1 class="display-sm">Companions.</h1>
+                <p class="dek">Their tastes weight every reading.</p>
+                <div class="hairline"></div>
+              </section>
+
+              <section style="padding-bottom: 48px;">
+                <div class="add-button-row">
+                  <button class="btn btn-ghost" style="flex: 1;">+ Add</button>
+                </div>
+
+                <div class="companion-list">
+                  <article class="companion-row">
+                    <span class="companion-portrait">Y</span>
+                    <div>
+                      <h3 class="companion-name">Yuna.</h3>
+                      <div class="companion-meta">
+                        <span>partner</span><span class="sep"></span>
+                        <span>vegetarian</span>
+                      </div>
+                      <dl class="companion-prefs">
+                        <dt>loves</dt><dd><em>kissaten</em>, <em>used bookshops</em></dd>
+                        <dt>hates</dt><dd><em>smoking sections</em>, <em>tour buses</em></dd>
+                      </dl>
+                    </div>
+                    <div class="companion-actions">
+                      <a>Edit</a><a class="del">Remove</a>
+                    </div>
+                  </article>
+
+                  <article class="companion-row">
+                    <span class="companion-portrait b">W</span>
+                    <div>
+                      <h3 class="companion-name">Wei.</h3>
+                      <div class="companion-meta">
+                        <span>friend</span>
+                      </div>
+                      <dl class="companion-prefs">
+                        <dt>loves</dt><dd><em>izakaya</em>, <em>jazz</em></dd>
+                      </dl>
+                    </div>
+                    <div class="companion-actions">
+                      <a>Edit</a><a class="del">Remove</a>
+                    </div>
+                  </article>
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

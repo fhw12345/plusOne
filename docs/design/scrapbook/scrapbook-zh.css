@@ -1,0 +1,588 @@
+/* Plus One — Scrapbook CJK (Chinese) extensions, v2.
+   Load AFTER scrapbook.css. Activates via :lang(zh) on <html> or any
+   parent element. Pages opt in by setting <html lang="zh-Hans"> (or
+   zh-Hant for the Traditional sample).
+
+   ── v2 NOTE — LEGIBILITY-FIRST FOR CJK ──
+   v1 used Ma Shan Zheng (CJK brush handwriting) as body and headline
+   font. In practice that made body copy dissolve into the paper grain
+   at 16-22px — CJK glyph density + handwriting stroke variance is a
+   bad combination at body sizes. v2 keeps the Scrapbook character
+   through layout (off-axis cards, tape, marginalia, polaroid frames)
+   but puts all body/headline text in Noto Serif SC for legibility.
+   See BILINGUAL-NOTES.md §0 for the full rationale.
+
+   ── v3 NOTE — HARDENING ──
+   v2 still permitted handwriting CJK in .annot and .margin-note as a
+   "short fragment OK" soft rule. User pushback showed those margin
+   notes (e.g. "面屋彩未在 12 个不同的帖子里出现 ★") were unreadable.
+   v3 bans handwriting CJK from .annot/.margin-note entirely; only
+   .signature (≤6 chars) and .doodle (decorative marks only) remain.
+   v3 also adds .glyph/.marker/.arrow/.star so decorative symbols
+   (★ ↓ → ✓) render in a legible symbol font at ≥18px.
+   See BILINGUAL-NOTES.md §0.1.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;600&display=swap');
+
+/* ────────────────────────────────────────────────────────────
+   FONT TOKENS — CJK additions
+   ──────────────────────────────────────────────────────────── */
+:root {
+  /* Printed CJK — DEFAULT body + headline voice for ZH.
+     Noto Serif SC carries everything that has to be read at glance:
+     body paragraphs, card titles, nav, buttons, list items, inputs. */
+  --font-cjk-serif-sc:   'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
+  --font-cjk-serif-tc:   'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', serif;
+
+  /* Printed CJK secondary — ZCOOL XiaoWei is a literary slab.
+     Used for the typewriter slot (nav-strip caps, crest, type labels,
+     stamps, small caps). Printed-feel, so OK at small sizes. */
+  --font-cjk-type:       'ZCOOL XiaoWei', 'Noto Serif SC', serif;
+  --font-cjk-sans:       'Noto Sans SC', 'PingFang SC', system-ui, sans-serif;
+
+  /* Handwritten CJK — ACCENT ONLY. v3 narrows the allowlist:
+       .signature    short footer flourish, ≤6 chars, single line
+       .doodle       decorative non-text marks only (★ ornament, ✓ tick)
+     v3 REMOVED from allowlist: .annot, .margin-note, .scrawl —
+     these now render in Noto Serif SC (see rules below).
+     Forbidden on: body, headlines, nav, buttons, card titles, lists,
+     inputs, placeholders, annotations, marginalia. If a string needs
+     to be read at all, it must not be in a handwriting font. */
+  --font-hand-cjk:       'Ma Shan Zheng', 'Long Cang', 'Caveat', cursive;
+  --font-hand-cjk-alt:   'Liu Jian Mao Cao', 'Long Cang', 'Kalam', cursive;
+  --font-hand-cjk-disp:  'Long Cang', 'Ma Shan Zheng', cursive;
+
+  /* CJK ink — near-black so dark serif body stands off the paper. */
+  --ink-cjk:        #1a1814;
+  --ink-cjk-soft:   #3a342b;
+  --ink-cjk-meta:   #6a5f4a;
+
+  /* CJK line-height — serif body at 1.75, headlines tight at 1.18. */
+  --lh-cjk-tight: 1.55;
+  --lh-cjk-body:  1.75;
+  --lh-cjk-disp:  1.18;
+}
+
+/* ────────────────────────────────────────────────────────────
+   PAPER SUBSTRATE under :lang(zh)
+   Lighter, cooler paper + reduced grain so dark serif body has real
+   contrast. Body grain pseudo-element opacity drops from .32 to .04.
+   ──────────────────────────────────────────────────────────── */
+html:lang(zh),
+html:lang(zh-Hant) {
+  background: #fbfaf5;
+}
+:lang(zh) body {
+  color: var(--ink-cjk);
+  background:
+    radial-gradient(ellipse at 18% 8%,  hsl(0 0% 100% / .35) 0%, transparent 55%),
+    radial-gradient(ellipse at 82% 70%, hsl(0 0% 0% / .025)  0%, transparent 60%),
+    #fbfaf5;
+}
+:lang(zh) body::before {
+  opacity: .04;     /* was .32 — grain killed body legibility */
+}
+:lang(zh) body::after {
+  background: radial-gradient(ellipse at 50% 50%, transparent 64%, hsl(0 0% 0% / .10) 100%);
+}
+
+/* Tape elements — cap opacity so a tilted strip is felt, not shouted */
+:lang(zh) .tape,
+:lang(zh) .tape--mint,
+:lang(zh) .tape--blue,
+:lang(zh) .tape--yellow,
+:lang(zh) .tape--red {
+  opacity: 0.55;
+}
+
+/* ────────────────────────────────────────────────────────────
+   BASE — default body voice for CJK is Noto Serif SC.
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+  line-height: var(--lh-cjk-body);
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+  text-spacing-trim: trim-start;
+  font-feature-settings: "palt" 1;
+}
+
+:lang(zh-Hant) {
+  font-family: var(--font-cjk-serif-tc);
+}
+
+/* ────────────────────────────────────────────────────────────
+   TYPOGRAPHY MAPPING (lang-scoped) — printed-serif everywhere
+   that body comprehension matters.
+   ──────────────────────────────────────────────────────────── */
+
+/* DISPLAY HEADLINE — was hand-xxl Long Cang, now printed serif large
+   and dominant. Slight rotation kept for scrapbook feel. */
+:lang(zh) .hand-xxl,
+:lang(zh) .h-display {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 5.2vw, 3.2rem);
+  line-height: var(--lh-cjk-disp);
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+  transform: rotate(-1deg);
+}
+
+/* SECTION HEADLINE */
+:lang(zh) .hand-xl,
+:lang(zh) .h-section {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 2.6vw, 1.9rem);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+}
+
+/* CARD HEADLINE / sub-section */
+:lang(zh) .hand-lg,
+:lang(zh) .h-card {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+}
+
+/* BODY voice — what used to be .hand (Caveat in EN, brush in v1 ZH).
+   In ZH, default body paragraphs render as printed serif at 18px. */
+:lang(zh) .hand,
+:lang(zh) .body,
+:lang(zh) .lede {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: var(--lh-cjk-body);
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+}
+
+/* LEDE — slightly larger intro paragraph. */
+:lang(zh) .lede {
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--ink-cjk-soft);
+}
+
+/* CARD CAPTION — title-like, was Ma Shan Zheng 25px. Now serif 19px
+   bold so it dominates the card visually without dissolving. */
+:lang(zh) .photo-card .cap {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+}
+
+/* SCRAWL — was Liu Jian Mao Cao body. Reframed in ZH as a
+   smaller printed-serif caption / supporting line. Still inline,
+   still slightly muted, but legible. Keep handwriting OFF for body. */
+:lang(zh) .scrawl {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+  font-size: 17px;
+  line-height: var(--lh-cjk-body);
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk-soft);
+}
+
+/* TL;DR — was hand-xl, now printed serif card-title sized. */
+:lang(zh) .tldr {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+}
+:lang(zh) .tldr small {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--ink-cjk-meta);
+}
+:lang(zh) .tldr em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--ink-cjk);
+}
+
+/* MESSAGES (SSE scratchpad) — printed serif body so streamed lines
+   read at glance. Meta line stays in typewriter face. */
+:lang(zh) .msg {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--ink-cjk);
+}
+:lang(zh) .msg .meta {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--ink-cjk-meta);
+}
+
+/* TICKET BODY */
+:lang(zh) .ticket .body {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ink-cjk);
+}
+
+/* STICKY NOTE — printed serif. The strong is a label, not handwriting. */
+:lang(zh) .sticky {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-cjk);
+}
+:lang(zh) .sticky strong {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink-cjk);
+}
+
+/* CHIP — small pill labels. Serif for legibility. */
+:lang(zh) .chip {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--ink-cjk);
+}
+:lang(zh) .chip .meta {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-weight: 400;
+  color: var(--ink-cjk-meta);
+}
+
+/* VERDICT — short stamp on photo card. Bold serif. */
+:lang(zh) .photo-card .verdict {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink-cjk);
+}
+
+/* TYPED-LABEL fallback for .is-typed photo. */
+:lang(zh) .photo-card.is-typed > .photo {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-size: 14px;
+  color: var(--ink-cjk-soft);
+}
+
+/* ────────────────────────────────────────────────────────────
+   HANDWRITING — STRICTLY ACCENT-ONLY  (v3 HARDENING)
+   v2 left handwriting CJK live in .annot and .margin-note as a
+   "soft rule, only short fragments." In practice marginalia in
+   trip-detail.html ("面屋彩未在 12 个不同的帖子里出现 ★",
+   "↓ 我在做什么 →") rendered unreadable. v3 BANS handwriting CJK
+   from .annot and .margin-note entirely. Handwriting CJK is now
+   permitted ONLY on:
+     .signature  short footer flourish, ≤6 chars, single line
+     .doodle     decorative non-text marks (★ ✓ ✗ as ornament only)
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) .annot {
+  font-family: var(--font-cjk-serif-sc), serif;
+  font-weight: 500;
+  font-size: clamp(15px, 1.05rem, 17px);
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+  opacity: 1;
+  /* keep scrapbook tilt but cap at ±1.5deg so legibility wins */
+  transform: rotate(-1deg);
+}
+:lang(zh) .margin-note {
+  font-family: var(--font-cjk-serif-sc), serif;
+  font-weight: 500;
+  font-size: clamp(15px, 1.05rem, 17px);
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+  opacity: 1;
+  transform: rotate(1deg);
+}
+:lang(zh) .signature {
+  font-family: var(--font-hand-cjk);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--ink-cjk-soft);
+}
+:lang(zh) .doodle {
+  font-family: var(--font-hand-cjk);
+  font-weight: 400;
+  color: hsl(var(--red) / .8);
+}
+
+/* SSE row annot — printed serif now, was handwriting in v2. */
+:lang(zh) .msg .annot {
+  font-family: var(--font-cjk-serif-sc), serif;
+  font-weight: 500;
+  font-size: clamp(15px, 1.05rem, 17px);
+  line-height: 1.7;
+  color: var(--ink-cjk);
+  opacity: 1;
+}
+
+/* v3 — decorative glyphs (★ ↓ → ← ↑ ✓ ✗ and similar) must always
+   render in a legible symbol font at a usable size. Without this
+   they inherit whatever class wraps them and shrink into noise. */
+:lang(zh) .glyph,
+:lang(zh) .marker,
+:lang(zh) .arrow,
+:lang(zh) .star {
+  font-family: "Segoe UI Symbol", "Apple Color Emoji", sans-serif;
+  font-size: max(1em, 18px);
+  line-height: 1;
+  color: var(--ink-cjk);
+  opacity: 1;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+/* v3 — .scratch-h ("我在做什么") is a section label, not a
+   typewriter caps stamp. Make it a readable card-label in ZH. */
+:lang(zh) .scratchpad .scratch-h {
+  font-family: var(--font-cjk-serif-sc), serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ink-cjk);
+}
+
+/* ────────────────────────────────────────────────────────────
+   TYPEWRITER SLOT — printed-feel, fine for CJK at small sizes.
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) .type,
+:lang(zh) .type-sm,
+:lang(zh) .type-label {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--ink-cjk-soft);
+}
+:lang(zh) .crest {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.08em;
+  text-transform: none;
+  font-size: 13px;
+  color: var(--ink-cjk-soft);
+}
+
+/* JP / place-name accent — keep in serif, just slightly tighter. */
+:lang(zh) .jp {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+}
+:lang(zh-Hant) .jp {
+  font-family: var(--font-cjk-serif-tc);
+}
+
+/* ────────────────────────────────────────────────────────────
+   LATIN INSIDE CJK
+   ──────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Caveat-Latin';
+  src: local('Caveat'), local('Caveat-Regular');
+  unicode-range: U+0020-024F, U+2000-206F, U+20A0-20CF, U+2120-217F;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Kalam-Latin';
+  src: local('Kalam'), local('Kalam-Regular');
+  unicode-range: U+0020-024F, U+2000-206F;
+  font-display: swap;
+}
+
+/* Body text in ZH stays serif for Latin too — the body is printed.
+   v3: .annot and .margin-note are now printed-serif too (handwriting
+   banned). Only .signature and .doodle keep the handwriting face,
+   and inside them Latin tokens pull Kalam via unicode-range. */
+:lang(zh) .signature,
+:lang(zh) .doodle {
+  /* Latin inside signature/doodle inherits Caveat/Kalam via unicode-range. */
+  font-family: 'Kalam-Latin', var(--font-hand-cjk-alt);
+}
+
+/* Inline Latin runs — wrap with .lat in markup to force Latin
+   handwriting face even inside a printed-serif paragraph. Use
+   sparingly: place names, brand tokens (reddit, tl;dr). */
+.lat {
+  font-family: var(--font-hand);    /* Caveat */
+  letter-spacing: -0.005em;
+}
+.lat-alt { font-family: var(--font-hand-alt); }
+.lat-type { font-family: var(--font-type); letter-spacing: 0.18em; text-transform: uppercase; }
+
+/* ────────────────────────────────────────────────────────────
+   PUNCTUATION
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) {
+  hanging-punctuation: allow-end;
+}
+
+/* ────────────────────────────────────────────────────────────
+   BUTTONS — printed serif so the label is unambiguous.
+   Drop the typewriter dot prefix from v1 (extra noise; the button
+   is now legible without help).
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) .btn {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  padding: 12px 26px 11px;
+  color: var(--ink-cjk);
+}
+
+/* link-hand — printed serif underline link. */
+:lang(zh) .link-hand {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 600;
+  font-size: 17px;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-color: hsl(var(--red) / .55);
+  text-underline-offset: 5px;
+  color: var(--ink-cjk);
+}
+
+/* ────────────────────────────────────────────────────────────
+   FIELD INPUTS — labels in printed type-label (small caps),
+   inputs in printed serif (book-feel, very legible).
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) .field > label {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--ink-cjk-soft);
+}
+:lang(zh) .field > input,
+:lang(zh) .field > textarea {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 500;
+  font-size: 17px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  color: var(--ink-cjk);
+}
+:lang(zh) .field > textarea {
+  background-image: repeating-linear-gradient(
+    transparent 0 34px, hsl(var(--ink-3) / .18) 34px 35px);
+  line-height: 34px;
+}
+:lang(zh) .field .hint {
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--ink-cjk-meta);
+}
+
+/* ────────────────────────────────────────────────────────────
+   NAV STRIP — typewriter caps, printed-feel.
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) .nav-strip a,
+:lang(zh) .nav-strip button {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-size: 14px;
+  color: var(--ink-cjk-soft);
+}
+:lang(zh) .nav-strip a.is-on {
+  color: var(--ink-cjk);
+  font-weight: 700;
+}
+
+/* ────────────────────────────────────────────────────────────
+   STAMP — printed slab, no letter-spacing inflation.
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) .stamp {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-size: 13px;
+  padding: 7px 12px 6px;
+}
+:lang(zh) .stamp .ymd {
+  font-family: var(--font-type);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+/* ────────────────────────────────────────────────────────────
+   VIEW TOGGLE — printed serif.
+   ──────────────────────────────────────────────────────────── */
+:lang(zh) .view-toggle {
+  font-family: var(--font-cjk-type);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-size: 13px;
+  min-width: 130px;
+  text-align: center;
+}
+
+/* ────────────────────────────────────────────────────────────
+   PRINTED VIEW — when the user clicks the toggle. Already serif
+   in v2; printed view just removes tilt, grain, tape rotation.
+   ──────────────────────────────────────────────────────────── */
+.printed-view:lang(zh),
+.printed-view :lang(zh) {
+  font-family: var(--font-cjk-serif-sc);
+  font-size: 17px;
+  line-height: 1.85;
+  letter-spacing: 0;
+}
+.printed-view:lang(zh-Hant),
+.printed-view :lang(zh-Hant) {
+  font-family: var(--font-cjk-serif-tc);
+}
+.printed-view :lang(zh) .type,
+.printed-view :lang(zh) .type-sm,
+.printed-view :lang(zh) .crest,
+.printed-view :lang(zh) .nav-strip a {
+  font-family: var(--font-cjk-sans);
+  font-weight: 500;
+}
+.printed-view :lang(zh) .annot,
+.printed-view :lang(zh) .margin-note,
+.printed-view :lang(zh) .signature {
+  /* In printed view even annotations drop the handwriting face. */
+  font-family: var(--font-cjk-serif-sc);
+  font-weight: 400;
+}
+
+/* ────────────────────────────────────────────────────────────
+   SMALL SCREEN — CJK at small sizes needs MORE line-height not less
+   ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  :lang(zh) .hand-xxl,
+  :lang(zh) .h-display { font-size: 2.1rem; line-height: 1.2; }
+  :lang(zh) .hand,
+  :lang(zh) .body { font-size: 17px; line-height: 1.75; }
+  :lang(zh) .scrawl { font-size: 16px; line-height: 1.7; }
+  :lang(zh) .msg { font-size: 17px; line-height: 1.7; }
+  :lang(zh) .photo-card .cap { font-size: 18px; }
+}

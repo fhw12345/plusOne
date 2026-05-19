@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plus One — trip detail (SSE + report)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./_shared.css" />
+  <style>
+    .trip-head {
+      padding: 40px 0 24px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .trip-head .meta-row {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 18px;
+      color: hsl(var(--ink-3)); font-size: 13px;
+    }
+    .trip-head .meta-row .sep { width: 3px; height: 3px; background: hsl(var(--rule-strong)); border-radius: 50%; }
+    .trip-head .for-line {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: 'opsz' 24;
+      font-weight: 300;
+      color: hsl(var(--ink-2));
+      font-size: 18px;
+    }
+
+    .feed-wrap { padding: 32px 0 16px; }
+    .feed-wrap.faded { opacity: 0.55; }
+
+    .report-section { padding: 32px 0 96px; }
+    .tldr {
+      padding: 32px 0 36px;
+      border-bottom: 1px solid hsl(var(--rule));
+    }
+    .tldr p {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: clamp(22px, 2.4vw, 30px);
+      line-height: 1.35;
+      color: hsl(var(--ink));
+      letter-spacing: -0.01em;
+      max-width: 36ch;
+    }
+    .tabs-wrap { margin-top: 28px; }
+    .reports-list { margin-top: 36px; }
+
+    .source-strip {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px dashed hsl(var(--rule));
+      display: grid;
+      grid-template-columns: 18px 1fr auto auto;
+      gap: 14px 18px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .source-strip .src-icon {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: hsl(var(--brass-tint));
+      color: hsl(var(--brass));
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 9px;
+    }
+    .source-strip .src-quote { color: hsl(var(--ink-2)); font-style: italic; font-family: var(--font-display); font-variation-settings: 'opsz' 24; font-weight: 300; }
+    .source-strip .src-flag { font-size: 11px; font-family: var(--font-mono); color: hsl(var(--ink-3)); letter-spacing: 0.1em; }
+    .source-strip .src-link { color: hsl(var(--brass)); border-bottom: 1px solid hsl(var(--brass)); padding-bottom: 1px; font-size: 12px; }
+
+    .match {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; color: hsl(var(--ink-3));
+    }
+    .match .who {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .match .bar {
+      width: 56px; height: 3px;
+      background: hsl(var(--rule));
+      position: relative;
+      border-radius: 2px;
+    }
+    .match .bar::after {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: hsl(var(--ink));
+      border-radius: 2px;
+    }
+    .match.you .bar::after { width: 91%; }
+    .match.partner .bar::after { width: 78%; background: hsl(var(--brass)); }
+    .match .num { color: hsl(var(--ink-2)); font-size: 11px; }
+
+    .anchor-down {
+      margin-top: 24px;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: hsl(var(--brass));
+      cursor: pointer;
+    }
+
+    @container page (max-width: 640px) {
+      .trip-head { padding: 24px 0 16px; }
+      .tldr { padding: 24px 0 24px; }
+      .report-card { padding: 24px 22px; }
+      .report-card .prose { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-shell-header">
+      <span>plus one · mockup &mdash; the centerpiece</span>
+      <span class="file">trip-detail.html · phase A (running) + phase B (complete) + mobile</span>
+    </div>
+
+    <!-- 3-column layout for this one: phase A | phase B | mobile -->
+    <div style="max-width: 1800px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 380px; gap: 24px; align-items: start;">
+
+      <!-- DESKTOP — PHASE A: running -->
+      <div class="preview-frame">
+        <div class="label"><span>desktop · phase A &mdash; running</span><span>/trips/abc123</span></div>
+        <div class="canvas">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <a href="#">New</a><a href="#" class="active">Trips</a><a href="#">Companions</a>
+                  <span class="avatar">H</span>
+                </nav>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="trip-head stagger">
+                <span class="eyebrow flanked">Reading Tokyo</span>
+                <h1 class="display-lg">Tokyo.</h1>
+                <p class="for-line">for Yuna and Wei &mdash; tonkotsu, no tourist traps.</p>
+                <div class="meta-row">
+                  <span>Started 14:02 JST</span>
+                  <span class="sep"></span>
+                  <span class="status running"><span class="dot"></span>Running</span>
+                  <span class="sep"></span>
+                  <span class="num">depth 1 / 4</span>
+                </div>
+                <div class="hairline"></div>
+              </section>
+
+              <section class="feed-wrap">
+                <div class="feed">
+                  <div class="feed-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head">
+                      <span class="tag">STARTED</span>
+                    </div>
+                    <span class="timer">00:00</span>
+                    <p class="body-line">Cycle started for <em>Tokyo</em>. Profile and companions loaded.</p>
+                  </div>
+
+                  <div class="feed-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head">
+                      <span class="tag">PRODUCER &middot; depth 1</span>
+                    </div>
+                    <span class="timer">00:04</span>
+                    <p class="body-line">Generating candidates from <span class="mono">r/JapanTravel</span>, <span class="mono">r/Tokyo</span>, <span class="mono">xhs:tokyo:ramen</span>, <span class="mono">google.places</span>.</p>
+                  </div>
+
+                  <div class="feed-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head">
+                      <span class="tag">JOINER &middot; depth 1</span>
+                    </div>
+                    <span class="timer">00:11</span>
+                    <p class="body-line">Cross-validating evidence &mdash; <span class="num">12</span> candidates &rarr; <span class="num">7</span> with &ge;2 sources.</p>
+                  </div>
+
+                  <div class="feed-row running">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head">
+                      <span class="tag">CONTROLLER &middot; depth 1</span>
+                    </div>
+                    <span class="timer">00:18</span>
+                    <p class="body-line">Deciding next step. <span class="quote">&ldquo;Need disagreement signals from the Chinese sources before settling on shio counters.&rdquo;</span></p>
+                  </div>
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESKTOP — PHASE B: complete -->
+      <div class="preview-frame">
+        <div class="label"><span>desktop · phase B &mdash; complete</span><span>/trips/abc123</span></div>
+        <div class="canvas">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <a href="#">New</a><a href="#" class="active">Trips</a><a href="#">Companions</a>
+                  <span class="avatar">H</span>
+                </nav>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="trip-head stagger">
+                <span class="eyebrow flanked">Reading Tokyo &mdash; complete</span>
+                <h1 class="display-lg">Tokyo.</h1>
+                <p class="for-line">for Yuna and Wei &mdash; tonkotsu, no tourist traps.</p>
+                <div class="meta-row">
+                  <span>Read in <span class="num">86</span>s</span>
+                  <span class="sep"></span>
+                  <span class="status complete"><span class="dot"></span>Complete</span>
+                  <span class="sep"></span>
+                  <span class="num">22 sources &middot; 7 places &middot; 2 disagreements</span>
+                </div>
+                <div class="hairline"></div>
+              </section>
+
+              <section class="feed-wrap faded">
+                <div class="feed">
+                  <div class="feed-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head"><span class="tag">PRODUCER &middot; depth 1</span></div>
+                    <span class="timer">00:04</span>
+                  </div>
+                  <div class="feed-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head"><span class="tag">JOINER &middot; depth 1</span></div>
+                    <span class="timer">00:11</span>
+                  </div>
+                  <div class="feed-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head"><span class="tag">CONTROLLER &middot; depth 1</span></div>
+                    <span class="timer">00:18</span>
+                  </div>
+                  <div class="feed-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head"><span class="tag">PRODUCER &middot; depth 2</span></div>
+                    <span class="timer">00:31</span>
+                  </div>
+                  <div class="feed-row">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head"><span class="tag">JOINER &middot; depth 2</span></div>
+                    <span class="timer">00:54</span>
+                  </div>
+                  <div class="feed-row complete">
+                    <span class="marker"><span class="glyph"></span></span>
+                    <div class="head"><span class="tag" style="color: hsl(var(--status-complete));">TRIP COMPLETE</span></div>
+                    <span class="timer">01:26</span>
+                  </div>
+                </div>
+              </section>
+
+              <div class="hairline-brass" style="margin: 16px 0 0;"></div>
+
+              <section class="report-section">
+                <div class="tldr">
+                  <span class="eyebrow">tl;dr</span>
+                  <p style="margin-top: 18px;">Tokyo for two, leaning vegetarian, hates tourist pricing, loves quiet ramen counters. Lean into Sugamo and Jimbocho; avoid Shibuya for food.</p>
+                </div>
+
+                <div class="tabs-wrap">
+                  <div class="tabs">
+                    <span class="tab active">Together <span class="count num">3</span></span>
+                    <span class="tab">You-only <span class="count num">2</span></span>
+                    <span class="tab">Partner-only <span class="count num">1</span></span>
+                    <span class="tab">Disagreement <span class="count num">2</span></span>
+                    <span class="tab">Local Gems <span class="count num">4</span></span>
+                    <span class="tab">Tourist Traps <span class="count num">3</span></span>
+                  </div>
+                </div>
+
+                <div class="reports-list">
+
+                  <article class="report-card">
+                    <span class="eyebrow flanked" style="color: hsl(var(--brass));">A counter for four</span>
+                    <h3 class="display-sm" style="margin-top: 14px;">Menya Saimi.</h3>
+                    <div class="meta">
+                      <span>Sugamo</span>
+                      <span class="sep"></span>
+                      <span><span class="num">12</span> sources</span>
+                      <span class="sep"></span>
+                      <span class="match you"><span class="who">You</span><span class="bar"></span><span class="num">0.91</span></span>
+                      <span class="match partner"><span class="who">Yuna</span><span class="bar"></span><span class="num">0.78</span></span>
+                    </div>
+
+                    <p class="prose">A quiet shio counter, no English menu. Locals on Reddit describe a <em>&ldquo;thin, almost transparent&rdquo;</em> broth and a chef who refuses to discuss the recipe. Chinese sources rate the value highly and note short queues on weekday mornings; English sources concede the technique but mark it &ldquo;not novel enough&rdquo; for a special trip &mdash; a recurring split worth knowing.</p>
+
+                    <div class="source-strip">
+                      <span class="src-icon">R</span>
+                      <span class="src-quote">&ldquo;The thinnest broth I have ever drunk &mdash; in a good way.&rdquo;</span>
+                      <span class="src-flag">EN &middot; r/ramen</span>
+                      <a class="src-link" href="#">read &rarr;</a>
+
+                      <span class="src-icon">X</span>
+                      <span class="src-quote">&ldquo;\u4e1c\u4eac\u62c9\u9762\u91cc\u6700\u5b89\u9759\u7684\u4e00\u95f4&rdquo;</span>
+                      <span class="src-flag">ZH &middot; xhs</span>
+                      <a class="src-link" href="#">read &rarr;</a>
+                    </div>
+
+                    <span class="anchor-down">&darr; All 12 sources</span>
+                  </article>
+
+                  <article class="report-card disagree">
+                    <span class="eyebrow flanked" style="color: hsl(var(--tab-disagree));">A community disagreement</span>
+                    <h3 class="display-sm" style="margin-top: 14px;">Tsukiji Outer Market.</h3>
+                    <div class="meta">
+                      <span>Chuo</span>
+                      <span class="sep"></span>
+                      <span><span class="num">28</span> sources</span>
+                      <span class="sep"></span>
+                      <span style="color: hsl(var(--status-aborted)); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;">High disagreement</span>
+                    </div>
+                    <p class="prose">English sources call it essential. Chinese sources, repeatedly, call it a tourist set-piece &mdash; <em>&ldquo;\u4e0d\u662f\u672c\u5730\u4eba\u4f1a\u53bb\u7684\u5730\u65b9&rdquo;</em>. Both agree the egg-roll stand is good. We&rsquo;d skip the rest unless your party wants the sights.</p>
+                    <span class="anchor-down">&darr; Read both sides</span>
+                  </article>
+
+                  <article class="report-card trap">
+                    <span class="eyebrow flanked" style="color: hsl(var(--tab-trap));">A tourist trap, gently</span>
+                    <h3 class="display-sm" style="margin-top: 14px;">Ichiran Shibuya.</h3>
+                    <div class="meta">
+                      <span>Shibuya</span>
+                      <span class="sep"></span>
+                      <span><span class="num">41</span> sources</span>
+                      <span class="sep"></span>
+                      <span style="color: hsl(var(--status-aborted)); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;">Skip</span>
+                    </div>
+                    <p class="prose">Eight of ten Chinese sources warn off this branch specifically (the chain itself is fine elsewhere). Long queues, premium pricing, no contact with broth-craft &mdash; the booth design is the brand. Worth knowing if it&rsquo;s on your list.</p>
+                  </article>
+
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE — phase B (complete) -->
+      <div class="preview-frame" style="max-width: 380px;">
+        <div class="label"><span>mobile · 390 · complete</span><span>/trips/abc123</span></div>
+        <div class="canvas" style="width: 380px;">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#" style="font-size: 18px;"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <span class="avatar" style="width: 26px; height: 26px; font-size: 11px;">H</span>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="trip-head stagger">
+                <span class="eyebrow flanked">Reading Tokyo</span>
+                <h1 class="display-md">Tokyo.</h1>
+                <p class="for-line" style="font-size: 16px;">for Yuna and Wei.</p>
+                <div class="meta-row" style="font-size: 12px;">
+                  <span class="status complete"><span class="dot"></span>Complete</span>
+                  <span class="num">22 sources &middot; 86s</span>
+                </div>
+                <div class="hairline"></div>
+              </section>
+
+              <section class="feed-wrap faded" style="padding: 16px 0 8px;">
+                <div class="feed">
+                  <div class="feed-row"><span class="marker"><span class="glyph"></span></span><div class="head"><span class="tag">PRODUCER</span></div><span class="timer">00:04</span></div>
+                  <div class="feed-row"><span class="marker"><span class="glyph"></span></span><div class="head"><span class="tag">JOINER</span></div><span class="timer">00:11</span></div>
+                  <div class="feed-row"><span class="marker"><span class="glyph"></span></span><div class="head"><span class="tag">CONTROLLER</span></div><span class="timer">00:18</span></div>
+                  <div class="feed-row complete"><span class="marker"><span class="glyph"></span></span><div class="head"><span class="tag" style="color: hsl(var(--status-complete));">COMPLETE</span></div><span class="timer">01:26</span></div>
+                </div>
+              </section>
+
+              <div class="hairline-brass" style="margin: 8px 0 0;"></div>
+
+              <section class="report-section" style="padding: 16px 0 64px;">
+                <div class="tldr" style="padding: 16px 0 24px;">
+                  <span class="eyebrow">tl;dr</span>
+                  <p style="margin-top: 12px; font-size: 22px;">Lean into Sugamo and Jimbocho. Skip Shibuya for food.</p>
+                </div>
+
+                <div class="tabs" style="margin-top: 16px;">
+                  <span class="tab active">Together <span class="count num">3</span></span>
+                  <span class="tab">You <span class="count num">2</span></span>
+                  <span class="tab">Disagree <span class="count num">2</span></span>
+                  <span class="tab">Gems <span class="count num">4</span></span>
+                </div>
+
+                <div class="reports-list" style="margin-top: 24px;">
+                  <article class="report-card" style="padding: 22px 20px;">
+                    <span class="eyebrow flanked" style="color: hsl(var(--brass));">A counter for four</span>
+                    <h3 class="display-sm" style="margin-top: 12px; font-size: 26px;">Menya Saimi.</h3>
+                    <div class="meta" style="font-size: 11px;">
+                      <span>Sugamo</span><span class="sep"></span>
+                      <span><span class="num">12</span> sources</span>
+                    </div>
+                    <p class="prose" style="font-size: 15px; margin-top: 16px;">A quiet shio counter, no English menu. <em>&ldquo;Thin, almost transparent&rdquo;</em> broth.</p>
+                    <span class="source-toggle" style="margin-top: 14px;">&darr; 12 sources</span>
+                  </article>
+
+                  <article class="report-card disagree" style="padding: 22px 20px;">
+                    <span class="eyebrow flanked" style="color: hsl(var(--tab-disagree));">Disagreement</span>
+                    <h3 class="display-sm" style="margin-top: 12px; font-size: 26px;">Tsukiji Outer.</h3>
+                    <p class="prose" style="font-size: 15px; margin-top: 14px;">English: essential. Chinese: tourist set-piece. Skip unless sights matter.</p>
+                  </article>
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

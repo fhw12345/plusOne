@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plus One — your trips</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./_shared.css" />
+  <style>
+    .filter-row {
+      display: flex; align-items: baseline; justify-content: space-between;
+      padding: 8px 0 24px;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .filter-row .pills {
+      display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    }
+    .filter-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border: 1px solid hsl(var(--rule));
+      border-radius: 999px;
+      cursor: pointer;
+      color: hsl(var(--ink-3));
+      background: hsl(var(--paper-elevated));
+    }
+    .filter-pill.active {
+      color: hsl(var(--ink));
+      border-color: hsl(var(--ink));
+    }
+    .count-text {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: 'opsz' 24;
+      font-weight: 300;
+      font-size: 16px;
+      color: hsl(var(--ink-2));
+    }
+    .count-text .num { font-style: normal; color: hsl(var(--ink)); font-family: var(--font-display); font-weight: 400; }
+
+    .trip-list {
+      border-top: 1px solid hsl(var(--rule));
+    }
+    .trip-row {
+      display: grid;
+      grid-template-columns: 90px minmax(0, 1fr) 200px;
+      gap: 32px;
+      padding: 28px 0;
+      border-bottom: 1px solid hsl(var(--rule));
+      align-items: start;
+      cursor: pointer;
+      transition: padding var(--dur) var(--ease), background var(--dur) var(--ease);
+    }
+    .trip-row:hover {
+      padding-left: 8px;
+      background: linear-gradient(to right, hsl(var(--paper-elevated)) 0%, transparent 80%);
+    }
+
+    .trip-date {
+      display: flex; flex-direction: column; gap: 2px;
+      font-family: var(--font-display);
+      color: hsl(var(--ink));
+      letter-spacing: -0.01em;
+      line-height: 1;
+      padding-top: 6px;
+    }
+    .trip-date .day { font-size: 38px; font-weight: 400; }
+    .trip-date .month { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: hsl(var(--ink-3)); font-family: var(--font-body); margin-top: 4px; }
+    .trip-date .year { font-size: 12px; color: hsl(var(--ink-3)); font-family: var(--font-body); }
+
+    .trip-body { padding-top: 4px; }
+    .trip-dest {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 400;
+      letter-spacing: -0.015em;
+      line-height: 1.05;
+      color: hsl(var(--ink));
+    }
+    .trip-for {
+      margin-top: 8px;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: 'opsz' 24;
+      font-weight: 300;
+      color: hsl(var(--ink-2));
+      font-size: 16px;
+    }
+    .trip-quote {
+      margin-top: 14px;
+      color: hsl(var(--ink-2));
+      font-size: 14px;
+      max-width: 56ch;
+      line-height: 1.6;
+    }
+    .trip-quote::before { content: '\201C'; color: hsl(var(--brass)); margin-right: 2px; }
+    .trip-quote::after { content: '\201D'; color: hsl(var(--brass)); margin-left: 2px; }
+
+    .trip-aside {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+      padding-top: 6px;
+    }
+    .trip-aside .src-line {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: hsl(var(--ink-3));
+    }
+    .trip-aside .src-line .num { color: hsl(var(--ink)); }
+    .trip-aside .reason {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: 'opsz' 24;
+      font-weight: 300;
+      color: hsl(var(--status-aborted));
+      font-size: 13px;
+      max-width: 22ch;
+      text-align: right;
+    }
+
+    .empty-foot {
+      padding: 64px 0;
+      text-align: center;
+    }
+    .empty-foot .quote {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-variation-settings: 'opsz' 144;
+      font-weight: 300;
+      color: hsl(var(--ink-3));
+      font-size: 22px;
+      max-width: 38ch;
+      margin: 0 auto;
+    }
+    .empty-foot .cta {
+      margin-top: 32px;
+    }
+
+    @container page (max-width: 640px) {
+      .trip-row { grid-template-columns: 64px 1fr; gap: 18px; padding: 22px 0; }
+      .trip-row:hover { padding-left: 0; background: none; }
+      .trip-aside { grid-column: 1 / 3; flex-direction: row; align-items: center; padding-left: 82px; padding-top: 10px; gap: 16px; flex-wrap: wrap; }
+      .trip-aside .reason { text-align: left; }
+      .trip-dest { font-size: 26px; }
+      .trip-date .day { font-size: 30px; }
+      .filter-row .pills { gap: 4px; }
+      .filter-pill { padding: 4px 9px; font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <div class="preview-shell-header">
+      <span>plus one · mockup</span>
+      <span class="file">trip-history.html · reading list</span>
+    </div>
+    <div class="preview-grid">
+
+      <!-- DESKTOP -->
+      <div class="preview-frame">
+        <div class="label"><span>desktop · 1280</span><span>/trips</span></div>
+        <div class="canvas">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <nav class="nav">
+                  <a href="#">New</a><a href="#" class="active">Trips</a><a href="#">Companions</a>
+                  <span class="avatar">H</span>
+                </nav>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="editorial-band stagger">
+                <span class="eyebrow flanked">Your readings</span>
+                <h1 class="display-md">Trips.</h1>
+                <p class="dek">Past readings, in order. Re-open any one to read again or refine.</p>
+                <div class="hairline"></div>
+              </section>
+
+              <section>
+                <div class="filter-row">
+                  <div class="pills">
+                    <span class="filter-pill active">All</span>
+                    <span class="filter-pill">Complete</span>
+                    <span class="filter-pill">Aborted</span>
+                    <span class="filter-pill">Tokyo</span>
+                    <span class="filter-pill">Kyoto</span>
+                  </div>
+                  <span class="count-text"><span class="num">7</span> readings, since March.</span>
+                </div>
+
+                <div class="trip-list">
+
+                  <article class="trip-row">
+                    <div class="trip-date"><span class="day num">12</span><span class="month">May</span><span class="year num">2026</span></div>
+                    <div class="trip-body">
+                      <h3 class="trip-dest">Tokyo.</h3>
+                      <p class="trip-for">for Yuna and Wei.</p>
+                      <p class="trip-quote">tonkotsu and shio counters, no tourist-trap pricing, vegetarian-friendly when possible</p>
+                    </div>
+                    <div class="trip-aside">
+                      <span class="status complete"><span class="dot"></span>Complete</span>
+                      <span class="src-line"><span class="num">22</span> sources &middot; <span class="num">86</span>s</span>
+                    </div>
+                  </article>
+
+                  <article class="trip-row">
+                    <div class="trip-date"><span class="day num">04</span><span class="month">Apr</span><span class="year num">2026</span></div>
+                    <div class="trip-body">
+                      <h3 class="trip-dest">Kyoto.</h3>
+                      <p class="trip-for">for Yuna.</p>
+                      <p class="trip-quote">temples but the quiet ones, kissaten, used books, slow days</p>
+                    </div>
+                    <div class="trip-aside">
+                      <span class="status complete"><span class="dot"></span>Complete</span>
+                      <span class="src-line"><span class="num">18</span> sources &middot; <span class="num">72</span>s</span>
+                    </div>
+                  </article>
+
+                  <article class="trip-row">
+                    <div class="trip-date"><span class="day num">21</span><span class="month">Mar</span><span class="year num">2026</span></div>
+                    <div class="trip-body">
+                      <h3 class="trip-dest">Osaka.</h3>
+                      <p class="trip-for">solo.</p>
+                      <p class="trip-quote">okonomiyaki deep dive, Shinsekai but only off-hours, jazz</p>
+                    </div>
+                    <div class="trip-aside">
+                      <span class="status aborted"><span class="dot"></span>Aborted</span>
+                      <span class="reason">Maestro gateway unavailable at depth&nbsp;2.</span>
+                    </div>
+                  </article>
+
+                  <article class="trip-row">
+                    <div class="trip-date"><span class="day num">02</span><span class="month">Mar</span><span class="year num">2026</span></div>
+                    <div class="trip-body">
+                      <h3 class="trip-dest">Tokyo.</h3>
+                      <p class="trip-for">solo &middot; second reading.</p>
+                      <p class="trip-quote">specifically Sugamo and Yanaka, walking only, second-hand cameras</p>
+                    </div>
+                    <div class="trip-aside">
+                      <span class="status complete"><span class="dot"></span>Complete</span>
+                      <span class="src-line"><span class="num">16</span> sources &middot; <span class="num">68</span>s</span>
+                    </div>
+                  </article>
+
+                </div>
+
+                <div class="empty-foot">
+                  <p class="quote">&ldquo;Where will you go next?&rdquo;</p>
+                  <div class="cta">
+                    <button class="btn btn-primary">Begin a new reading <span class="arrow">&rarr;</span></button>
+                  </div>
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE -->
+      <div class="preview-frame" style="max-width: 380px;">
+        <div class="label"><span>mobile · 390</span><span>/trips</span></div>
+        <div class="canvas" style="width: 380px;">
+          <div class="page">
+            <header class="site-header">
+              <div class="site-header-inner">
+                <a class="logo" href="#" style="font-size: 18px;"><span>Plus</span><span class="dot"></span><span>One</span></a>
+                <span class="avatar" style="width: 26px; height: 26px; font-size: 11px;">H</span>
+              </div>
+            </header>
+
+            <main class="wrap-content">
+              <section class="editorial-band stagger" style="padding: 32px 0 16px;">
+                <span class="eyebrow flanked">Your readings</span>
+                <h1 class="display-sm">Trips.</h1>
+                <p class="dek">Past readings.</p>
+                <div class="hairline"></div>
+              </section>
+
+              <section>
+                <div class="filter-row" style="padding: 8px 0 16px;">
+                  <div class="pills">
+                    <span class="filter-pill active">All</span>
+                    <span class="filter-pill">Complete</span>
+                    <span class="filter-pill">Aborted</span>
+                  </div>
+                </div>
+
+                <div class="trip-list">
+                  <article class="trip-row">
+                    <div class="trip-date"><span class="day num">12</span><span class="month">May</span></div>
+                    <div class="trip-body">
+                      <h3 class="trip-dest">Tokyo.</h3>
+                      <p class="trip-for">for Yuna and Wei.</p>
+                      <p class="trip-quote">tonkotsu and shio counters, no tourist traps</p>
+                    </div>
+                    <div class="trip-aside">
+                      <span class="status complete"><span class="dot"></span>Complete</span>
+                      <span class="src-line"><span class="num">22</span> sources</span>
+                    </div>
+                  </article>
+
+                  <article class="trip-row">
+                    <div class="trip-date"><span class="day num">04</span><span class="month">Apr</span></div>
+                    <div class="trip-body">
+                      <h3 class="trip-dest">Kyoto.</h3>
+                      <p class="trip-for">for Yuna.</p>
+                      <p class="trip-quote">temples but the quiet ones</p>
+                    </div>
+                    <div class="trip-aside">
+                      <span class="status complete"><span class="dot"></span>Complete</span>
+                      <span class="src-line"><span class="num">18</span> sources</span>
+                    </div>
+                  </article>
+
+                  <article class="trip-row">
+                    <div class="trip-date"><span class="day num">21</span><span class="month">Mar</span></div>
+                    <div class="trip-body">
+                      <h3 class="trip-dest">Osaka.</h3>
+                      <p class="trip-for">solo.</p>
+                      <p class="trip-quote">okonomiyaki deep dive, jazz</p>
+                    </div>
+                    <div class="trip-aside">
+                      <span class="status aborted"><span class="dot"></span>Aborted</span>
+                      <span class="reason">Maestro gateway unavailable.</span>
+                    </div>
+                  </article>
+                </div>
+
+                <div class="empty-foot" style="padding: 40px 0 64px;">
+                  <button class="btn btn-primary">Begin a new reading <span class="arrow">&rarr;</span></button>
+                </div>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

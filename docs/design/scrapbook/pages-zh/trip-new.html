@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — 新的一次</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+<link rel="stylesheet" href="../scrapbook-zh.css">
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">换成打印体</button>
+
+<div class="shell" style="max-width: 920px;">
+
+  <nav class="nav-strip" style="margin-bottom: 32px;">
+    <p class="crest" style="margin-right: auto;">
+      <span class="crest-dot"></span><span class="lat-type">PLUS · ONE</span>
+    </p>
+    <a href="#">你的记录</a>
+    <span class="sep"></span>
+    <a class="is-on" href="trip-new.html">新的一次</a>
+    <span class="sep"></span>
+    <a href="#">一起去的人</a>
+    <span class="sep"></span>
+    <a href="profile.html">关于你</a>
+  </nav>
+
+  <header style="position: relative; padding: 12px 0 36px;">
+    <span class="tape tape--yellow" style="top: -8px; left: 320px; width: 96px; height: 24px; transform: rotate(4deg);"></span>
+    <h1 class="hand-xxl">去哪儿？</h1>
+    <p class="lede" style="max-width: 580px; margin-top: 14px;">
+      告诉我地方和你想要的样子。我去看看。
+    </p>
+
+    <span class="stamp" style="position: absolute; top: 22px; right: 0; --stamp-tilt: 6deg;">
+      第 48 次<span class="ymd">about to start</span>
+    </span>
+  </header>
+
+  <section style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 36px; align-items: start;">
+
+    <form style="position: relative; padding: 36px 38px 42px; background: hsl(var(--paper-2)); box-shadow: 0 14px 28px -14px hsl(0 0% 0% / .22); border: 1px solid hsl(var(--kraft));">
+
+      <span class="tape tape--mint" style="top: -12px; left: 36px; width: 110px; height: 24px; transform: rotate(-3deg);"></span>
+      <span class="tape tape--blue" style="top: -12px; right: 80px; width: 80px; height: 24px; transform: rotate(2deg);"></span>
+
+      <div class="field">
+        <label for="dest">这个地方</label>
+        <input id="dest" type="text" placeholder="e.g. 东京 · 京都 · 台北" value="东京">
+        <span class="hint">城市最好。街区也行 &mdash; 我可以再细看。</span>
+      </div>
+
+      <div class="field">
+        <label>一起去的人</label>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px 14px; padding-top: 8px;">
+          <button type="button" class="chip is-on" style="--tilt: -2deg;">雯雯 <span class="meta">另一半</span></button>
+          <button type="button" class="chip chip--blue is-on" style="--tilt: 2deg;">小威 <span class="meta">朋友</span></button>
+          <button type="button" class="chip chip--yellow" style="--tilt: -1deg;">妈妈 <span class="meta">家人</span></button>
+          <button type="button" class="chip chip--red" style="--tilt: 3deg;">一个人 <span class="meta">就我</span></button>
+          <a href="#" class="link-hand" style="font-size: 16px; align-self: center;">+ 加一个人</a>
+        </div>
+        <span class="hint" style="margin-top: 14px;">点你要带上的人。我会照顾到他们。</span>
+      </div>
+
+      <div class="field">
+        <label for="mood">想要的氛围、想吃的、想避开的</label>
+        <textarea id="mood" rows="5" placeholder="想吃豚骨拉面。安静的吧台。不要 ins 网红店。">想吃 tonkotsu 拉面，越安静的吧台越好。小威不吃带壳海鲜。走得多，但不在大热天。如果还有时间，找一家好的纯喫茶。</textarea>
+        <span class="hint">像跟朋友讲那样讲。底线写最上面。</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 22px; margin-top: 28px;">
+        <a href="trip-detail.html" class="btn btn--red">去看看 →</a>
+        <span class="scrawl" style="font-size: 15px;">你一按我就开始写。<br>大概 90 秒。</span>
+      </div>
+    </form>
+
+    <aside style="position: relative; padding-top: 12px;">
+
+      <div style="position: relative; padding: 24px 26px 28px; background: hsl(var(--paper-2)); transform: rotate(1deg); border: 1px solid hsl(var(--kraft));">
+        <p class="type" style="margin-bottom: 14px;">我会做的事</p>
+        <ul class="stack" style="--stack: 12px; list-style: none; padding: 0;">
+          <li class="scrawl" style="position: relative; padding-left: 22px; font-size: 16px;">
+            <span style="position: absolute; left: 0; top: 2px; color: hsl(var(--red));">1.</span>
+            去 <span class="lat">reddit</span> 问问 &mdash; r/{place}、r/<span class="lat">JapanTravel</span>，深一点的几个 sub
+          </li>
+          <li class="scrawl" style="position: relative; padding-left: 22px; font-size: 16px;">
+            <span style="position: absolute; left: 0; top: 2px; color: hsl(var(--red));">2.</span>
+            到 <span class="jp">小红书</span> 对一下 &mdash; 中文圈知道安静的那些
+          </li>
+          <li class="scrawl" style="position: relative; padding-left: 22px; font-size: 16px;">
+            <span style="position: absolute; left: 0; top: 2px; color: hsl(var(--red));">3.</span>
+            有分歧的，多看一轮，不靠声音大
+          </li>
+          <li class="scrawl" style="position: relative; padding-left: 22px; font-size: 16px;">
+            <span style="position: absolute; left: 0; top: 2px; color: hsl(var(--red));">4.</span>
+            写一页小笔记给你。归你。
+          </li>
+        </ul>
+      </div>
+
+      <div class="sticky" style="position: static; margin-top: 30px; --tilt: -4deg; width: 100%;">
+        <strong>小提示 <span class="glyph">↓</span></strong>
+        「想避开」的越具体越好。「不要网红店」可以。「不要连锁、门口贴英文菜单的不要」更好。
+      </div>
+
+    </aside>
+
+  </section>
+
+  <footer style="margin-top: 100px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft));">
+    <p class="type"><span class="lat-type">PLUS · ONE · v0.1</span> · 新的一次</p>
+  </footer>
+</div>
+
+</body>
+</html>

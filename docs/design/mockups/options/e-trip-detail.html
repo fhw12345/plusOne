@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Option E — Printed Page (Monocle / MUJI) — trip-detail sketch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=GT+Super+Display&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Roboto+Mono:wght@400;500&family=Noto+Serif+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FBF9F4;     /* MUJI cream */
+    --paper-2: #F4F0E6;
+    --paper-edge: #E8E2D2;
+    --ink: #1A1A1A;       /* Monocle near-black */
+    --ink-2: #4A4A4A;
+    --ink-3: #888378;
+    --rule: #D8D2C0;
+    --signal: #C84A1F;    /* the single Monocle red */
+    --green: #4F6B47;     /* MUJI green for confirmed */
+    --font-d: 'Source Serif 4', 'Times New Roman', Georgia, serif;
+    --font-b: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-m: 'Roboto Mono', ui-monospace, monospace;
+    --font-jp: 'Noto Serif JP', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #2A2620;
+    color: var(--ink);
+    font-family: var(--font-b);
+    font-size: 14px;
+    line-height: 1.55;
+    padding: 32px;
+  }
+
+  .page-shadow {
+    max-width: 1280px; margin: 0 auto;
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.04) inset;
+    background: var(--paper);
+    position: relative;
+  }
+  .page-shadow::after {
+    /* paper edge */
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: 0; top: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px var(--paper-edge);
+  }
+
+  /* TOP NAMEPLATE — like Monocle masthead */
+  .nameplate {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 22px 48px 18px;
+    border-bottom: 4px double var(--ink);
+    background: var(--paper);
+  }
+  .nameplate .L, .nameplate .R {
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .nameplate .R { text-align: right; }
+  .nameplate .L b, .nameplate .R b { color: var(--ink); font-weight: 600; }
+  .nameplate .M {
+    font-family: var(--font-d);
+    font-size: 30px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    text-transform: lowercase;
+  }
+  .nameplate .M .dot { display: inline-block; width: 5px; height: 5px; background: var(--signal); border-radius: 50%; margin: 0 2px 0 4px; vertical-align: 5px; }
+
+  /* SECTION RULE */
+  .section-bar {
+    padding: 8px 48px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    background: var(--paper-2);
+  }
+  .section-bar .lbl {
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .section-bar .lbl::before { content: '— '; color: var(--signal); margin-right: 4px; }
+  .section-bar .pg {
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--ink-3);
+  }
+
+  /* HERO */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .hero .photo {
+    background: var(--paper-edge);
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    position: relative;
+  }
+  .hero .photo img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.05) saturate(.9); display: block; }
+  .hero .photo .caption {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 14px 22px;
+    background: linear-gradient(transparent, rgba(0,0,0,.65));
+    color: var(--paper);
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .hero .meta {
+    padding: 36px 48px 32px;
+  }
+  .kicker {
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .kicker::before { content: ''; width: 24px; height: 2px; background: var(--signal); }
+  .h1 {
+    font-family: var(--font-d);
+    font-weight: 400;
+    font-size: 56px;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .h1 .jp { font-family: var(--font-jp); font-size: 0.5em; color: var(--ink-2); margin-left: 16px; vertical-align: 12px; }
+  .standfirst {
+    margin-top: 20px;
+    font-family: var(--font-d);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--ink-2);
+    max-width: 32ch;
+  }
+  .meta-table {
+    margin-top: 28px;
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 8px 18px;
+    font-family: var(--font-m);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .meta-table dt { color: var(--ink-3); }
+  .meta-table dd { color: var(--ink); }
+  .meta-table dd b { color: var(--signal); }
+
+  /* THE SSE — quiet sans subtitles, no decoration */
+  .dispatches {
+    padding: 36px 48px 40px;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 36px;
+    background: var(--paper);
+  }
+  .dispatches .col-l {
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .dispatches .col-l .num { font-family: var(--font-d); font-size: 64px; font-weight: 400; color: var(--ink); display: block; line-height: 1; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .dispatches .col-l .clock { color: var(--signal); margin-top: 14px; display: block; }
+  .dispatches .col-l .clock b { color: var(--ink); font-family: var(--font-m); font-size: 14px; letter-spacing: 0.06em; }
+
+  .dispatches ol { list-style: none; counter-reset: d; padding: 0; margin: 0; }
+  .dispatches li {
+    counter-increment: d;
+    padding: 14px 0 16px;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 32px 1fr 80px;
+    gap: 18px;
+    align-items: baseline;
+  }
+  .dispatches li:last-child { border-bottom: none; }
+  .dispatches li::before {
+    content: counter(d, decimal-leading-zero);
+    font-family: var(--font-m);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
+  }
+  .dispatches li .body {
+    font-family: var(--font-b);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .dispatches li .time {
+    text-align: right;
+    font-family: var(--font-m);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.14em;
+    font-variant-numeric: tabular-nums;
+  }
+  .dispatches li.now .body { color: var(--ink-2); font-style: italic; font-family: var(--font-d); font-weight: 400; font-size: 16px; }
+  .dispatches li.now .time { color: var(--signal); }
+  .dispatches li.now .time::after { content: ' ·'; animation: tick 1.2s steps(2) infinite; }
+  @keyframes tick { 50% { opacity: .3; } }
+
+  /* THE ASYMMETRIC GRID OF FINDINGS */
+  .findings {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    grid-auto-rows: minmax(220px, auto);
+    border-bottom: 1px solid var(--rule);
+  }
+  .find {
+    padding: 28px 28px 32px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .find:nth-child(3n) { border-right: none; }
+  .find .tag {
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 12px;
+  }
+  .find .name {
+    font-family: var(--font-d);
+    font-size: 28px;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-weight: 400;
+  }
+  .find .name .jp { font-family: var(--font-jp); font-size: 0.55em; color: var(--ink-2); margin-left: 8px; }
+  .find .place { margin-top: 6px; font-family: var(--font-m); font-size: 10px; color: var(--ink-3); letter-spacing: 0.14em; text-transform: uppercase; }
+  .find .lede {
+    margin-top: 18px;
+    font-family: var(--font-d);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .find .figures {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .find .figures b { color: var(--ink); font-weight: 500; }
+  .find.span2 { grid-column: span 2; flex-direction: row; gap: 28px; align-items: stretch; padding: 0; }
+  .find.span2 > .img { flex: 1.2; min-height: 100%; background: var(--paper-edge); overflow: hidden; }
+  .find.span2 > .img img { width: 100%; height: 100%; object-fit: cover; display: block; filter: contrast(1.05) saturate(.9); }
+  .find.span2 > .text { flex: 1; padding: 28px 28px 32px; display: flex; flex-direction: column; }
+  .find.span2 > .text .name { font-size: 36px; }
+
+  .find.composing {
+    background: var(--paper-2);
+    color: var(--ink-3);
+  }
+  .find.composing .name { color: var(--ink-3); font-style: italic; }
+  .find.composing .lede { color: var(--ink-3); font-style: italic; }
+  .find.composing .placeholder { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+  .find.composing .placeholder .ln { height: 8px; background: var(--rule); border-radius: 1px; opacity: .55; }
+  .find.composing .placeholder .ln:nth-child(2) { width: 86%; }
+  .find.composing .placeholder .ln:nth-child(3) { width: 64%; }
+
+  /* COLOPHON */
+  .colophon {
+    padding: 22px 48px 28px;
+    background: var(--paper-2);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--font-m);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .colophon b { color: var(--ink); }
+</style>
+</head>
+<body>
+  <article class="page-shadow">
+
+    <header class="nameplate">
+      <span class="L">Reading No. <b>047</b></span>
+      <h1 class="M">plus<span class="dot"></span>one</h1>
+      <span class="R">Tokyo, May <b>2026</b></span>
+    </header>
+
+    <div class="section-bar">
+      <span class="lbl">Section · Reading in progress</span>
+      <span class="pg">i &mdash; Tokyo &mdash; for two</span>
+    </div>
+
+    <section class="hero">
+      <div class="photo">
+        <img src="https://images.unsplash.com/photo-1554797589-7241bb691973?w=1400&q=80" alt="Tokyo street scene" />
+        <span class="caption"><span>Sugamo, mid-morning</span><span>photographed by R. Tanaka</span></span>
+      </div>
+      <div class="meta">
+        <span class="kicker">Tokyo, in two languages</span>
+        <h1 class="h1">An honest list.<span class="jp">東京</span></h1>
+        <p class="standfirst">A short reading of where to eat in Tokyo, for Yuna and Wei &mdash; with a particular dislike of tourist pricing and a particular fondness for shio counters.</p>
+        <dl class="meta-table">
+          <dt>Started</dt><dd>14:02 JST &middot; <b>live</b></dd>
+          <dt>Duration</dt><dd>est. 90 seconds</dd>
+          <dt>Sources</dt><dd>Reddit &middot; Xiaohongshu &middot; Google Places</dd>
+          <dt>Languages</dt><dd>English &middot; 中文</dd>
+        </dl>
+      </div>
+    </section>
+
+    <div class="section-bar">
+      <span class="lbl">Section · Dispatches from the reading</span>
+      <span class="pg">ii &mdash; in real time</span>
+    </div>
+
+    <!-- THE SSE — Monocle subtitle voice -->
+    <section class="dispatches">
+      <aside class="col-l">
+        <span class="num">04</span>
+        <span>steps so far</span>
+        <span class="clock"><b>00:31</b><br/>elapsed</span>
+      </aside>
+      <ol>
+        <li>
+          <span class="body">Scanning Reddit threads from the last six months.</span>
+          <span class="time">14:02 + 04s</span>
+        </li>
+        <li>
+          <span class="body">Filtering recommendations that appear in more than one source.</span>
+          <span class="time">14:02 + 11s</span>
+        </li>
+        <li>
+          <span class="body">Comparing Chinese-language posts on Xiaohongshu against the English ones.</span>
+          <span class="time">14:02 + 18s</span>
+        </li>
+        <li class="now">
+          <span class="body">Two contested entries identified. Reading further.</span>
+          <span class="time">14:02 + 31s</span>
+        </li>
+      </ol>
+    </section>
+
+    <div class="section-bar">
+      <span class="lbl">Section · The findings, so far</span>
+      <span class="pg">iii &mdash; three settled, one being written</span>
+    </div>
+
+    <section class="findings">
+      <article class="find span2">
+        <div class="img"><img src="https://images.unsplash.com/photo-1623341214825-9f4f963727da?w=1200&q=80" alt="ramen bowl" /></div>
+        <div class="text">
+          <span class="tag">Together · 12 sources</span>
+          <h3 class="name">Menya Saimi.<span class="jp">麺屋彩未</span></h3>
+          <p class="place">Sugamo &middot; 12 minutes from station</p>
+          <p class="lede">A quiet shio counter, no English menu. English sources call the broth &ldquo;thin, almost transparent&rdquo;; Chinese sources call the room <em>「最安静的拉面店」</em>. Both communities agree on the technique. Pick by mood.</p>
+          <div class="figures">
+            <span>You <b>0.91</b></span>
+            <span>Yuna <b>0.78</b></span>
+            <span>Wait <b>~10 min</b></span>
+            <span>Confidence <b>High</b></span>
+          </div>
+        </div>
+      </article>
+
+      <article class="find">
+        <span class="tag">Disagreement · 28 sources</span>
+        <h3 class="name">Tsukiji Outer.<span class="jp">築地</span></h3>
+        <p class="place">Chuo</p>
+        <p class="lede">English sources describe it as essential. Chinese sources describe it as a tourist set-piece. Both agree on the egg-roll stand.</p>
+        <div class="figures">
+          <span>EN says <b>visit</b></span>
+          <span>ZH says <b>skip</b></span>
+        </div>
+      </article>
+
+      <article class="find">
+        <span class="tag">Tourist Trap · 41 sources</span>
+        <h3 class="name">Ichiran Shibuya.</h3>
+        <p class="place">Shibuya</p>
+        <p class="lede">Eight of ten Chinese sources warn off this branch specifically. The chain itself is fine elsewhere &mdash; try Ueno.</p>
+        <div class="figures">
+          <span>Verdict <b>Skip</b></span>
+          <span>Better <b>Ueno branch</b></span>
+        </div>
+      </article>
+
+      <article class="find composing">
+        <span class="tag">Local Gem · being written</span>
+        <h3 class="name">a quieter Ichiran&hellip;</h3>
+        <p class="place">Ueno · being written</p>
+        <p class="lede">Cross-referencing five Reddit comments against three XHS posts.</p>
+        <div class="placeholder"><span class="ln"></span><span class="ln"></span><span class="ln"></span></div>
+      </article>
+
+      <article class="find" style="border-right: 1px solid var(--rule);">
+        <span class="tag">For You · 7 sources</span>
+        <h3 class="name">Kissaten in Jimbocho.</h3>
+        <p class="place">Chiyoda</p>
+        <p class="lede">A handful of small coffee rooms next to the used bookshops. Yuna&rsquo;s &ldquo;loves&rdquo; weighted heavily here.</p>
+        <div class="figures">
+          <span>Yuna <b>0.92</b></span>
+          <span>You <b>0.74</b></span>
+        </div>
+      </article>
+
+      <article class="find composing" style="border-right: none;">
+        <span class="tag">Together · being written</span>
+        <h3 class="name">&hellip;and a quieter izakaya</h3>
+        <p class="place">being written</p>
+        <p class="lede">Looking for a counter with English menus that isn&rsquo;t loud.</p>
+        <div class="placeholder"><span class="ln"></span><span class="ln"></span></div>
+      </article>
+    </section>
+
+    <footer class="colophon">
+      <span>Plus One &middot; reading <b>047</b></span>
+      <span>set in <b>Source Serif</b> &middot; <b>Plus Jakarta</b> &middot; <b>Roboto Mono</b></span>
+      <span>printed at <b>14:02 JST</b> &middot; tokyo</span>
+    </footer>
+
+  </article>
+</body>
+</html>
