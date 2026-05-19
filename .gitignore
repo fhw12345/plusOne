@@ -65,6 +65,7 @@ frontend/test-results/
 frontend/playwright-report/
 frontend/playwright/.cache/
 frontend/blob-report/
+frontend/e2e/.artifacts/
 
 # PWA generated
 frontend/public/sw.js
