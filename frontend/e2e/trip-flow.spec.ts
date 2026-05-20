@@ -41,5 +41,11 @@ test.describe("trip flow (happy path)", () => {
     // meaningful destination check is that the page header still reflects
     // the trip we created — the report region itself is empty by design.
     await expect(page.getByText(/Tokyo/i)).toBeVisible();
+
+    // Batch 2i — perspective toggle and disagreement tab render without
+    // crashing even when the report is empty (the disagreement bucket is
+    // empty too — that's fine; we're just asserting non-crash rendering).
+    await expect(page.getByTestId("perspective-toggle")).toBeVisible();
+    await expect(page.getByRole("tab", { name: /disagreement/i })).toBeVisible();
   });
 });

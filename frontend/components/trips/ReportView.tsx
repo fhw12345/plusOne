@@ -1,5 +1,7 @@
 "use client";
 
+import { PerspectiveToggle } from "@/components/trips/PerspectiveToggle";
+import { ReportTabs } from "@/components/trips/ReportTabs";
 import type { TripDetail } from "@/lib/schemas/trips";
 
 export interface ReportViewProps {
@@ -18,20 +20,9 @@ export function ReportView({ trip }: ReportViewProps) {
         </span>
       </header>
 
-      {items.length === 0 ? (
-        <p className="text-foreground/70 text-sm">No results yet.</p>
-      ) : (
-        <ul className="flex flex-col gap-2 text-sm">
-          {items.map((item, idx) => (
-            <li
-              key={idx}
-              className="border-foreground/10 rounded border px-3 py-2 font-mono text-xs"
-            >
-              <pre className="break-all whitespace-pre-wrap">{JSON.stringify(item, null, 2)}</pre>
-            </li>
-          ))}
-        </ul>
-      )}
+      <PerspectiveToggle />
+
+      <ReportTabs items={items} />
     </section>
   );
 }

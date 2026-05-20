@@ -84,6 +84,8 @@ async def test_joiner_classifies_candidates(mock_llm: MockLLMProvider) -> None:
             {
                 "candidate": cand.model_dump(),
                 "classification": "local_gem",
+                "classification_en": "local_gem",
+                "classification_zh": "local_gem",
                 "confidence": 0.85,
                 "evidence": [
                     {
@@ -108,9 +110,84 @@ async def test_joiner_classifies_candidates(mock_llm: MockLLMProvider) -> None:
     assert len(result.payload) == 1
     item = result.payload[0]
     assert item.classification == "local_gem"
+    assert item.classification_en == "local_gem"
+    assert item.classification_zh == "local_gem"
     assert item.confidence == 0.85
+    # Per-lang agreement → divergence_score is exactly 0.0 (Python-side
+    # overwrite of whatever the LLM emitted for the field).
+    assert item.divergence_score == 0.0
     assert len(item.evidence) == 1
     assert isinstance(item.evidence[0], Evidence)
+
+
+@pytest.mark.unit
+async def test_joiner_computes_divergence_for_disagreement_case(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """LLM may emit a bogus divergence_score; Python-side recompute wins."""
+    cand = Candidate(name="Menya Itto", rationale="r")
+    output = {
+        "items": [
+            {
+                "candidate": cand.model_dump(),
+                "classification": "local_gem",
+                "classification_en": "local_gem",
+                "classification_zh": "tourist_trap",
+                "confidence": 0.7,
+                "evidence": [],
+                "summary": "EN raves, ZH says trap",
+                # Deliberately wrong — must be overwritten to 1.0.
+                "divergence_score": 0.1,
+            }
+        ]
+    }
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text=json.dumps(output),
+        parsed_data=output,
+    )
+
+    result = await joiner([cand], AgentContext(query="Tokyo"))
+    assert len(result.payload) == 1
+    item = result.payload[0]
+    assert item.classification_en == "local_gem"
+    assert item.classification_zh == "tourist_trap"
+    assert item.divergence_score == 1.0
+
+
+@pytest.mark.unit
+async def test_joiner_handles_null_per_language_classification(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """When one side has no per-language signal the LLM must emit null;
+    divergence_score must stay 0.0 because the disagreement gate requires
+    both sides non-null."""
+    cand = Candidate(name="Menya Itto", rationale="r")
+    output = {
+        "items": [
+            {
+                "candidate": cand.model_dump(),
+                "classification": "local_gem",
+                "classification_en": "local_gem",
+                "classification_zh": None,
+                "confidence": 0.6,
+                "evidence": [],
+                "summary": "no xhs hits",
+            }
+        ]
+    }
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text=json.dumps(output),
+        parsed_data=output,
+    )
+
+    result = await joiner([cand], AgentContext(query="Tokyo"))
+    assert len(result.payload) == 1
+    item = result.payload[0]
+    assert item.classification_en == "local_gem"
+    assert item.classification_zh is None
+    assert item.divergence_score == 0.0
 
 
 @pytest.mark.unit
