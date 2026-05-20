@@ -44,6 +44,11 @@ from typing import Final
 #   generation. Claude Haiku 4.5 (fast, cheap).
 # - **summarizer**      — compresses chain-of-thought / long contexts.
 #   Gemini Flash (cheap + long-context).
+# - **translator_agent** — translates report items into target languages
+#   (zh / en) post-cycle. Translation is structurally simple but needs
+#   reliable adherence to a JSON schema, so Claude Sonnet 4.5 is the
+#   sweet spot: cheaper than Opus but better at strict-schema output
+#   than Haiku. Cost budget: <$0.15 per ≤30-item report (PRD §6.7 ac8).
 # - **fallback**        — when role is unknown. Maps to conversational.
 
 ROLES: Final[dict[str, str]] = {
@@ -56,6 +61,7 @@ ROLES: Final[dict[str, str]] = {
     "bullshit_filter": os.getenv("MODEL_BULLSHIT_FILTER", "gpt-5.5"),
     "conversational": os.getenv("MODEL_CONVERSATIONAL", "claude-haiku-4.5"),
     "summarizer": os.getenv("MODEL_SUMMARIZER", "gemini-3-flash-preview"),
+    "translator_agent": os.getenv("MODEL_TRANSLATOR_AGENT", "claude-sonnet-4.5"),
 }
 
 FALLBACK_ROLE: Final[str] = "conversational"

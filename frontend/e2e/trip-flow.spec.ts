@@ -47,5 +47,14 @@ test.describe("trip flow (happy path)", () => {
     // empty too — that's fine; we're just asserting non-crash rendering).
     await expect(page.getByTestId("perspective-toggle")).toBeVisible();
     await expect(page.getByRole("tab", { name: /disagreement/i })).toBeVisible();
+
+    // Batch 2k — output language toggle is present alongside the
+    // perspective toggle. PLUS_ONE_TRANSLATE_ENABLED=0 in e2e so the
+    // report has no translations key; clicking the toggle must not
+    // crash (assertion is mechanical, not content-based).
+    const languageToggle = page.getByTestId("language-toggle");
+    await expect(languageToggle).toBeVisible();
+    await languageToggle.getByRole("radio", { name: /english/i }).click();
+    await expect(languageToggle).toBeVisible();
   });
 });

@@ -74,6 +74,11 @@ export default defineConfig({
         // forces MaestroProvider construction error → cycle_aborted → SSE
         // emits a terminal event without external deps
         PLUS_ONE_ALLOW_REAL_LLM: "0",
+        // Batch 2k — disable translator in e2e. Trips abort with no
+        // items so translation would never fire anyway, but setting this
+        // explicitly makes the language-toggle assertion deterministic
+        // (no translations key -> mechanical toggle test, not content).
+        PLUS_ONE_TRANSLATE_ENABLED: "0",
       },
     },
   ],

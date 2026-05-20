@@ -5,9 +5,16 @@ import { persist, createJSONStorage } from "zustand/middleware";
 
 export type Perspective = "zh" | "en" | "fused";
 
+// Output-language toggle (PRD batch 2k §6.7). ``original`` renders the
+// source-language items (the existing ``content.items`` payload — used
+// when no translation exists OR the user opts out of translation).
+export type ReportLanguage = "original" | "en" | "zh";
+
 export interface ReportPrefsState {
   perspective: Perspective;
   setPerspective: (p: Perspective) => void;
+  language: ReportLanguage;
+  setLanguage: (l: ReportLanguage) => void;
 }
 
 // Mirrors the pattern in ``store/auth.ts``: ``skipHydration: true`` so SSR
@@ -18,6 +25,8 @@ export const useReportPrefsStore = create<ReportPrefsState>()(
     (set) => ({
       perspective: "fused",
       setPerspective: (perspective) => set({ perspective }),
+      language: "original",
+      setLanguage: (language) => set({ language }),
     }),
     {
       name: "plus-one-report-prefs",
@@ -30,7 +39,10 @@ export const useReportPrefsStore = create<ReportPrefsState>()(
             }
           : window.localStorage,
       ),
-      partialize: (state) => ({ perspective: state.perspective }),
+      partialize: (state) => ({
+        perspective: state.perspective,
+        language: state.language,
+      }),
       skipHydration: true,
     },
   ),

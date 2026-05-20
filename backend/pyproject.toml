@@ -42,6 +42,7 @@ dependencies = [
     "playwright>=1.49.0",
     "praw>=7.8.0",
     "httpx>=0.28.0",
+    "googlemaps>=4.10.0",
 
     # Observability
     "structlog>=24.4.0",
