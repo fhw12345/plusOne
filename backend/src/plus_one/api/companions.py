@@ -13,12 +13,14 @@ caught by the IntegrityError fallback (R5 in the PRD).
 from __future__ import annotations
 
 from typing import Annotated
-from uuid import UUID
+from uuid import UUID  # noqa: TC003 — used at runtime as FastAPI path-param type
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,  # noqa: TC002 — FastAPI Depends needs the runtime symbol
+)
 
 from plus_one.api.schemas import (
     CompanionCreateBody,

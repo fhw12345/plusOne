@@ -10,8 +10,8 @@ a future field rename can't silently swallow client typos.
 
 from __future__ import annotations
 
-from datetime import datetime
-from uuid import UUID
+from datetime import datetime  # noqa: TC003 — used at runtime as Pydantic field type
+from uuid import UUID  # noqa: TC003 — used at runtime as Pydantic field type
 
 from pydantic import BaseModel, ConfigDict, Field
 

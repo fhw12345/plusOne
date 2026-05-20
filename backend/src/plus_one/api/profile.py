@@ -12,7 +12,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,  # noqa: TC002 — FastAPI Depends needs the runtime symbol
+)
 
 from plus_one.api.schemas import (
     Demographics,
