@@ -208,18 +208,14 @@ async def test_list_trips_paginates_with_cursor(
     seen.extend(t["destination"] for t in page1["trips"])
 
     page2 = (
-        await client.get(
-            f"/api/trips?limit=10&cursor={page1['next_cursor']}", headers=_auth(user)
-        )
+        await client.get(f"/api/trips?limit=10&cursor={page1['next_cursor']}", headers=_auth(user))
     ).json()
     assert len(page2["trips"]) == 10
     assert page2["next_cursor"] is not None
     seen.extend(t["destination"] for t in page2["trips"])
 
     page3 = (
-        await client.get(
-            f"/api/trips?limit=10&cursor={page2['next_cursor']}", headers=_auth(user)
-        )
+        await client.get(f"/api/trips?limit=10&cursor={page2['next_cursor']}", headers=_auth(user))
     ).json()
     assert len(page3["trips"]) == 5
     assert page3["next_cursor"] is None
@@ -233,9 +229,7 @@ async def test_list_trips_paginates_with_cursor(
 
 
 @pytest.mark.integration
-async def test_list_trips_default_limit_20(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_list_trips_default_limit_20(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     base = datetime.now(UTC)
     for i in range(25):
@@ -315,9 +309,7 @@ async def test_list_trips_isolates_users(client: AsyncClient, db_session: AsyncS
 
 
 @pytest.mark.integration
-async def test_list_trips_has_report_flag(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_list_trips_has_report_flag(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     base = datetime.now(UTC)
 
@@ -331,9 +323,7 @@ async def test_list_trips_has_report_flag(
         db_session, user.id, "two", created_at=base - timedelta(seconds=2)
     )
     await _persist_report(db_session, trip_two.id, created_at=base - timedelta(minutes=5))
-    r_new = await _persist_report(
-        db_session, trip_two.id, created_at=base - timedelta(minutes=1)
-    )
+    r_new = await _persist_report(db_session, trip_two.id, created_at=base - timedelta(minutes=1))
 
     body = (await client.get("/api/trips", headers=_auth(user))).json()
     by_dest = {t["destination"]: t for t in body["trips"]}

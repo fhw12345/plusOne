@@ -17,6 +17,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from plus_one import __version__
 from plus_one.api.auth import router as auth_router
+from plus_one.api.companions import router as companions_router
+from plus_one.api.profile import router as profile_router
 from plus_one.api.trips import router as trips_router
 from plus_one.config import settings
 
@@ -87,6 +89,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(profile_router)
+app.include_router(companions_router)
 app.include_router(trips_router)
 
 

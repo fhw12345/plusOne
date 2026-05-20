@@ -13,6 +13,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from plus_one.agents.preferences import render_preferences_section
 from plus_one.agents.prompts import load_prompt
 from plus_one.core.agents.framework.skills import SkillRegistry
 from plus_one.core.agents.framework.types import AgentContext, PhaseResult
@@ -68,7 +69,12 @@ def _build_system_prompt(ctx: AgentContext, skill_bodies: list[str]) -> str:
     skills_section = (
         "\n\n---\n\n".join(skill_bodies) if skill_bodies else "(no relevant skills loaded)"
     )
-    return template.format(skills=skills_section, prior_summary=ctx.summary or "(none)")
+    preferences_section = render_preferences_section(ctx.user_profile, ctx.selected_companions)
+    return template.format(
+        skills=skills_section,
+        prior_summary=ctx.summary or "(none)",
+        preferences=preferences_section,
+    )
 
 
 async def producer(ctx: AgentContext) -> PhaseResult[list[Candidate]]:
