@@ -12,20 +12,22 @@ import asyncio
 import base64
 import binascii
 import json
+import secrets
 from collections.abc import AsyncIterator
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from plus_one.config import settings
 from plus_one.core.auth.deps import current_user, current_user_or_sse
-from plus_one.core.db.models import Report, Trip, User
+from plus_one.core.db.models import Report, SharedTrip, Trip, User
 from plus_one.core.db.session import get_request_session
 from plus_one.services.trip_runner import register, run_trip, subscribe
 
@@ -264,3 +266,91 @@ async def get_trip(
         latest_report_id=latest.id if latest else None,
         content=latest.content if latest else None,
     )
+
+
+# === Share + Delete ======================================================
+
+
+class CreateShareResponse(BaseModel):
+    token: str
+    share_url: str
+    expires_at: datetime
+
+
+_SHARE_TTL = timedelta(days=30)
+
+
+@router.post(
+    "/{trip_id}/share",
+    response_model=CreateShareResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Mint a public, revokable share link for a trip",
+)
+async def create_share(
+    trip_id: UUID,
+    user: Annotated[User, Depends(current_user)],
+    session: Annotated[AsyncSession, Depends(get_request_session)],
+) -> CreateShareResponse:
+    trip = await session.get(Trip, trip_id)
+    if trip is None or trip.user_id != user.id:
+        # 404 (not 403) — never confirm existence of trips you don't own.
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="trip_not_found")
+
+    token = secrets.token_urlsafe(24)
+    expires_at = datetime.now(UTC) + _SHARE_TTL
+    share = SharedTrip(
+        token=token,
+        trip_id=trip.id,
+        created_by=user.id,
+        expires_at=expires_at,
+    )
+    session.add(share)
+    await session.commit()
+
+    share_url = f"{settings.frontend_base_url.rstrip('/')}/share/{token}"
+    return CreateShareResponse(token=token, share_url=share_url, expires_at=expires_at)
+
+
+@router.delete(
+    "/{trip_id}/share/{token}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Revoke a previously-minted share link",
+)
+async def revoke_share(
+    trip_id: UUID,
+    token: str,
+    user: Annotated[User, Depends(current_user)],
+    session: Annotated[AsyncSession, Depends(get_request_session)],
+) -> Response:
+    share = await session.get(SharedTrip, token)
+    # Defensive: row must exist, be owned by current user, AND match the
+    # trip_id from the path (defends against URL-tampering across one's own
+    # trips). All three failures collapse to 404 — no info leak.
+    if share is None or share.created_by != user.id or share.trip_id != trip_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="share_not_found")
+    await session.delete(share)
+    await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete(
+    "/{trip_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a trip and its reports + share links",
+)
+async def delete_trip(
+    trip_id: UUID,
+    user: Annotated[User, Depends(current_user)],
+    session: Annotated[AsyncSession, Depends(get_request_session)],
+) -> Response:
+    # ``with_for_update`` locks the row for the duration of the txn so a
+    # concurrent worker flipping ``pending → running`` can't race past the
+    # status check.
+    trip = await session.get(Trip, trip_id, with_for_update=True)
+    if trip is None or trip.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="trip_not_found")
+    if trip.status == "running":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="trip_running")
+    await session.delete(trip)
+    await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

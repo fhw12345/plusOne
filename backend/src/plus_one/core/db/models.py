@@ -206,6 +206,11 @@ class Trip(Base, TimestampMixin):
         cascade="all, delete-orphan",
         order_by="Report.created_at",
     )
+    shared_trips: Mapped[list[SharedTrip]] = relationship(
+        "SharedTrip",
+        back_populates="trip",
+        cascade="all, delete-orphan",
+    )
 
 
 # === Report ==============================================================
@@ -234,6 +239,43 @@ class Report(Base, TimestampMixin):
     output_tokens: Mapped[int] = mapped_column(nullable=False, default=0)
 
     trip: Mapped[Trip] = relationship("Trip", back_populates="reports")
+
+
+# === SharedTrip ==========================================================
+
+
+class SharedTrip(Base, TimestampMixin):
+    """A revokable public share link for a Trip.
+
+    The ``token`` is a 192-bit ``secrets.token_urlsafe(24)`` value used as
+    the only secret in the unauthed GET path ``/api/shared/{token}``.
+    ``ondelete='CASCADE'`` on both FKs means dropping the Trip or User
+    automatically drops the share row (DB-level belt). The ORM-side
+    ``Trip.shared_trips`` relationship adds ``cascade='all, delete-orphan'``
+    so ``session.delete(trip)`` collects children inside the unit-of-work
+    (ORM-level suspenders).
+    """
+
+    __tablename__ = "shared_trips"
+    __table_args__ = (
+        Index("ix_shared_trips_trip_id", "trip_id"),
+        Index("ix_shared_trips_expires_at", "expires_at"),
+    )
+
+    token: Mapped[str] = mapped_column(String(64), primary_key=True)
+    trip_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("trips.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    created_by: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    trip: Mapped[Trip] = relationship("Trip", back_populates="shared_trips")
 
 
 # === Feedback ============================================================

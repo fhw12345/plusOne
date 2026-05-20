@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createTrip, getTrip, listTrips } from "@/lib/api/trips";
+import {
+  createShare,
+  createTrip,
+  deleteTrip,
+  getSharedTrip,
+  getTrip,
+  listTrips,
+  revokeShare,
+} from "@/lib/api/trips";
 import { ApiError } from "@/lib/api/client";
 import { useAuthStore } from "@/store/auth";
 
@@ -167,5 +175,165 @@ describe("listTrips", () => {
     ) as unknown as typeof fetch;
 
     await expect(listTrips()).rejects.toBeTruthy();
+  });
+});
+
+// === Share / Delete / Get-shared ==========================================
+
+describe("createShare", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+    useAuthStore.setState({ token: null, user: null });
+  });
+
+  it("POSTs to the share endpoint and parses the response", async () => {
+    const spy = vi.fn(
+      async (_input: Parameters<typeof fetch>[0], _init?: Parameters<typeof fetch>[1]) =>
+        new Response(
+          JSON.stringify({
+            token: "abc-token-very-long-32chars-xyz",
+            share_url: "http://localhost:3000/share/abc-token-very-long-32chars-xyz",
+            expires_at: "2026-06-19T14:30:00+00:00",
+          }),
+          { status: 201, headers: { "Content-Type": "application/json" } },
+        ),
+    );
+    globalThis.fetch = spy as unknown as typeof fetch;
+
+    const tripId = "11111111-2222-4333-8444-555555555555";
+    const res = await createShare(tripId);
+    expect(res.token).toBe("abc-token-very-long-32chars-xyz");
+    expect(res.share_url).toContain("/share/");
+
+    const call = spy.mock.calls[0];
+    expect(call).toBeDefined();
+    const url = String(call?.[0]);
+    const init = (call?.[1] ?? {}) as RequestInit;
+    expect(url).toContain(`/api/trips/${tripId}/share`);
+    expect(init.method).toBe("POST");
+  });
+});
+
+describe("revokeShare", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+    useAuthStore.setState({ token: null, user: null });
+  });
+
+  it("sends DELETE to the share token endpoint", async () => {
+    const spy = vi.fn(
+      async (_input: Parameters<typeof fetch>[0], _init?: Parameters<typeof fetch>[1]) =>
+        new Response(null, { status: 204 }),
+    );
+    globalThis.fetch = spy as unknown as typeof fetch;
+
+    const tripId = "11111111-2222-4333-8444-555555555555";
+    await revokeShare(tripId, "tok123");
+    const call = spy.mock.calls[0];
+    expect(call).toBeDefined();
+    const url = String(call?.[0]);
+    const init = (call?.[1] ?? {}) as RequestInit;
+    expect(url).toContain(`/api/trips/${tripId}/share/tok123`);
+    expect(init.method).toBe("DELETE");
+  });
+});
+
+describe("deleteTrip", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+    useAuthStore.setState({ token: null, user: null });
+  });
+
+  it("sends DELETE to the trip endpoint", async () => {
+    const spy = vi.fn(
+      async (_input: Parameters<typeof fetch>[0], _init?: Parameters<typeof fetch>[1]) =>
+        new Response(null, { status: 204 }),
+    );
+    globalThis.fetch = spy as unknown as typeof fetch;
+
+    const tripId = "11111111-2222-4333-8444-555555555555";
+    await deleteTrip(tripId);
+    const call = spy.mock.calls[0];
+    expect(call).toBeDefined();
+    const url = String(call?.[0]);
+    const init = (call?.[1] ?? {}) as RequestInit;
+    expect(url).toMatch(/\/api\/trips\/[0-9a-f-]{36}$/i);
+    expect(init.method).toBe("DELETE");
+  });
+
+  it("surfaces 409 as ApiError so the dialog can branch on it", async () => {
+    globalThis.fetch = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ detail: "trip_running" }), {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        }),
+    ) as unknown as typeof fetch;
+
+    await expect(deleteTrip("11111111-2222-4333-8444-555555555555")).rejects.toBeInstanceOf(
+      ApiError,
+    );
+  });
+});
+
+describe("getSharedTrip", () => {
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+    // Make sure no auth state leaks in — this endpoint must not need it.
+    useAuthStore.setState({ token: null, user: null });
+  });
+
+  it("does NOT send an Authorization header even when a token is in the store", async () => {
+    // Intentionally seed a token to prove the function ignores it.
+    useAuthStore.setState({ token: "should-not-be-sent", user: null });
+
+    const spy = vi.fn(
+      async (_input: Parameters<typeof fetch>[0], _init?: Parameters<typeof fetch>[1]) =>
+        new Response(
+          JSON.stringify({
+            trip_id: "11111111-2222-4333-8444-555555555555",
+            destination: "Tokyo",
+            status: "complete",
+            content: { items: [] },
+            shared: true,
+            expires_at: "2026-06-19T14:30:00+00:00",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+    );
+    globalThis.fetch = spy as unknown as typeof fetch;
+
+    const res = await getSharedTrip("public-token");
+    expect(res.destination).toBe("Tokyo");
+    expect(res.shared).toBe(true);
+
+    const call = spy.mock.calls[0];
+    expect(call).toBeDefined();
+    const init = (call?.[1] ?? {}) as RequestInit;
+    const headers = (init.headers ?? {}) as Record<string, string>;
+    expect(headers.Authorization).toBeUndefined();
+    expect(headers.authorization).toBeUndefined();
+  });
+
+  it("rejects with share_not_found_or_expired on 404", async () => {
+    globalThis.fetch = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ detail: "share_not_found_or_expired" }), { status: 404 }),
+    ) as unknown as typeof fetch;
+
+    await expect(getSharedTrip("nope")).rejects.toThrow(/share_not_found_or_expired/);
   });
 });

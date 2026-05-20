@@ -23,3 +23,65 @@
     --border: 240 3.7% 15.9%;
   }
 }
+
+/* === Print stylesheet (Batch 2j) =========================================
+   Targets the trip detail page printed via window.print(). Keeps the
+   "no PDF library" promise of the PRD: pure CSS + browser print dialog.
+*/
+@media print {
+  /* Hide chrome: top nav, action buttons, role=alert banners, progress feed. */
+  nav,
+  header button,
+  [data-print-hide],
+  .progress-feed,
+  [role="alert"] {
+    display: none !important;
+  }
+
+  /* Force readable contrast — dark-mode bleed-through ruins paper. */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 20%;
+    --border: 0 0% 80%;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Single column, full-bleed. */
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  /* Flatten Radix tabs: show all panels (Radix hides inactive ones with
+     `hidden`). Selector confirmed against `@radix-ui/react-tabs` v1.1.1
+     which emits role="tabpanel" + data-state. */
+  [role="tabpanel"] {
+    display: block !important;
+  }
+  [role="tabpanel"] {
+    page-break-before: always;
+    break-before: page;
+  }
+  [role="tabpanel"]:first-of-type {
+    page-break-before: auto;
+  }
+
+  /* Defeat shadows / gradients / dark fills. */
+  * {
+    box-shadow: none !important;
+    background-image: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Show anchor URLs inline so the paper reader can follow sources. */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+  }
+}
