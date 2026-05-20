@@ -15,6 +15,7 @@ from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from plus_one.agents._divergence import divergence_score
 from plus_one.agents.preferences import render_preferences_section
 from plus_one.agents.producer import Candidate
 from plus_one.agents.prompts import load_prompt
@@ -40,6 +41,16 @@ class JoinedItem(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     evidence: tuple[Evidence, ...] = Field(default=())
     summary: str = Field(default="", max_length=500)
+    # Per-language classifications computed from the source subsets
+    # (`reddit` → en, `xiaohongshu` → zh). ``None`` is the explicit "no
+    # evidence on this side" sentinel; the UI disagreement gate requires
+    # both sides non-null. See PRD batch2i §4.1.
+    classification_en: Classification | None = None
+    classification_zh: Classification | None = None
+    # Deterministic divergence score in [0, 1]. Always overwritten in
+    # ``joiner`` after the LLM call from ``divergence_score(en, zh)`` —
+    # the LLM never authors this value. See PRD batch2i §4.3 / §4.4.
+    divergence_score: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
 class _JoinerOutput(BaseModel):
@@ -131,7 +142,7 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
     # uses .format because its braces are already doubled; the Joiner
     # prompt would need every JSON brace re-doubled to switch, so we
     # keep the call simple and surgical (PRD §7).
-    system = load_prompt("joiner", "v1").replace(
+    system = load_prompt("joiner", "v2").replace(
         "{preferences}",
         render_preferences_section(ctx.user_profile, ctx.selected_companions),
     )
@@ -170,9 +181,16 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
         if original is None:
             dropped += 1
             continue
-        repaired_item = (
-            item if item.candidate is original else item.model_copy(update={"candidate": original})
-        )
+        # Always overwrite divergence_score deterministically — the LLM
+        # may or may not have emitted it; we are the single source of
+        # truth (PRD batch2i §4.4).
+        score = divergence_score(item.classification_en, item.classification_zh)
+        updates: dict[str, object] = {}
+        if item.candidate is not original:
+            updates["candidate"] = original
+        if score != item.divergence_score:
+            updates["divergence_score"] = score
+        repaired_item = item.model_copy(update=updates) if updates else item
         repaired.append(repaired_item)
 
     return PhaseResult(

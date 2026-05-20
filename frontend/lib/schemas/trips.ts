@@ -44,6 +44,12 @@ export type JoinedItemView = {
     sentiment?: number | null;
   }>;
   summary?: string;
+  // Batch 2i — per-language sub-classifications and divergence score.
+  // All three are optional: old reports (pre-2i) lack them and the
+  // disagreement gate fails closed.
+  classification_en?: "local_gem" | "tourist_trap" | "neutral" | "insufficient" | null;
+  classification_zh?: "local_gem" | "tourist_trap" | "neutral" | "insufficient" | null;
+  divergence_score?: number;
 };
 
 export const TripContent = z.object({

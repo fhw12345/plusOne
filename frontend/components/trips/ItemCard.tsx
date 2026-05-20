@@ -27,6 +27,24 @@ function classificationBadge(classification: JoinedItemView["classification"]) {
   }
 }
 
+// Per-language badges are stylistically lighter than the fused
+// classification badge. ``null`` per-lang fields mean "no evidence on
+// this side" (PRD batch2i §4.1) — render nothing in that case.
+function perLangBadgeVariant(
+  c: JoinedItemView["classification_en"],
+): "success" | "danger" | "muted" | "outline" {
+  switch (c) {
+    case "local_gem":
+      return "success";
+    case "tourist_trap":
+      return "danger";
+    case "neutral":
+      return "muted";
+    default:
+      return "outline";
+  }
+}
+
 function shortHost(url: string | undefined): string {
   if (!url) return "";
   try {
@@ -55,6 +73,9 @@ export function ItemCard({ item }: ItemCardProps) {
   const style = view.candidate?.style ?? null;
   const summary = view.summary ?? "";
   const rationale = view.candidate?.rationale ?? "";
+  const classificationEn = view.classification_en ?? null;
+  const classificationZh = view.classification_zh ?? null;
+  const hasPerLang = classificationEn != null || classificationZh != null;
 
   const [open, setOpen] = useState(false);
   const bodyId = useId();
@@ -90,6 +111,24 @@ export function ItemCard({ item }: ItemCardProps) {
             </button>
           </div>
         </div>
+        {hasPerLang ? (
+          <div
+            className="flex flex-wrap items-center gap-2"
+            data-testid="per-lang-badges"
+            aria-label="Per-language classifications"
+          >
+            {classificationEn != null ? (
+              <Badge variant={perLangBadgeVariant(classificationEn)} data-perlang="en">
+                EN: {classificationEn}
+              </Badge>
+            ) : null}
+            {classificationZh != null ? (
+              <Badge variant={perLangBadgeVariant(classificationZh)} data-perlang="zh">
+                ZH: {classificationZh}
+              </Badge>
+            ) : null}
+          </div>
+        ) : null}
       </CardHeader>
       <CardContent id={bodyId} className={cn(open ? "block" : "hidden", "text-sm")}>
         <div className="flex flex-col gap-3">
