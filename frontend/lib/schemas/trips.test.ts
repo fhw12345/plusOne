@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 
-import { CreateTripBody, CreateTripResponse, TripDetail } from "@/lib/schemas/trips";
+import {
+  CreateTripBody,
+  CreateTripResponse,
+  TripDetail,
+  TripListItem,
+  TripListResponse,
+} from "@/lib/schemas/trips";
 
 describe("CreateTripBody", () => {
   it("accepts destination only", () => {
@@ -79,5 +85,67 @@ describe("TripDetail", () => {
         content: null,
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("TripListItem", () => {
+  const valid = {
+    trip_id: "11111111-2222-4333-8444-555555555555",
+    destination: "Tokyo",
+    status: "complete",
+    created_at: "2026-05-20T14:30:00+00:00",
+    latest_report_id: "11111111-2222-4333-8444-666666666666",
+    has_report: true,
+  };
+
+  it("parses a valid payload", () => {
+    const parsed = TripListItem.parse(valid);
+    expect(parsed.destination).toBe("Tokyo");
+    expect(parsed.has_report).toBe(true);
+  });
+
+  it("accepts null latest_report_id", () => {
+    const parsed = TripListItem.parse({
+      ...valid,
+      latest_report_id: null,
+      has_report: false,
+    });
+    expect(parsed.latest_report_id).toBeNull();
+  });
+
+  it("rejects missing has_report", () => {
+    const { has_report: _omit, ...rest } = valid;
+    void _omit;
+    expect(TripListItem.safeParse(rest).success).toBe(false);
+  });
+
+  it("rejects non-ISO created_at", () => {
+    expect(TripListItem.safeParse({ ...valid, created_at: "not-a-date" }).success).toBe(false);
+  });
+});
+
+describe("TripListResponse", () => {
+  it("accepts next_cursor: null", () => {
+    const parsed = TripListResponse.parse({ trips: [], next_cursor: null });
+    expect(parsed.next_cursor).toBeNull();
+    expect(parsed.trips).toEqual([]);
+  });
+
+  it("accepts a populated cursor + trips", () => {
+    const parsed = TripListResponse.parse({
+      trips: [
+        {
+          trip_id: "11111111-2222-4333-8444-555555555555",
+          destination: "Tokyo",
+          status: "pending",
+          created_at: "2026-05-20T14:30:00+00:00",
+          latest_report_id: null,
+          has_report: false,
+        },
+      ],
+      next_cursor: "abc123",
+    });
+    expect(parsed.next_cursor).toBe("abc123");
+    expect(parsed.trips).toHaveLength(1);
   });
 });
