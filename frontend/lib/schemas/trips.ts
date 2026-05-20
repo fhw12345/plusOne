@@ -36,3 +36,20 @@ export const TripDetail = z.object({
   content: TripContent.nullable(),
 });
 export type TripDetail = z.infer<typeof TripDetail>;
+
+// Mirror of backend `TripListItem` (backend/src/plus_one/api/trips.py).
+export const TripListItem = z.object({
+  trip_id: z.string().uuid(),
+  destination: z.string(),
+  status: TripStatus,
+  created_at: z.string().datetime({ offset: true }),
+  latest_report_id: z.string().uuid().nullable(),
+  has_report: z.boolean(),
+});
+export type TripListItem = z.infer<typeof TripListItem>;
+
+export const TripListResponse = z.object({
+  trips: z.array(TripListItem),
+  next_cursor: z.string().nullable(),
+});
+export type TripListResponse = z.infer<typeof TripListResponse>;
