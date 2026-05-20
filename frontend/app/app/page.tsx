@@ -83,6 +83,18 @@ export default function AppPage() {
           >
             Plan a new trip
           </Link>
+          <Link
+            href="/app/profile"
+            className="border-foreground/20 rounded border px-3 py-1.5 text-sm"
+          >
+            Profile
+          </Link>
+          <Link
+            href="/app/companions"
+            className="border-foreground/20 rounded border px-3 py-1.5 text-sm"
+          >
+            Companions
+          </Link>
           <button
             type="button"
             onClick={onSignOut}

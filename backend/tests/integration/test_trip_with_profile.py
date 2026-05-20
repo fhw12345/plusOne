@@ -241,3 +241,156 @@ async def test_run_trip_passes_loaded_profile_into_agent_context(
     assert ctx.user_profile.loves == ("ramen",)
     assert len(ctx.selected_companions) == 1
     assert ctx.selected_companions[0].name == "Anna"
+
+
+# === companion_ids filtering (Batch 2h frontend PRD §4 option A) ===========
+
+
+class _FilteringStubSession:
+    """Stub that honours the ``Companion.id.in_(...)`` filter when present.
+
+    We pull the bound ids out of the compiled statement's params dict, so
+    the test asserts the runner actually built the filter rather than just
+    accepting whatever the session returns.
+    """
+
+    def __init__(self, companions: list[Companion]) -> None:
+        self._companions = companions
+
+    async def get(self, *_a: Any, **_kw: Any) -> Any:
+        return None
+
+    async def execute(self, stmt: Any) -> Any:
+        text = str(stmt).lower()
+        if "companions" not in text:
+            return _ScalarResult(None)
+        if " in " not in text and "any(" not in text:
+            # No id filter — return all
+            return _ListResult(self._companions)
+        # An `id IN (...)` filter is present. Compile to extract the bound
+        # ids. SQLAlchemy expands the `in_(...)` into individual numbered
+        # bindparams (id_1_1, id_1_2, ...) at compile time.
+        compiled = stmt.compile(compile_kwargs={"literal_binds": False})
+        params = compiled.params
+        wanted: set[uuid.UUID] = set()
+        for value in params.values():
+            if isinstance(value, uuid.UUID):
+                wanted.add(value)
+            elif isinstance(value, list):
+                # SQLAlchemy expands ``.in_(...)`` into a single list-valued
+                # bindparam (POSTCOMPILE) — see id_1 in the compiled SQL.
+                for v in value:
+                    if isinstance(v, uuid.UUID):
+                        wanted.add(v)
+        # Filter by id (and the user_id is already part of the SQL we trust
+        # the runner generated correctly — the stub doesn't need to mirror
+        # the WHERE user_id check because the production code's filter is
+        # what's under test, and the integration_companions list we hand
+        # in is already scoped to a single user).
+        filtered = [c for c in self._companions if c.id in wanted]
+        return _ListResult(filtered)
+
+    def add(self, _obj: object) -> None:
+        return None
+
+    async def flush(self) -> None:
+        return None
+
+    async def commit(self) -> None:
+        return None
+
+    async def rollback(self) -> None:
+        return None
+
+    async def close(self) -> None:
+        return None
+
+
+def _make_companion(user_id: uuid.UUID, name: str, loves: list[str]) -> Companion:
+    from datetime import UTC, datetime
+
+    c = Companion(
+        user_id=user_id,
+        name=name,
+        explicit_preferences={"loves": loves, "hates": []},
+        constraints={},
+    )
+    c.id = uuid.uuid4()
+    c.created_at = datetime.now(UTC)
+    c.updated_at = datetime.now(UTC)
+    return c
+
+
+@pytest.mark.integration
+async def test_load_profile_context_filters_to_selected_companions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Non-empty companion_ids → only the picked companions load."""
+    user_id = uuid.uuid4()
+    anna = _make_companion(user_id, "Anna", ["matcha"])
+    bob = _make_companion(user_id, "Bob", ["ramen"])
+    cara = _make_companion(user_id, "Cara", ["sushi"])
+    stub = _FilteringStubSession([anna, bob, cara])
+
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield stub
+
+    monkeypatch.setattr(trip_runner, "session_scope", fake_session_scope)
+
+    _, companions = await trip_runner._load_profile_context(
+        user_id, companion_ids=[anna.id, cara.id]
+    )
+    names = sorted(c.name for c in companions)
+    assert names == ["Anna", "Cara"]
+
+
+@pytest.mark.integration
+async def test_load_profile_context_with_unknown_ids_drops_them(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unknown / cross-user ids silently drop (no 4xx). See PRD §10 R1."""
+    user_id = uuid.uuid4()
+    anna = _make_companion(user_id, "Anna", ["matcha"])
+    stub = _FilteringStubSession([anna])
+
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield stub
+
+    monkeypatch.setattr(trip_runner, "session_scope", fake_session_scope)
+
+    # Mix one real id with one unknown id — only the real one comes back,
+    # and the call does not raise.
+    bogus = uuid.uuid4()
+    _, companions = await trip_runner._load_profile_context(user_id, companion_ids=[anna.id, bogus])
+    assert [c.name for c in companions] == ["Anna"]
+
+
+@pytest.mark.integration
+async def test_load_profile_context_empty_ids_returns_all(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Empty / None companion_ids → backward-compatible all-companions path."""
+    user_id = uuid.uuid4()
+    anna = _make_companion(user_id, "Anna", ["matcha"])
+    bob = _make_companion(user_id, "Bob", ["ramen"])
+    stub = _FilteringStubSession([anna, bob])
+
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield stub
+
+    monkeypatch.setattr(trip_runner, "session_scope", fake_session_scope)
+
+    _, companions = await trip_runner._load_profile_context(user_id, companion_ids=[])
+    assert sorted(c.name for c in companions) == ["Anna", "Bob"]
+
+    _, companions2 = await trip_runner._load_profile_context(user_id, companion_ids=None)
+    assert sorted(c.name for c in companions2) == ["Anna", "Bob"]
