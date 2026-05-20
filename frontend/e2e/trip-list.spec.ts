@@ -9,7 +9,7 @@ test.describe("trip list (/app)", () => {
     await expect(page.getByRole("heading", { name: /my trips/i })).toBeVisible();
     // Empty-state copy uses one of these phrases.
     await expect(page.getByText(/no trips yet|first trip|plan a new trip/i).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /plan a new trip/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /plan a new trip/i }).first()).toBeVisible();
   });
 
   test("creating two trips renders both cards; clicking one navigates to detail", async ({
