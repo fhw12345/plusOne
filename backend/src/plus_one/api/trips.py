@@ -9,16 +9,19 @@ and is then fetchable via the GET endpoint.
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import json
 from collections.abc import AsyncIterator
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
-from sqlalchemy import select
+from pydantic import BaseModel, Field, ValidationError
+from sqlalchemy import select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from plus_one.core.auth.deps import current_user, current_user_or_sse
@@ -47,6 +50,43 @@ class TripDetail(BaseModel):
     status: str
     latest_report_id: UUID | None = None
     content: dict[str, object] | None = None
+
+
+class TripListItem(BaseModel):
+    trip_id: UUID
+    destination: str
+    status: str
+    created_at: datetime
+    latest_report_id: UUID | None = None
+    has_report: bool
+
+
+class TripListResponse(BaseModel):
+    trips: list[TripListItem]
+    next_cursor: str | None = None
+
+
+class _Cursor(BaseModel):
+    created_at: datetime
+    id: UUID
+
+
+def _encode_cursor(c: _Cursor) -> str:
+    raw = c.model_dump_json().encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def _decode_cursor(s: str) -> _Cursor:
+    # Re-pad before decode (urlsafe_b64encode strips '=' in encode).
+    padding = "=" * (-len(s) % 4)
+    try:
+        raw = base64.urlsafe_b64decode(s + padding)
+        return _Cursor.model_validate_json(raw)
+    except (binascii.Error, ValueError, ValidationError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid_cursor",
+        ) from exc
 
 
 @router.post(
@@ -128,6 +168,75 @@ async def stream_trip(
             raise
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@router.get(
+    "",
+    response_model=TripListResponse,
+    summary="List the current user's trips, newest first",
+)
+async def list_trips(
+    user: Annotated[User, Depends(current_user)],
+    session: Annotated[AsyncSession, Depends(get_request_session)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    cursor: Annotated[str | None, Query()] = None,
+) -> TripListResponse:
+    # Correlated subquery for the latest report id per trip — avoids N+1
+    # without forcing a join that would also need a GROUP BY. Postgres
+    # plans this as a per-row scan over the (trip_id, created_at) order
+    # which is cheap given reports.trip_id is indexed.
+    latest_report_subq = (
+        select(Report.id)
+        .where(Report.trip_id == Trip.id)
+        .order_by(Report.created_at.desc())
+        .limit(1)
+        .correlate(Trip)
+        .scalar_subquery()
+    )
+
+    stmt = (
+        select(
+            Trip.id,
+            Trip.destination,
+            Trip.status,
+            Trip.created_at,
+            latest_report_subq.label("latest_report_id"),
+        )
+        .where(Trip.user_id == user.id)
+        .order_by(Trip.created_at.desc(), Trip.id.desc())
+        .limit(limit + 1)  # +1 to detect "more"
+    )
+
+    if cursor is not None:
+        decoded = _decode_cursor(cursor)
+        # Keyset pagination on (created_at, id) gives a total order stable
+        # under concurrent inserts at the head of the list.
+        stmt = stmt.where(
+            tuple_(Trip.created_at, Trip.id) < (decoded.created_at, decoded.id)
+        )
+
+    rows = (await session.execute(stmt)).all()
+    has_more = len(rows) > limit
+    page_rows = rows[:limit]
+
+    items = [
+        TripListItem(
+            trip_id=row.id,
+            destination=row.destination,
+            status=row.status,
+            created_at=row.created_at,
+            latest_report_id=row.latest_report_id,
+            has_report=row.latest_report_id is not None,
+        )
+        for row in page_rows
+    ]
+
+    next_cursor: str | None = None
+    if has_more and page_rows:
+        last = page_rows[-1]
+        next_cursor = _encode_cursor(_Cursor(created_at=last.created_at, id=last.id))
+
+    return TripListResponse(trips=items, next_cursor=next_cursor)
 
 
 @router.get(
