@@ -55,6 +55,11 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
+# Retry budget for the defense-in-depth loops in _set_status / _save_report.
+# Three attempts at 50ms covers ~150ms total — enough for a request-session
+# commit to land on a fresh-pool connection, well under any user-visible bar.
+_RETRY_ATTEMPTS = 3
+
 
 # ---------------------------------------------------------------------------
 # Per-trip event broker
@@ -129,13 +134,13 @@ async def _set_status(trip_id: UUID, status: str) -> None:
     # deploy with read-replica lag or pool quirks could resurrect the race.
     # Bounded retry keeps a cheap safety net without masking persistent
     # bugs — final failure still logs trip_not_found_at_status_update.
-    for attempt in range(3):
+    for attempt in range(_RETRY_ATTEMPTS):
         async with session_scope() as session:
             trip = await session.get(Trip, trip_id)
             if trip is not None:
                 trip.status = status
                 return
-        if attempt < 2:
+        if attempt < _RETRY_ATTEMPTS - 1:
             await asyncio.sleep(0.05)
     logger.warning("trip_not_found_at_status_update", trip_id=str(trip_id))
 
@@ -151,7 +156,7 @@ async def _save_report(
     # validation trips (trip row not yet visible to this session). Fail
     # loud after 3 attempts so a real bug isn't silently swallowed.
     last_exc: IntegrityError | None = None
-    for attempt in range(3):
+    for attempt in range(_RETRY_ATTEMPTS):
         try:
             async with session_scope() as session:
                 report = Report(
@@ -166,7 +171,7 @@ async def _save_report(
                 return report.id
         except IntegrityError as exc:
             last_exc = exc
-            if attempt < 2:
+            if attempt < _RETRY_ATTEMPTS - 1:
                 await asyncio.sleep(0.05)
     assert last_exc is not None
     raise last_exc
