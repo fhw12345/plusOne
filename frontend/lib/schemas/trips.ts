@@ -57,6 +57,17 @@ export type JoinedItemView = {
 
 export const TripContent = z.object({
   items: z.array(JoinedItemSchema),
+  // PRD batch 2k §6.3 Option B: translations live alongside the source
+  // items under a per-language key. Optional + per-lang optional so old
+  // reports (pre-batch-2k) still validate and the frontend's fallback
+  // path (`translations[lang] ?? items`) handles them.
+  translations: z
+    .object({
+      en: z.array(JoinedItemSchema).optional(),
+      zh: z.array(JoinedItemSchema).optional(),
+    })
+    .partial()
+    .optional(),
 });
 export type TripContent = z.infer<typeof TripContent>;
 

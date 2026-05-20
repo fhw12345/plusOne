@@ -33,7 +33,8 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from typing import TYPE_CHECKING
+import os
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
@@ -45,6 +46,7 @@ from plus_one.agents.joiner import JoinedItem
 from plus_one.agents.joiner import joiner as joiner_phase
 from plus_one.agents.producer import Candidate
 from plus_one.agents.producer import producer as producer_phase
+from plus_one.agents.translator import translate_items
 from plus_one.core.agents.framework.cycle import run_cycle
 from plus_one.core.agents.framework.errors import CycleAbortedError
 from plus_one.core.agents.framework.types import (
@@ -182,6 +184,75 @@ async def _save_report(
                 await asyncio.sleep(0.05)
     assert last_exc is not None
     raise last_exc
+
+
+# ---------------------------------------------------------------------------
+# Post-cycle translation
+# ---------------------------------------------------------------------------
+
+
+def _translate_enabled() -> bool:
+    """Read ``PLUS_ONE_TRANSLATE_ENABLED``; default ``True``.
+
+    Off-switch (PRD batch 2k §6.2) — set to "0" in e2e + when translation
+    misbehaves in prod. Read per-call so tests can monkeypatch.
+    """
+    raw = os.getenv("PLUS_ONE_TRANSLATE_ENABLED")
+    if raw is None:
+        return True
+    return raw.strip().lower() not in ("0", "false", "no", "")
+
+
+def _translate_langs() -> tuple[str, ...]:
+    """Comma-separated target langs from ``PLUS_ONE_TRANSLATE_LANGS``.
+
+    Default ``("en", "zh")``. The source-language item stays under
+    ``content.items`` untouched; translations land under
+    ``content.translations[<lang>]``.
+    """
+    raw = os.getenv("PLUS_ONE_TRANSLATE_LANGS", "en,zh")
+    return tuple(part.strip() for part in raw.split(",") if part.strip())
+
+
+async def _run_translations_and_update(
+    report_id: UUID,
+    items: list[JoinedItem],
+) -> None:
+    """Translate ``items`` into each enabled target lang, persist to Report.
+
+    Best-effort: any exception is logged and swallowed (the trip already
+    saved the original-language report, so the user still sees results).
+
+    The Report row is re-read inside its own ``session_scope`` so we
+    don't hold a transaction across the LLM calls (~ADR-006 + ADR
+    short-session pattern).
+    """
+    if not items:
+        return
+    langs = _translate_langs()
+    if not langs:
+        return
+
+    translations: dict[str, list[dict[str, Any]]] = {}
+    for lang in langs:
+        try:
+            translations[lang] = await translate_items(items, src_lang="original", dst_lang=lang)
+        except Exception:
+            logger.exception("translation_failed", report_id=str(report_id), lang=lang)
+
+    if not translations:
+        return
+
+    async with session_scope() as session:
+        report = await session.get(Report, report_id)
+        if report is None:
+            logger.warning("translation_report_missing", report_id=str(report_id))
+            return
+        # JSONB column needs a NEW dict object for SQLAlchemy to detect
+        # the change — mutating in place won't dirty the attribute.
+        new_content: dict[str, Any] = dict(report.content or {})
+        new_content["translations"] = translations
+        report.content = new_content
 
 
 async def _load_profile_context(
@@ -381,6 +452,20 @@ async def run_trip(
             final_status = "aborted"
         else:
             final_status = "complete"
+
+        # Best-effort post-cycle translations (PRD batch 2k §6.4). Runs
+        # only on a successful report write, gated by
+        # PLUS_ONE_TRANSLATE_ENABLED (default on). Failure is swallowed
+        # inside _run_translations_and_update — the user already has the
+        # original-language report.
+        if (
+            report_id is not None
+            and not report_save_failed
+            and aborted_reason is None
+            and _translate_enabled()
+        ):
+            with contextlib.suppress(Exception):
+                await _run_translations_and_update(report_id, items)
 
         with contextlib.suppress(Exception):
             await _set_status(trip_id, final_status)

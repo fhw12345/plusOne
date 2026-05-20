@@ -2,11 +2,14 @@
 
 import { Download, Printer } from "lucide-react";
 
+import { LanguageToggle } from "@/components/trips/LanguageToggle";
 import { PerspectiveToggle } from "@/components/trips/PerspectiveToggle";
 import { ReportTabs } from "@/components/trips/ReportTabs";
 import { Button } from "@/components/ui/button";
+import { useReportPrefsHasHydrated } from "@/hooks/useReportPrefsHasHydrated";
 import { downloadMarkdown } from "@/lib/report/exportMarkdown";
-import type { TripDetail } from "@/lib/schemas/trips";
+import type { JoinedItem, TripDetail } from "@/lib/schemas/trips";
+import { useReportPrefsStore, type ReportLanguage } from "@/store/reportPrefs";
 
 export interface ReportViewProps {
   trip: TripDetail;
@@ -18,8 +21,25 @@ export interface ReportViewProps {
   readonly?: boolean;
 }
 
+// Resolve which items to render given the user's language preference.
+// Falls back to the source-language ``content.items`` whenever the
+// requested translation is missing (old reports, translator disabled,
+// failed translations) so the report is never blank.
+function resolveItems(content: TripDetail["content"], language: ReportLanguage): JoinedItem[] {
+  if (!content) return [];
+  if (language === "original") return content.items ?? [];
+  const translated = content.translations?.[language];
+  return translated && translated.length > 0 ? translated : (content.items ?? []);
+}
+
 export function ReportView({ trip, readonly = false }: ReportViewProps) {
-  const items = trip.content?.items ?? [];
+  const hydrated = useReportPrefsHasHydrated();
+  const persistedLanguage = useReportPrefsStore((s) => s.language);
+  // Until rehydrate completes, render the SSR-default ``original`` view
+  // so first client paint matches the server.
+  const language: ReportLanguage = hydrated ? persistedLanguage : "original";
+
+  const items = resolveItems(trip.content, language);
 
   return (
     <section className="flex flex-col gap-4" data-testid="report-view">
@@ -60,7 +80,10 @@ export function ReportView({ trip, readonly = false }: ReportViewProps) {
         </div>
       </header>
 
-      <PerspectiveToggle />
+      <div className="flex flex-wrap items-center gap-3">
+        <PerspectiveToggle />
+        <LanguageToggle />
+      </div>
 
       <ReportTabs items={items} />
     </section>
