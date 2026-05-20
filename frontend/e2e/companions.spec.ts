@@ -55,7 +55,10 @@ test.describe("companions page (/app/companions)", () => {
     // Delete "Alex K" via AlertDialog
     await page.getByRole("button", { name: /Delete Alex K/i }).click();
     await expect(page.getByRole("alertdialog")).toBeVisible();
-    await page.getByRole("alertdialog").getByRole("button", { name: /^Delete$/ }).click();
+    await page
+      .getByRole("alertdialog")
+      .getByRole("button", { name: /^Delete$/ })
+      .click();
     await expect(page.getByText("Alex K")).toHaveCount(0, { timeout: 10_000 });
   });
 });
