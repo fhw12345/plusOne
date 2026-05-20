@@ -31,8 +31,7 @@ const serwist = new Serwist({
       // a NetworkFirst handler with a 10s timeout would race the stream and
       // fall back to (an empty) cache. /api/backend/* (the rewrite target)
       // already matches /api/, so a single prefix check suffices.
-      matcher: ({ url, sameOrigin }) =>
-        sameOrigin && url.pathname.startsWith("/api/"),
+      matcher: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith("/api/"),
       handler: new NetworkOnly(),
       method: "GET",
     },
