@@ -25,16 +25,11 @@ export interface ReportViewProps {
 // Falls back to the source-language ``content.items`` whenever the
 // requested translation is missing (old reports, translator disabled,
 // failed translations) so the report is never blank.
-function resolveItems(
-  content: TripDetail["content"],
-  language: ReportLanguage,
-): JoinedItem[] {
+function resolveItems(content: TripDetail["content"], language: ReportLanguage): JoinedItem[] {
   if (!content) return [];
   if (language === "original") return content.items ?? [];
   const translated = content.translations?.[language];
-  return translated && translated.length > 0
-    ? translated
-    : (content.items ?? []);
+  return translated && translated.length > 0 ? translated : (content.items ?? []);
 }
 
 export function ReportView({ trip, readonly = false }: ReportViewProps) {
