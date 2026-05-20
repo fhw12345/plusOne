@@ -339,3 +339,27 @@ class MagicLinkToken(Base):
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+# === ToolCache ===========================================================
+
+
+class ToolCache(Base, TimestampMixin):
+    """DB-backed cache for real-mode tool responses.
+
+    Composite PK ``(source, key_hash)`` — one row per source/query pair.
+    ``payload`` holds the raw tool response list as JSONB; per-source
+    TTLs live in ``core/tools/_cache_db.py::_TTL_BY_SOURCE``.
+
+    Indexed on ``expires_at`` so a future cleanup job can sweep stale
+    rows without a full table scan.
+    """
+
+    __tablename__ = "tool_cache"
+    __table_args__ = (Index("ix_tool_cache_expires_at", "expires_at"),)
+
+    source: Mapped[str] = mapped_column(String(50), primary_key=True)
+    key_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    payload: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
