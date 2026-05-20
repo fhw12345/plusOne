@@ -29,13 +29,10 @@ const serwist = new Serwist({
       // SSE safety: bypass the SW for all backend API calls. The trip stream
       // endpoint (/api/trips/{id}/stream) must reach the network untouched —
       // a NetworkFirst handler with a 10s timeout would race the stream and
-      // fall back to (an empty) cache. Match both the direct /api/* paths
-      // and the /api/backend/* rewrite target. POSTs are NetworkOnly by
-      // default in Workbox, so GET-only here is sufficient.
+      // fall back to (an empty) cache. /api/backend/* (the rewrite target)
+      // already matches /api/, so a single prefix check suffices.
       matcher: ({ url, sameOrigin }) =>
-        sameOrigin &&
-        (url.pathname.startsWith("/api/") ||
-          url.pathname.startsWith("/api/backend/")),
+        sameOrigin && url.pathname.startsWith("/api/"),
       handler: new NetworkOnly(),
       method: "GET",
     },
