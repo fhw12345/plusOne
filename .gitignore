@@ -71,9 +71,11 @@ frontend/e2e/.artifacts/
 frontend/public/sw.js
 frontend/public/workbox-*.js
 frontend/public/worker-*.js
+frontend/public/swe-worker-*.js
 frontend/public/sw.js.map
 frontend/public/workbox-*.js.map
 frontend/public/worker-*.js.map
+frontend/public/swe-worker-*.js.map
 
 # Docker
 *.pid
