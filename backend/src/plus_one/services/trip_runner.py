@@ -37,6 +37,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
+from sqlalchemy.exc import IntegrityError
 
 from plus_one.agents.controller import controller as controller_phase
 from plus_one.agents.joiner import JoinedItem
@@ -53,6 +54,11 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
 logger = structlog.get_logger()
+
+# Retry budget for the defense-in-depth loops in _set_status / _save_report.
+# Three attempts at 50ms covers ~150ms total — enough for a request-session
+# commit to land on a fresh-pool connection, well under any user-visible bar.
+_RETRY_ATTEMPTS = 3
 
 
 # ---------------------------------------------------------------------------
@@ -123,12 +129,20 @@ async def _publish(trip_id: UUID, event: dict[str, object]) -> None:
 
 
 async def _set_status(trip_id: UUID, status: str) -> None:
-    async with session_scope() as session:
-        trip = await session.get(Trip, trip_id)
-        if trip is None:
-            logger.warning("trip_not_found_at_status_update", trip_id=str(trip_id))
-            return
-        trip.status = status
+    # Defense-in-depth retry: the POST handler now commits the trip row
+    # before scheduling this background task (api/trips.py), but a future
+    # deploy with read-replica lag or pool quirks could resurrect the race.
+    # Bounded retry keeps a cheap safety net without masking persistent
+    # bugs — final failure still logs trip_not_found_at_status_update.
+    for attempt in range(_RETRY_ATTEMPTS):
+        async with session_scope() as session:
+            trip = await session.get(Trip, trip_id)
+            if trip is not None:
+                trip.status = status
+                return
+        if attempt < _RETRY_ATTEMPTS - 1:
+            await asyncio.sleep(0.05)
+    logger.warning("trip_not_found_at_status_update", trip_id=str(trip_id))
 
 
 async def _save_report(
@@ -138,17 +152,29 @@ async def _save_report(
     input_tokens: int,
     output_tokens: int,
 ) -> UUID:
-    async with session_scope() as session:
-        report = Report(
-            trip_id=trip_id,
-            content={"items": [i.model_dump(mode="json") for i in items]},
-            trace=trace,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-        )
-        session.add(report)
-        await session.flush()
-        return report.id
+    # Same defense-in-depth as _set_status: retry the insert if the FK
+    # validation trips (trip row not yet visible to this session). Fail
+    # loud after 3 attempts so a real bug isn't silently swallowed.
+    last_exc: IntegrityError | None = None
+    for attempt in range(_RETRY_ATTEMPTS):
+        try:
+            async with session_scope() as session:
+                report = Report(
+                    trip_id=trip_id,
+                    content={"items": [i.model_dump(mode="json") for i in items]},
+                    trace=trace,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                )
+                session.add(report)
+                await session.flush()
+                return report.id
+        except IntegrityError as exc:
+            last_exc = exc
+            if attempt < _RETRY_ATTEMPTS - 1:
+                await asyncio.sleep(0.05)
+    assert last_exc is not None
+    raise last_exc
 
 
 async def run_trip(trip_id: UUID, query: str) -> None:

@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from plus_one.core.auth.deps import current_user
+from plus_one.core.auth.deps import current_user, current_user_or_sse
 from plus_one.core.db.models import Report, Trip, User
 from plus_one.core.db.session import get_request_session
 from plus_one.services.trip_runner import register, run_trip, subscribe
@@ -74,6 +74,12 @@ async def create_trip(
     )
     session.add(trip)
     await session.flush()  # surface trip.id before commit
+    # Commit BEFORE scheduling the background task. FastAPI's `BackgroundTasks`
+    # runs after the response is sent, but racing with the request-session's
+    # __aexit__ commit; the runner opens its own session_scope and would see
+    # the trip row as missing (→ trip_not_found_at_status_update, FK violation
+    # on report insert, status frozen at "pending" forever).
+    await session.commit()
 
     # Build the query the agents see. For v1 it's just destination + free
     # text concatenated; v2 will incorporate Profile + companions.
@@ -82,11 +88,11 @@ async def create_trip(
         query_parts.append(body.free_text)
     query = " | ".join(query_parts)
 
-    background.add_task(run_trip, trip.id, query)
     # Pre-create the per-trip event queue BEFORE the response so the
     # client can race straight to GET /stream and not lose events.
     # Reviewer B1: register before BackgroundTask schedules run_trip.
     register(trip.id)
+    background.add_task(run_trip, trip.id, query)
     return CreateTripResponse(trip_id=trip.id, status=trip.status)
 
 
@@ -96,8 +102,9 @@ async def create_trip(
 )
 async def stream_trip(
     trip_id: UUID,
-    user: Annotated[User, Depends(current_user)],
+    user: Annotated[User, Depends(current_user_or_sse)],
     session: Annotated[AsyncSession, Depends(get_request_session)],
+    access_token: str | None = None,
 ) -> StreamingResponse:
     # Authorize: make sure the trip belongs to the current user. We don't
     # want one user subscribing to another user's stream.
