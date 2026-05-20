@@ -211,9 +211,7 @@ async def list_trips(
         decoded = _decode_cursor(cursor)
         # Keyset pagination on (created_at, id) gives a total order stable
         # under concurrent inserts at the head of the list.
-        stmt = stmt.where(
-            tuple_(Trip.created_at, Trip.id) < (decoded.created_at, decoded.id)
-        )
+        stmt = stmt.where(tuple_(Trip.created_at, Trip.id) < (decoded.created_at, decoded.id))
 
     rows = (await session.execute(stmt)).all()
     has_more = len(rows) > limit
