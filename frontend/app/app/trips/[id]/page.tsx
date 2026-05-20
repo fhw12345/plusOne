@@ -5,6 +5,8 @@ import { useEffect, useMemo } from "react";
 
 import { ProgressFeed } from "@/components/trips/ProgressFeed";
 import { ReportView } from "@/components/trips/ReportView";
+import { DeleteTripDialog } from "@/components/trips/DeleteTripDialog";
+import { ShareDialog } from "@/components/trips/ShareDialog";
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { useTrip } from "@/hooks/useTrip";
 import { useTripStream } from "@/hooks/useTripStream";
@@ -117,6 +119,13 @@ export default function TripDetailPage() {
         </h1>
         <p className="text-foreground/70 mt-1 text-sm">Live progress and final report.</p>
       </header>
+
+      {terminal && trip ? (
+        <div className="flex flex-wrap gap-2 print:hidden" data-print-hide>
+          <ShareDialog tripId={trip.trip_id} />
+          <DeleteTripDialog tripId={trip.trip_id} status={trip.status} />
+        </div>
+      ) : null}
 
       {stream.status === "error" && stream.lastError && !terminal ? (
         <p role="alert" className="text-sm text-red-600">

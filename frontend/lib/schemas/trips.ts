@@ -82,3 +82,27 @@ export const TripListResponse = z.object({
   next_cursor: z.string().nullable(),
 });
 export type TripListResponse = z.infer<typeof TripListResponse>;
+
+// === Share ================================================================
+
+// Mirror of backend `CreateShareResponse` (backend/src/plus_one/api/trips.py).
+export const CreateShareResponse = z.object({
+  token: z.string().min(1),
+  share_url: z.string().url(),
+  expires_at: z.string().datetime({ offset: true }),
+});
+export type CreateShareResponse = z.infer<typeof CreateShareResponse>;
+
+// Mirror of backend `SharedTripResponse`
+// (backend/src/plus_one/api/shared.py). Note the deliberate absence of
+// `user_id`, `created_by`, `trace`, `input_tokens`, `output_tokens` —
+// the public endpoint strips them.
+export const SharedTripResponse = z.object({
+  trip_id: z.string().uuid(),
+  destination: z.string(),
+  status: TripStatus,
+  content: TripContent.nullable(),
+  shared: z.literal(true),
+  expires_at: z.string().datetime({ offset: true }),
+});
+export type SharedTripResponse = z.infer<typeof SharedTripResponse>;
