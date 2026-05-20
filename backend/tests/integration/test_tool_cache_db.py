@@ -107,7 +107,7 @@ async def test_get_returns_none_when_absent(isolated_source: str) -> None:
 @pytest.mark.integration
 async def test_expired_row_returns_none(
     isolated_source: str,
-    _patched_session_scope: async_sessionmaker[AsyncSession],
+    _patched_session_scope: async_sessionmaker[AsyncSession],  # noqa: PT019
 ) -> None:
     """Manually back-date a row past its TTL and verify ``get_cached``
     returns ``None``."""
@@ -129,7 +129,7 @@ async def test_expired_row_returns_none(
 @pytest.mark.integration
 async def test_put_upserts(
     isolated_source: str,
-    _patched_session_scope: async_sessionmaker[AsyncSession],
+    _patched_session_scope: async_sessionmaker[AsyncSession],  # noqa: PT019
 ) -> None:
     """Second ``put_cached`` for the same key updates the row in place."""
     await put_cached(isolated_source, "k1", [{"v": 1}])
@@ -140,9 +140,7 @@ async def test_put_upserts(
     session = _patched_session_scope()
     try:
         count = await session.scalar(
-            select(func.count())
-            .select_from(ToolCache)
-            .where(ToolCache.source == isolated_source)
+            select(func.count()).select_from(ToolCache).where(ToolCache.source == isolated_source)
         )
         assert count == 1
     finally:
@@ -152,7 +150,7 @@ async def test_put_upserts(
 @pytest.mark.integration
 async def test_put_refreshes_expiry(
     isolated_source: str,
-    _patched_session_scope: async_sessionmaker[AsyncSession],
+    _patched_session_scope: async_sessionmaker[AsyncSession],  # noqa: PT019
 ) -> None:
     """A re-put pushes ``expires_at`` forward relative to the new write."""
     await put_cached(isolated_source, "k1", [{"v": 1}])
