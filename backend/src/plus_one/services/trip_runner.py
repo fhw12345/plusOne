@@ -186,13 +186,19 @@ async def _save_report(
 
 async def _load_profile_context(
     user_id: UUID,
+    companion_ids: list[UUID] | None = None,
 ) -> tuple[UserProfileForContext, list[CompanionForContext]]:
-    """Snapshot the user's Profile + all Companions into agent-layer types.
+    """Snapshot the user's Profile + Companions into agent-layer types.
 
-    v1 contract: ``selected_companions = all of the user's companions``.
-    A future PR will introduce per-trip selection through the
-    ``trip_companions`` association table — at that point this helper
-    takes a trip_id and filters accordingly.
+    When ``companion_ids`` is None or empty, loads all of the user's
+    companions (v1 contract / backward-compatible default).
+
+    When ``companion_ids`` is non-empty, filters to that subset. Cross-user
+    or unknown ids are silently dropped — the per-user ``user_id`` filter
+    enforces ownership, and a missing id (e.g. companion deleted between
+    trip-create and runner load) is treated as "user didn't select it"
+    rather than a 4xx (the BackgroundTask path has no client to surface
+    a 4xx to). See PRD §10 R1.
 
     Returns empty defaults when the user has no profile row (lazy-create
     path — see PRD §5 GET semantics + §10 migration safety). Defensive
@@ -202,17 +208,15 @@ async def _load_profile_context(
         profile_row = (
             await session.execute(select(Profile).where(Profile.user_id == user_id))
         ).scalar_one_or_none()
-        companion_rows = (
-            (
-                await session.execute(
-                    select(Companion)
-                    .where(Companion.user_id == user_id)
-                    .order_by(Companion.created_at.asc())
-                )
-            )
-            .scalars()
-            .all()
+
+        companion_stmt = (
+            select(Companion)
+            .where(Companion.user_id == user_id)
+            .order_by(Companion.created_at.asc())
         )
+        if companion_ids:
+            companion_stmt = companion_stmt.where(Companion.id.in_(companion_ids))
+        companion_rows = (await session.execute(companion_stmt)).scalars().all()
 
     user_profile = UserProfileForContext()
     if profile_row is not None:
@@ -235,7 +239,12 @@ async def _load_profile_context(
     return user_profile, companions
 
 
-async def run_trip(trip_id: UUID, query: str, user_id: UUID) -> None:
+async def run_trip(
+    trip_id: UUID,
+    query: str,
+    user_id: UUID,
+    companion_ids: list[UUID] | None = None,
+) -> None:
     """Run one trip's cycle end-to-end. Designed for FastAPI BackgroundTask.
 
     Errors are caught + recorded as a status flip + a final SSE event,
@@ -245,13 +254,17 @@ async def run_trip(trip_id: UUID, query: str, user_id: UUID) -> None:
     ``user_id`` is passed by the POST handler so the runner can load the
     user's Profile + Companions into AgentContext without re-reading the
     Trip row (which doesn't carry the user object eagerly).
+
+    ``companion_ids`` (None / [] = all-companions, non-empty = filter to
+    that subset) drives per-trip companion selection. See
+    ``_load_profile_context``.
     """
     register(trip_id)  # idempotent guard in case POST handler forgot
     try:
         await _set_status(trip_id, "running")
         await _publish(trip_id, {"name": "started", "trip_id": str(trip_id)})
 
-        user_profile, selected_companions = await _load_profile_context(user_id)
+        user_profile, selected_companions = await _load_profile_context(user_id, companion_ids)
         ctx = AgentContext(
             query=query,
             max_depth=4,

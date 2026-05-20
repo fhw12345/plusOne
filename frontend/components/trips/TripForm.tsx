@@ -3,8 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
+import { CompanionSelector } from "@/components/trips/CompanionSelector";
 import { createTrip } from "@/lib/api/trips";
 import { ApiError } from "@/lib/api/client";
 import { CreateTripBody, type CreateTripBody as CreateTripBodyT } from "@/lib/schemas/trips";
@@ -14,22 +15,28 @@ export function TripForm() {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CreateTripBodyT>({
     resolver: zodResolver(CreateTripBody),
     mode: "onSubmit",
-    defaultValues: { destination: "", free_text: "" },
+    defaultValues: { destination: "", free_text: "", companion_ids: [] },
   });
 
   const onSubmit = async (values: CreateTripBodyT) => {
     setServerError(null);
     try {
       // Strip empty free_text so backend sees `null`/absent instead of "".
+      // Same for companion_ids: drop the field when empty so the wire body
+      // stays a tight `{destination}` for the common "no companions yet" case.
       const body: CreateTripBodyT = {
         destination: values.destination,
         ...(values.free_text && values.free_text.length > 0 ? { free_text: values.free_text } : {}),
+        ...(values.companion_ids && values.companion_ids.length > 0
+          ? { companion_ids: values.companion_ids }
+          : {}),
       };
       const res = await createTrip(body);
       router.push(`/app/trips/${res.trip_id}`);
@@ -77,6 +84,14 @@ export function TripForm() {
           </span>
         ) : null}
       </label>
+
+      <Controller
+        control={control}
+        name="companion_ids"
+        render={({ field }) => (
+          <CompanionSelector value={field.value ?? []} onChange={field.onChange} />
+        )}
+      />
 
       <button
         type="submit"

@@ -1,10 +1,13 @@
 import { z } from "zod";
 
 // Mirror of backend `CreateTripBody`
-// (backend/src/plus_one/api/trips.py:34-36).
+// (backend/src/plus_one/api/trips.py:34-43). `companion_ids` is optional
+// on the wire (backend defaults to `[]`); when non-empty, the runner
+// filters AgentContext.selected_companions to that subset.
 export const CreateTripBody = z.object({
   destination: z.string().min(1, "Destination is required").max(200),
   free_text: z.string().max(2000).optional(),
+  companion_ids: z.array(z.string().uuid()).max(50).optional(),
 });
 export type CreateTripBody = z.infer<typeof CreateTripBody>;
 

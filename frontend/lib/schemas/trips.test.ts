@@ -33,6 +33,40 @@ describe("CreateTripBody", () => {
       CreateTripBody.safeParse({ destination: "Tokyo", free_text: "x".repeat(2001) }).success,
     ).toBe(false);
   });
+
+  it("accepts companion_ids as an empty array", () => {
+    const parsed = CreateTripBody.parse({ destination: "Tokyo", companion_ids: [] });
+    expect(parsed.companion_ids).toEqual([]);
+  });
+
+  it("accepts companion_ids with valid uuids", () => {
+    const parsed = CreateTripBody.parse({
+      destination: "Tokyo",
+      companion_ids: [
+        "11111111-2222-4333-8444-555555555555",
+        "22222222-3333-4444-8555-666666666666",
+      ],
+    });
+    expect(parsed.companion_ids?.length).toBe(2);
+  });
+
+  it("rejects non-uuid entries in companion_ids", () => {
+    expect(
+      CreateTripBody.safeParse({
+        destination: "Tokyo",
+        companion_ids: ["not-a-uuid"],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects > 50 companion_ids", () => {
+    const companion_ids = Array.from(
+      { length: 51 },
+      // crank out 51 valid uuids
+      (_, i) => `11111111-2222-4333-8444-${(555555555555 + i).toString().padStart(12, "0")}`,
+    );
+    expect(CreateTripBody.safeParse({ destination: "Tokyo", companion_ids }).success).toBe(false);
+  });
 });
 
 describe("CreateTripResponse", () => {

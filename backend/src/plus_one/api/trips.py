@@ -39,6 +39,12 @@ router = APIRouter(prefix="/api/trips", tags=["trips"])
 class CreateTripBody(BaseModel):
     destination: str = Field(min_length=1, max_length=200)
     free_text: str | None = Field(default=None, max_length=2000)
+    # Per-trip companion selection. Empty list = all-of-user's-companions
+    # (backward-compatible default — see PRD §4 option A). Backend silently
+    # drops dangling / cross-user ids in the runner; we never 400 here
+    # because the create-trip path is fire-and-forget BackgroundTask and
+    # a hard rejection on a stale id is unrecoverable for the client.
+    companion_ids: list[UUID] = Field(default_factory=list, max_length=50)
 
 
 class CreateTripResponse(BaseModel):
@@ -134,7 +140,7 @@ async def create_trip(
     # client can race straight to GET /stream and not lose events.
     # Reviewer B1: register before BackgroundTask schedules run_trip.
     register(trip.id)
-    background.add_task(run_trip, trip.id, query, user.id)
+    background.add_task(run_trip, trip.id, query, user.id, body.companion_ids)
     return CreateTripResponse(trip_id=trip.id, status=trip.status)
 
 
