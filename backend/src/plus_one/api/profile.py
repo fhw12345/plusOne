@@ -50,9 +50,7 @@ def _profile_to_response(profile: Profile) -> ProfileResponse:
     return ProfileResponse(
         demographics=Demographics.model_validate(profile.demographics or {}),
         travel_style=TravelStyle.model_validate(profile.travel_style or {}),
-        explicit_preferences=ExplicitPreferences.model_validate(
-            profile.explicit_preferences or {}
-        ),
+        explicit_preferences=ExplicitPreferences.model_validate(profile.explicit_preferences or {}),
         visited_cities=[
             VisitedCity.model_validate(item) for item in (profile.visited_cities or [])
         ],

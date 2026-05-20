@@ -123,9 +123,7 @@ def test_producer_prompt_empty_profile_contains_none_specified_marker() -> None:
 async def test_producer_run_uses_profile_kwargs(mock_llm: MockLLMProvider) -> None:
     """End-to-end run through producer() honors the new ctx fields."""
     payload = {"candidates": []}
-    mock_llm.queue_response(
-        role="producer_agent", text=json.dumps(payload), parsed_data=payload
-    )
+    mock_llm.queue_response(role="producer_agent", text=json.dumps(payload), parsed_data=payload)
     ctx = AgentContext(
         query="Tokyo",
         user_profile=UserProfileForContext(loves=("ramen",)),

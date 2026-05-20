@@ -61,9 +61,7 @@ async def _get_owned_companion(
     """
     companion = await session.get(Companion, companion_id)
     if companion is None or companion.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="companion_not_found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="companion_not_found")
     return companion
 
 
@@ -91,9 +89,7 @@ async def list_companions(
     session: Annotated[AsyncSession, Depends(get_request_session)],
 ) -> CompanionsListResponse:
     stmt = (
-        select(Companion)
-        .where(Companion.user_id == user.id)
-        .order_by(Companion.created_at.asc())
+        select(Companion).where(Companion.user_id == user.id).order_by(Companion.created_at.asc())
     )
     result = await session.execute(stmt)
     companions = result.scalars().all()
@@ -115,14 +111,10 @@ async def create_companion(
     count_stmt = select(func.count(Companion.id)).where(Companion.user_id == user.id)
     count = (await session.execute(count_stmt)).scalar_one()
     if count >= _COMPANION_CAP:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="companion_limit_reached"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="companion_limit_reached")
 
     if await _name_taken(session, user.id, body.name):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="companion_name_taken"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="companion_name_taken")
 
     companion = Companion(
         user_id=user.id,
@@ -158,9 +150,7 @@ async def update_companion(
     companion = await _get_owned_companion(session, user.id, companion_id)
 
     if await _name_taken(session, user.id, body.name, exclude_id=companion.id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="companion_name_taken"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="companion_name_taken")
 
     companion.name = body.name
     companion.explicit_preferences = body.explicit_preferences.model_dump(mode="json")

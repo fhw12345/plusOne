@@ -236,9 +236,7 @@ def test_put_updates_companion() -> None:
     user = _make_user()
     session = _StubSession(user)
     client = TestClient(_make_app(session))
-    created = client.post(
-        "/api/companions", headers=_auth(user), json={"name": "Anna"}
-    ).json()
+    created = client.post("/api/companions", headers=_auth(user), json={"name": "Anna"}).json()
     cid = created["id"]
 
     resp = client.put(
@@ -321,9 +319,7 @@ def test_post_validation_name_too_long() -> None:
     user = _make_user()
     session = _StubSession(user)
     client = TestClient(_make_app(session))
-    resp = client.post(
-        "/api/companions", headers=_auth(user), json={"name": "x" * 101}
-    )
+    resp = client.post("/api/companions", headers=_auth(user), json={"name": "x" * 101})
     assert resp.status_code == 422
 
 
@@ -350,7 +346,11 @@ def test_no_auth_returns_401_on_each_verb() -> None:
     assert (
         client.put(
             f"/api/companions/{cid}",
-            json={"name": "X", "explicit_preferences": {"loves": [], "hates": []}, "constraints": {}},
+            json={
+                "name": "X",
+                "explicit_preferences": {"loves": [], "hates": []},
+                "constraints": {},
+            },
         ).status_code
         == 401
     )

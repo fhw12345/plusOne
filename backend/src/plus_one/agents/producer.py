@@ -69,9 +69,7 @@ def _build_system_prompt(ctx: AgentContext, skill_bodies: list[str]) -> str:
     skills_section = (
         "\n\n---\n\n".join(skill_bodies) if skill_bodies else "(no relevant skills loaded)"
     )
-    preferences_section = render_preferences_section(
-        ctx.user_profile, ctx.selected_companions
-    )
+    preferences_section = render_preferences_section(ctx.user_profile, ctx.selected_companions)
     return template.format(
         skills=skills_section,
         prior_summary=ctx.summary or "(none)",
