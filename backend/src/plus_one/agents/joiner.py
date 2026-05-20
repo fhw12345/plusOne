@@ -15,6 +15,7 @@ from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from plus_one.agents.preferences import render_preferences_section
 from plus_one.agents.producer import Candidate
 from plus_one.agents.prompts import load_prompt
 from plus_one.agents.types import Classification, Evidence
@@ -125,7 +126,15 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
     # LLM has actual evidence to cite (Reviewer B1: prompt forbids
     # inventing URLs, so the payload must contain the URLs to cite).
     llm = llm_factory.get_llm_provider("joiner_agent")
-    system = load_prompt("joiner", "v1")
+    # Use .replace (not .format) for {preferences} so the literal JSON
+    # braces in the prompt's output-format block stay untouched. Producer
+    # uses .format because its braces are already doubled; the Joiner
+    # prompt would need every JSON brace re-doubled to switch, so we
+    # keep the call simple and surgical (PRD §7).
+    system = load_prompt("joiner", "v1").replace(
+        "{preferences}",
+        render_preferences_section(ctx.user_profile, ctx.selected_companions),
+    )
     user_payload_lines: list[str] = [f"User query: {ctx.query}", ""]
     for candidate, results in zip(candidates, all_results, strict=True):
         user_payload_lines.append(f"## {candidate.name} ({candidate.area or 'unknown'})")

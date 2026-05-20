@@ -45,6 +45,35 @@ class PhaseResult[TPayload](BaseModel):
     notes: str = Field(default="", description="Free-text trace for observability")
 
 
+class UserProfileForContext(BaseModel):
+    """Read-only snapshot of a user's profile used by agents.
+
+    Frozen on purpose — neither phase should mutate it; it's a one-way
+    signal. Lives in the framework layer (not under ``agents/``) so the
+    agents can stay ignorant of the ORM and pull only what they need.
+
+    NOTE: ``demographics`` / ``travel_style`` / ``visited_cities`` are
+    intentionally omitted in v1 — the agents don't read them yet, and
+    pulling them in would bloat every cycle's context for no benefit.
+    Add when an agent actually needs them.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    loves: tuple[str, ...] = ()
+    hates: tuple[str, ...] = ()
+
+
+class CompanionForContext(BaseModel):
+    """Read-only snapshot of one companion used by agents."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    loves: tuple[str, ...] = ()
+    hates: tuple[str, ...] = ()
+
+
 class AgentContext(BaseModel):
     """Per-cycle execution context shared across phases.
 
@@ -75,6 +104,21 @@ class AgentContext(BaseModel):
     scratch: dict[str, Any] = Field(
         default_factory=dict,
         description="Free-form per-cycle storage for agents",
+    )
+    user_profile: UserProfileForContext = Field(
+        default_factory=UserProfileForContext,
+        description=(
+            "Snapshot of the requesting user's profile at cycle start. "
+            "Empty default keeps unit tests that construct AgentContext "
+            "without a user (test_cycle.py etc.) working unchanged."
+        ),
+    )
+    selected_companions: list[CompanionForContext] = Field(
+        default_factory=list,
+        description=(
+            "Companions involved in this trip. v1 = all of user's "
+            "companions; v2 will be user-selected per trip."
+        ),
     )
 
     def at_depth_cap(self) -> bool:

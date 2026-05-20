@@ -132,7 +132,7 @@ async def create_trip(
     # client can race straight to GET /stream and not lose events.
     # Reviewer B1: register before BackgroundTask schedules run_trip.
     register(trip.id)
-    background.add_task(run_trip, trip.id, query)
+    background.add_task(run_trip, trip.id, query, user.id)
     return CreateTripResponse(trip_id=trip.id, status=trip.status)
 
 

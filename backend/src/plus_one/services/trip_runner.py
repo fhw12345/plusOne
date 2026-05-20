@@ -37,6 +37,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 import structlog
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from plus_one.agents.controller import controller as controller_phase
@@ -46,8 +47,14 @@ from plus_one.agents.producer import Candidate
 from plus_one.agents.producer import producer as producer_phase
 from plus_one.core.agents.framework.cycle import run_cycle
 from plus_one.core.agents.framework.errors import CycleAbortedError
-from plus_one.core.agents.framework.types import AgentContext, Decision, PhaseResult
-from plus_one.core.db.models import Report, Trip
+from plus_one.core.agents.framework.types import (
+    AgentContext,
+    CompanionForContext,
+    Decision,
+    PhaseResult,
+    UserProfileForContext,
+)
+from plus_one.core.db.models import Companion, Profile, Report, Trip
 from plus_one.core.db.session import session_scope
 
 if TYPE_CHECKING:
@@ -177,19 +184,81 @@ async def _save_report(
     raise last_exc
 
 
-async def run_trip(trip_id: UUID, query: str) -> None:
+async def _load_profile_context(
+    user_id: UUID,
+) -> tuple[UserProfileForContext, list[CompanionForContext]]:
+    """Snapshot the user's Profile + all Companions into agent-layer types.
+
+    v1 contract: ``selected_companions = all of the user's companions``.
+    A future PR will introduce per-trip selection through the
+    ``trip_companions`` association table — at that point this helper
+    takes a trip_id and filters accordingly.
+
+    Returns empty defaults when the user has no profile row (lazy-create
+    path — see PRD §5 GET semantics + §10 migration safety). Defensive
+    about JSONB shape so a malformed legacy row never crashes the cycle.
+    """
+    async with session_scope() as session:
+        profile_row = (
+            await session.execute(select(Profile).where(Profile.user_id == user_id))
+        ).scalar_one_or_none()
+        companion_rows = (
+            (
+                await session.execute(
+                    select(Companion)
+                    .where(Companion.user_id == user_id)
+                    .order_by(Companion.created_at.asc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    user_profile = UserProfileForContext()
+    if profile_row is not None:
+        explicit = profile_row.explicit_preferences or {}
+        user_profile = UserProfileForContext(
+            loves=tuple(explicit.get("loves") or ()),
+            hates=tuple(explicit.get("hates") or ()),
+        )
+
+    companions: list[CompanionForContext] = []
+    for c in companion_rows:
+        explicit = c.explicit_preferences or {}
+        companions.append(
+            CompanionForContext(
+                name=c.name,
+                loves=tuple(explicit.get("loves") or ()),
+                hates=tuple(explicit.get("hates") or ()),
+            )
+        )
+    return user_profile, companions
+
+
+async def run_trip(trip_id: UUID, query: str, user_id: UUID) -> None:
     """Run one trip's cycle end-to-end. Designed for FastAPI BackgroundTask.
 
     Errors are caught + recorded as a status flip + a final SSE event,
     NEVER re-raised — BackgroundTask exception handling is fire-and-forget
     and a leaked traceback is the worst outcome we want.
+
+    ``user_id`` is passed by the POST handler so the runner can load the
+    user's Profile + Companions into AgentContext without re-reading the
+    Trip row (which doesn't carry the user object eagerly).
     """
     register(trip_id)  # idempotent guard in case POST handler forgot
     try:
         await _set_status(trip_id, "running")
         await _publish(trip_id, {"name": "started", "trip_id": str(trip_id)})
 
-        ctx = AgentContext(query=query, max_depth=4, phase_timeout=120.0)
+        user_profile, selected_companions = await _load_profile_context(user_id)
+        ctx = AgentContext(
+            query=query,
+            max_depth=4,
+            phase_timeout=120.0,
+            user_profile=user_profile,
+            selected_companions=selected_companions,
+        )
         trace: list[dict[str, object]] = []
 
         # Wrap each phase so we can tee per-phase progress into the SSE
