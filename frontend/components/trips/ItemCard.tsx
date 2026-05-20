@@ -68,9 +68,7 @@ export function ItemCard({ item }: ItemCardProps) {
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className="text-foreground truncate text-base font-medium">{name}</span>
             {badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null}
-            {evidenceCount > 0 ? (
-              <Badge variant="outline">{evidenceCount} sources</Badge>
-            ) : null}
+            {evidenceCount > 0 ? <Badge variant="outline">{evidenceCount} sources</Badge> : null}
           </div>
           <div className="flex items-center gap-2">
             {confidence !== null ? (
@@ -95,9 +93,7 @@ export function ItemCard({ item }: ItemCardProps) {
       </CardHeader>
       <CardContent id={bodyId} className={cn(open ? "block" : "hidden", "text-sm")}>
         <div className="flex flex-col gap-3">
-          {areaStyleLine ? (
-            <p className="text-foreground/80">{areaStyleLine}</p>
-          ) : null}
+          {areaStyleLine ? <p className="text-foreground/80">{areaStyleLine}</p> : null}
           {summary ? <p className="text-foreground/80">{summary}</p> : null}
           {evidence.length > 0 ? (
             <div className="flex flex-col gap-2">

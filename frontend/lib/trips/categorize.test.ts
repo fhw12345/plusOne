@@ -23,7 +23,11 @@ describe("categorize", () => {
   });
 
   it("puts every item in together", () => {
-    const items = [item(), item({ classification: "local_gem" }), item({ classification: "tourist_trap" })];
+    const items = [
+      item(),
+      item({ classification: "local_gem" }),
+      item({ classification: "tourist_trap" }),
+    ];
     const buckets = categorize(items);
     expect(buckets.together).toHaveLength(3);
   });
@@ -44,7 +48,11 @@ describe("categorize", () => {
   });
 
   it("leaves user_only / partner_only / disagreement empty in v1", () => {
-    const items = [item(), item({ classification: "local_gem" }), item({ classification: "tourist_trap" })];
+    const items = [
+      item(),
+      item({ classification: "local_gem" }),
+      item({ classification: "tourist_trap" }),
+    ];
     const buckets = categorize(items);
     expect(buckets.user_only).toEqual([]);
     expect(buckets.partner_only).toEqual([]);
