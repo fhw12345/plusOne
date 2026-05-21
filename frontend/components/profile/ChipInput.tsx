@@ -1,10 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { X } from "lucide-react";
-
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 
 interface ChipInputProps {
   value: string[];
@@ -15,15 +11,10 @@ interface ChipInputProps {
   id?: string;
 }
 
-/**
- * Reusable chip-style multi-string input. Add on Enter or comma; remove via
- * the X on each chip. Dedupes case-insensitively. Caps at `max` (default 50,
- * matching the backend's per-list bound).
- */
 export function ChipInput({
   value,
   onChange,
-  placeholder = "Add and press Enter",
+  placeholder = "add and press enter",
   max = 50,
   ariaLabel,
   id,
@@ -56,47 +47,82 @@ export function ChipInput({
       e.preventDefault();
       commit(draft);
     } else if (e.key === "Backspace" && draft.length === 0 && value.length > 0) {
-      // Quick-delete the last chip on Backspace when input is empty.
       remove(value.length - 1);
     }
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <ul
-        className="flex max-h-32 flex-wrap gap-2 overflow-y-auto"
+        style={{
+          listStyle: "none",
+          padding: 0,
+          margin: 0,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          maxHeight: 128,
+          overflowY: "auto",
+        }}
         aria-label={`${ariaLabel ?? "Chips"} list`}
       >
         {value.map((chip, index) => (
           <li
             key={`${chip}-${index}`}
-            className="bg-muted text-foreground inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              padding: "4px 10px",
+              fontSize: 15,
+              background: "hsl(var(--paper-3))",
+              color: "hsl(var(--ink))",
+              borderRadius: 2,
+              transform: `rotate(${((index % 5) - 2) * 0.4}deg)`,
+            }}
           >
             <span>{chip}</span>
             <button
               type="button"
               onClick={() => remove(index)}
-              aria-label={`Remove ${chip}`}
-              className="text-foreground/60 hover:text-foreground"
+              aria-label={`remove ${chip}`}
+              style={{
+                background: "none",
+                border: 0,
+                color: "hsl(var(--ink-3))",
+                cursor: "pointer",
+                fontSize: 16,
+                lineHeight: 1,
+                padding: 0,
+              }}
             >
-              <X className="h-3 w-3" />
+              ×
             </button>
           </li>
         ))}
       </ul>
-      <Input
+      <input
         id={id}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={onKeyDown}
         onBlur={() => {
-          // Commit on blur so users don't lose a typed-but-not-Enter'd chip.
           if (draft.trim().length > 0) commit(draft);
         }}
-        placeholder={atMax ? `Maximum ${max} reached` : placeholder}
+        placeholder={atMax ? `that's ${max}. delete one to add more.` : placeholder}
         aria-label={ariaLabel}
         disabled={atMax}
-        className={cn(atMax && "opacity-60")}
+        style={{
+          font: "inherit",
+          fontSize: 16,
+          padding: "6px 4px",
+          background: "transparent",
+          border: 0,
+          borderBottom: "1px dashed hsl(var(--kraft))",
+          color: "hsl(var(--ink))",
+          opacity: atMax ? 0.55 : 1,
+          outline: "none",
+        }}
       />
     </div>
   );

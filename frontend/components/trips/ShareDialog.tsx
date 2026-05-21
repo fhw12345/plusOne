@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Share2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { createShare, revokeShare } from "@/lib/api/trips";
 
 export interface ShareDialogProps {
@@ -40,7 +37,7 @@ export function ShareDialog({ tripId }: ShareDialogProps) {
       const res = await createShare(tripId);
       setShare(res);
     } catch {
-      setError("Could not create the share link. Try again.");
+      setError("the link wouldn't mint. one more try?");
     } finally {
       setPending(false);
     }
@@ -54,7 +51,7 @@ export function ShareDialog({ tripId }: ShareDialogProps) {
       await revokeShare(tripId, share.token);
       setShare(null);
     } catch {
-      setError("Could not revoke the share link. Try again.");
+      setError("couldn't pull the link back. try again?");
     } finally {
       setPending(false);
     }
@@ -75,7 +72,6 @@ export function ShareDialog({ tripId }: ShareDialogProps) {
       onOpenChange={(next) => {
         setOpen(next);
         if (!next) {
-          // Reset transient state on close so reopening starts clean.
           setShare(null);
           setError(null);
           setCopied(false);
@@ -83,74 +79,105 @@ export function ShareDialog({ tripId }: ShareDialogProps) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" data-testid="share-button">
-          <Share2 className="h-4 w-4" />
-          Share
-        </Button>
+        <button type="button" className="btn" data-testid="share-button">
+          pass it along
+        </button>
       </DialogTrigger>
-      <DialogContent data-testid="share-dialog">
+      <DialogContent
+        data-testid="share-dialog"
+        style={{
+          background: "hsl(var(--paper-2))",
+          border: "1px solid hsl(var(--kraft))",
+          boxShadow: "0 20px 36px -18px hsl(0 0% 0% / .35)",
+          color: "hsl(var(--ink))",
+        }}
+      >
         <DialogHeader>
-          <DialogTitle>Share this trip</DialogTitle>
-          <DialogDescription>
-            Anyone with the link can view the report read-only. Links expire after 30 days; revoke
-            any time.
+          <DialogTitle asChild>
+            <p className="hand-lg" style={{ fontSize: 32 }}>
+              pass this reading along
+            </p>
+          </DialogTitle>
+          <DialogDescription asChild>
+            <p className="scrawl" style={{ fontSize: 15 }}>
+              anyone with the link can read it &mdash; nothing else. it stops working after 30
+              days, or whenever you pull it back.
+            </p>
           </DialogDescription>
         </DialogHeader>
 
         {error ? (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="annot" style={{ display: "block" }}>
             {error}
           </p>
         ) : null}
 
         {share ? (
-          <div className="flex flex-col gap-3">
-            <label className="text-foreground/80 text-xs font-medium" htmlFor="share-url">
-              Share URL
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <label
+              htmlFor="share-url"
+              className="type"
+              style={{ color: "hsl(var(--ink-2))" }}
+            >
+              link
             </label>
-            <div className="flex gap-2">
-              <Input id="share-url" readOnly value={share.share_url} data-testid="share-url" />
-              <Button
+            <div style={{ display: "flex", gap: 10 }}>
+              <input
+                id="share-url"
+                readOnly
+                value={share.share_url}
+                data-testid="share-url"
+                style={{
+                  flex: 1,
+                  padding: "8px 10px",
+                  background: "hsl(var(--paper))",
+                  border: "1px solid hsl(var(--kraft))",
+                  font: "inherit",
+                  color: "hsl(var(--ink))",
+                  fontSize: 14,
+                }}
+              />
+              <button
                 type="button"
-                variant="secondary"
-                size="sm"
                 onClick={handleCopy}
                 data-testid="share-copy"
+                className="btn"
               >
-                <Copy className="h-4 w-4" />
-                {copied ? "Copied" : "Copy"}
-              </Button>
+                {copied ? "copied!" : "copy"}
+              </button>
             </div>
-            <p className="text-muted-foreground text-xs">
-              Expires {new Date(share.expires_at).toLocaleString()}
+            <p className="scrawl" style={{ fontSize: 14, color: "hsl(var(--ink-3))" }}>
+              expires {new Date(share.expires_at).toLocaleString()}
             </p>
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm">
-            Generate a public link to share this trip with someone.
+          <p className="hand" style={{ fontSize: 20 }}>
+            mint a one-off link to share this reading with someone.
           </p>
         )}
 
         <DialogFooter>
           {share ? (
-            <Button
+            <button
               type="button"
-              variant="destructive"
               onClick={handleRevoke}
               disabled={pending}
               data-testid="share-revoke"
+              className="btn"
+              style={{ color: "hsl(var(--signal-snag))" }}
             >
-              {pending ? "Revoking…" : "Revoke link"}
-            </Button>
+              {pending ? "pulling…" : "pull it back"}
+            </button>
           ) : (
-            <Button
+            <button
               type="button"
               onClick={handleMint}
               disabled={pending}
               data-testid="share-create"
+              className="btn btn--red"
             >
-              {pending ? "Creating…" : "Create share link"}
-            </Button>
+              {pending ? "minting…" : "mint a link"}
+            </button>
           )}
         </DialogFooter>
       </DialogContent>

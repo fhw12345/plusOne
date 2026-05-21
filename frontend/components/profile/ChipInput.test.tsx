@@ -10,8 +10,8 @@ describe("ChipInput (SSR markup)", () => {
     );
     expect(html).toContain("ramen");
     expect(html).toContain("kissaten");
-    expect(html).toContain(`aria-label="Remove ramen"`);
-    expect(html).toContain(`aria-label="Remove kissaten"`);
+    expect(html).toContain(`aria-label="remove ramen"`);
+    expect(html).toContain(`aria-label="remove kissaten"`);
   });
 
   it("renders the input with the placeholder when below the cap", () => {
@@ -26,7 +26,10 @@ describe("ChipInput (SSR markup)", () => {
     const html = renderToString(
       <ChipInput value={value} onChange={vi.fn()} ariaLabel="Loves" max={3} />,
     );
-    expect(html).toContain("Maximum 3 reached");
+    // Voice rule (VOICE.md): placeholder uses lowercase scrapbook phrasing
+    // when the chip cap is hit, not "Maximum N reached".
+    expect(html).toContain("that&#x27;s 3");
+    expect(html).toContain("delete one to add more");
     // Disabled input at cap
     expect(html).toContain("disabled");
   });

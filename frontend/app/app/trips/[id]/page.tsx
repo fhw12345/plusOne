@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 
@@ -29,6 +30,12 @@ function deriveStatusFromEvents(events: TripEvent[]): DerivedStatus | null {
   return null;
 }
 
+const STAMP_BY_STATUS: Record<DerivedStatus, { word: string; tone: string }> = {
+  running: { word: "scribbling", tone: "hsl(var(--red))" },
+  complete: { word: "pinned", tone: "hsl(var(--signal-done))" },
+  aborted: { word: "hit a wall", tone: "hsl(var(--signal-snag))" },
+};
+
 export default function TripDetailPage() {
   const hydrated = useHasHydrated();
   const router = useRouter();
@@ -46,21 +53,12 @@ export default function TripDetailPage() {
   const stream = useTripStream(ready ? tripId : null);
   const { data: trip, refetch } = useTrip(ready ? tripId : null);
 
-  // Derive status from events first (live source of truth); fall back to the
-  // persisted Trip row if no terminal event has arrived. This covers two cases:
-  // (a) the page is opened after the cycle already finished — the per-trip
-  //     queue is dropped by then so SSE errors immediately with no events;
-  // (b) SSE errors mid-cycle but the trip later persists a terminal state.
   const fromEvents = useMemo(() => deriveStatusFromEvents(stream.events), [stream.events]);
   const fromTrip: DerivedStatus | null =
     trip?.status === "complete" || trip?.status === "aborted" ? trip.status : null;
   const derived: DerivedStatus = fromEvents ?? fromTrip ?? "running";
   const terminal = derived !== "running";
 
-  // If the SSE stream produced no events at all but the trip has reached a
-  // terminal state (covered above), surface a synthetic terminal event in
-  // the feed so the user — and the e2e contract — sees the outcome. Live
-  // events always win when they arrive.
   const feedEvents = useMemo<TripEvent[]>(() => {
     if (stream.events.length > 0) return stream.events;
     if (fromTrip && trip) {
@@ -75,16 +73,12 @@ export default function TripDetailPage() {
     return [];
   }, [stream.events, fromTrip, trip]);
 
-  // Refetch on terminal-from-events transition so the latest report content
-  // is fresh when ReportView renders.
   useEffect(() => {
     if (fromEvents) {
       refetch();
     }
   }, [fromEvents, refetch]);
 
-  // If the stream errored without ever producing events, poll the trip
-  // endpoint until it reaches a terminal status. Covers case (a) above.
   useEffect(() => {
     if (!ready || !tripId) return;
     if (stream.status !== "error") return;
@@ -96,49 +90,121 @@ export default function TripDetailPage() {
 
   useEffect(() => {
     if (typeof document !== "undefined") {
-      document.title = "Trip · Plus One";
+      document.title = trip?.destination
+        ? `Plus One — ${trip.destination}`
+        : "Plus One — reading";
     }
-  }, []);
+  }, [trip?.destination]);
 
   if (!ready) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center p-6">
-        <p className="text-muted-foreground text-sm">Loading…</p>
-      </main>
+      <div className="shell">
+        <p className="scrawl" style={{ marginTop: 80, fontSize: 19 }}>
+          one sec &mdash; opening the reading&hellip;
+        </p>
+      </div>
     );
   }
 
+  const stamp = STAMP_BY_STATUS[derived];
+
   return (
-    <main
-      data-trip-status={derived}
-      className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 p-6"
-    >
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Trip {trip?.destination ? `— ${trip.destination}` : ""}
-        </h1>
-        <p className="text-foreground/70 mt-1 text-sm">Live progress and final report.</p>
+    <div className="shell" data-trip-status={derived} style={{ maxWidth: 1100 }}>
+      <nav className="nav-strip" style={{ marginBottom: 32 }}>
+        <p className="crest" style={{ marginRight: "auto" }}>
+          <span className="crest-dot" />
+          PLUS &middot; ONE
+        </p>
+        <Link href="/app">your readings</Link>
+        <span className="sep" />
+        <Link href="/app/trips/new" title="plan a new trip">new reading</Link>
+        <span className="sep" />
+        <Link href="/app/companions">who you bring</Link>
+        <span className="sep" />
+        <Link href="/app/profile">about you</Link>
+      </nav>
+
+      <header style={{ position: "relative", padding: "12px 0 32px" }}>
+        <span
+          className="tape tape--blue"
+          style={{ top: -8, left: 200, width: 96, height: 24, transform: "rotate(-2deg)" }}
+        />
+        <h1 className="hand-xxl">{trip?.destination ?? "your reading"}</h1>
+        <p className="scrawl" style={{ fontSize: 19, maxWidth: 580, marginTop: 14 }}>
+          {derived === "running"
+            ? "i'm out asking around. you can watch me think below."
+            : derived === "complete"
+              ? "here's what i found. each card has a source so you can verify."
+              : "couldn't finish this one. the bits i did pull are below."}
+        </p>
+
+        <span
+          className="stamp"
+          style={{ position: "absolute", top: 18, right: 0, color: stamp.tone }}
+        >
+          {stamp.word}
+          <span className="ymd">{trip?.destination ?? "reading"}</span>
+        </span>
       </header>
 
       {terminal && trip ? (
-        <div className="flex flex-wrap gap-2 print:hidden" data-print-hide>
+        <div
+          className="print:hidden"
+          data-print-hide
+          style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}
+        >
           <ShareDialog tripId={trip.trip_id} />
           <DeleteTripDialog tripId={trip.trip_id} status={trip.status} />
         </div>
       ) : null}
 
       {stream.status === "error" && stream.lastError && !terminal ? (
-        <p role="alert" className="text-sm text-red-600">
-          {stream.lastError}
-        </p>
+        <div
+          role="alert"
+          className="ticket"
+          style={{ marginBottom: 24, ["--tilt" as never]: "-.6deg" }}
+        >
+          <div className="stamp-row">
+            <span className="type" style={{ color: "hsl(var(--signal-snag))" }}>
+              wire cut
+            </span>
+            <span className="type-sm">{stream.lastError}</span>
+          </div>
+          <p className="body">
+            the live channel dropped. i&rsquo;ll keep checking in case the notebook syncs later.
+          </p>
+        </div>
       ) : null}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold tracking-wide uppercase">Progress</h2>
-        <ProgressFeed events={feedEvents} />
+      <section
+        style={{
+          position: "relative",
+          padding: "26px 28px 30px",
+          background: "hsl(var(--paper-2))",
+          border: "1px solid hsl(var(--kraft))",
+          boxShadow: "0 12px 24px -16px hsl(0 0% 0% / .22)",
+          marginBottom: 36,
+        }}
+      >
+        <span
+          className="tape tape--yellow"
+          style={{ top: -10, left: 24, width: 120, height: 24, transform: "rotate(-3deg)" }}
+        />
+        <p className="type" style={{ marginBottom: 18 }}>
+          field log
+        </p>
+        <ProgressFeed events={feedEvents} destination={trip?.destination} />
       </section>
 
       {terminal && trip ? <ReportView trip={trip} /> : null}
-    </main>
+
+      <footer
+        style={{ marginTop: 80, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}
+      >
+        <p className="type">
+          PLUS &middot; ONE &middot; {trip?.destination ?? "reading"} &middot; v0.1
+        </p>
+      </footer>
+    </div>
   );
 }

@@ -7,15 +7,16 @@ import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "ring-offset-background focus-visible:ring-foreground/60 inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-foreground text-background hover:opacity-90",
-        outline: "border-foreground/20 text-foreground hover:bg-muted border",
-        ghost: "text-foreground hover:bg-muted",
+        default: "bg-[hsl(var(--ink))] text-[hsl(var(--paper))] hover:opacity-90",
+        outline:
+          "border border-[hsl(var(--ink)/0.2)] text-[hsl(var(--ink))] hover:bg-[hsl(var(--paper-3))]",
+        ghost: "text-[hsl(var(--ink))] hover:bg-[hsl(var(--paper-3))]",
         destructive: "bg-red-600 text-white hover:bg-red-700",
-        secondary: "bg-muted text-foreground hover:opacity-90",
+        secondary: "bg-[hsl(var(--paper-3))] text-[hsl(var(--ink))] hover:opacity-90",
       },
       size: {
         default: "h-9 px-4 py-2",

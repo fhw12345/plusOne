@@ -1,22 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { ItemCard } from "@/components/trips/ItemCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useReportPrefsHasHydrated } from "@/hooks/useReportPrefsHasHydrated";
 import type { JoinedItem, JoinedItemView } from "@/lib/schemas/trips";
-import { categorize, TAB_EMPTY_COPY, TAB_LABELS, TAB_ORDER } from "@/lib/trips/categorize";
+import { categorize, TAB_EMPTY_COPY, TAB_LABELS, TAB_ORDER, type TabKey } from "@/lib/trips/categorize";
 import { useReportPrefsStore, type Perspective } from "@/store/reportPrefs";
 
 export interface ReportTabsProps {
   items: JoinedItem[];
 }
 
-// Filter items by the active perspective. ``fused`` is identity; the
-// per-language perspectives drop items lacking the corresponding side.
-// Used for every tab EXCEPT ``disagreement`` (which is perspective-
-// independent per PRD batch2i §2).
 function filterByPerspective(items: JoinedItem[], perspective: Perspective): JoinedItem[] {
   if (perspective === "fused") return items;
   return items.filter((item) => {
@@ -29,16 +24,13 @@ function filterByPerspective(items: JoinedItem[], perspective: Perspective): Joi
 export function ReportTabs({ items }: ReportTabsProps) {
   const hydrated = useReportPrefsHasHydrated();
   const persistedPerspective = useReportPrefsStore((s) => s.perspective);
-  // Until rehydrate completes, render the SSR-default ``fused`` view so
-  // first client paint matches the server.
   const perspective: Perspective = hydrated ? persistedPerspective : "fused";
+
+  const [active, setActive] = useState<TabKey>("together");
 
   const buckets = useMemo(() => {
     const filtered = filterByPerspective(items, perspective);
     const out = categorize(filtered);
-    // Disagreement is perspective-independent — recompute from the
-    // unfiltered list so switching perspective never hides a divergent
-    // item from the disagreement tab.
     out.disagreement = categorize(items).disagreement;
     return out;
   }, [items, perspective]);
@@ -47,36 +39,85 @@ export function ReportTabs({ items }: ReportTabsProps) {
     perspective !== "fused" && items.length > 0 && buckets.together.length === 0;
 
   return (
-    <Tabs defaultValue="together" className="flex flex-col gap-3">
-      <TabsList>
-        {TAB_ORDER.map((key) => (
-          <TabsTrigger key={key} value={key}>
-            {TAB_LABELS[key]}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+    <div role="tablist" aria-label="Report sections" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px 12px",
+          paddingBottom: 12,
+          borderBottom: "1px dotted hsl(var(--kraft))",
+        }}
+      >
+        {TAB_ORDER.map((key, i) => {
+          const isActive = key === active;
+          const count = buckets[key].length;
+          const tilts = ["-2deg", "1.4deg", "-1deg", "2deg", "-1.5deg", "1deg"];
+          return (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`panel-${key}`}
+              onClick={() => setActive(key)}
+              className={`chip ${isActive ? "is-on" : ""}`.trim()}
+              style={{
+                ["--tilt" as never]: tilts[i % tilts.length],
+                fontSize: 16,
+              }}
+              data-tab={key}
+            >
+              {TAB_LABELS[key]}
+              {count > 0 ? (
+                <span
+                  className="meta"
+                  style={{
+                    marginLeft: 6,
+                    fontSize: 12,
+                    color: "hsl(var(--ink-3))",
+                  }}
+                >
+                  {count}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
       {TAB_ORDER.map((key) => {
+        if (key !== active) return null;
         const bucket = buckets[key];
         return (
-          <TabsContent key={key} value={key}>
+          <div
+            key={key}
+            role="tabpanel"
+            id={`panel-${key}`}
+            aria-label={TAB_LABELS[key]}
+          >
             {bucket.length === 0 ? (
-              <p className="text-foreground/70 text-sm" data-testid={`tab-empty-${key}`}>
+              <p
+                className="scrawl"
+                style={{ fontSize: 15, color: "hsl(var(--ink-3))" }}
+                data-testid={`tab-empty-${key}`}
+              >
                 {key !== "disagreement" && allHiddenForPerspective
-                  ? "This report was produced before per-language classification; switch to Fused to see results."
+                  ? "this reading was written before per-voice tags. switch back to blended to see the picks."
                   : TAB_EMPTY_COPY[key]}
               </p>
             ) : (
-              <ul className="flex flex-col gap-3">
+              <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 16 }}>
                 {bucket.map((item, idx) => (
                   <li key={idx}>
-                    <ItemCard item={item} />
+                    <ItemCard item={item} index={idx} />
                   </li>
                 ))}
               </ul>
             )}
-          </TabsContent>
+          </div>
         );
       })}
-    </Tabs>
+    </div>
   );
 }

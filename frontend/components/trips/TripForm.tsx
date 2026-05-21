@@ -28,12 +28,11 @@ export function TripForm() {
   const onSubmit = async (values: CreateTripBodyT) => {
     setServerError(null);
     try {
-      // Strip empty free_text so backend sees `null`/absent instead of "".
-      // Same for companion_ids: drop the field when empty so the wire body
-      // stays a tight `{destination}` for the common "no companions yet" case.
       const body: CreateTripBodyT = {
         destination: values.destination,
-        ...(values.free_text && values.free_text.length > 0 ? { free_text: values.free_text } : {}),
+        ...(values.free_text && values.free_text.length > 0
+          ? { free_text: values.free_text }
+          : {}),
         ...(values.companion_ids && values.companion_ids.length > 0
           ? { companion_ids: values.companion_ids }
           : {}),
@@ -42,67 +41,107 @@ export function TripForm() {
       router.push(`/app/trips/${res.trip_id}`);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        setServerError("Session expired. Sign in again.");
+        setServerError("your link timed out. sign in again?");
       } else if (err instanceof ApiError) {
-        setServerError(err.message || "Something went wrong. Please try again.");
+        setServerError(err.message || "something snagged on the wire. one more try?");
       } else {
-        setServerError("Something went wrong. Please try again.");
+        setServerError("something snagged. try again.");
       }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-      <label className="flex flex-col gap-2 text-sm">
-        <span>Where to?</span>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      style={{
+        position: "relative",
+        padding: "36px 38px 42px",
+        background: "hsl(var(--paper-2))",
+        boxShadow: "0 14px 28px -14px hsl(0 0% 0% / .22)",
+        border: "1px solid hsl(var(--kraft))",
+      }}
+    >
+      <span
+        className="tape tape--mint"
+        style={{ top: -12, left: 36, width: 110, height: 24, transform: "rotate(-3deg)" }}
+      />
+      <span
+        className="tape tape--blue"
+        style={{ top: -12, right: 80, width: 80, height: 24, transform: "rotate(2deg)" }}
+      />
+
+      <div className="field">
+        <label htmlFor="dest">the place</label>
         <input
+          id="dest"
           type="text"
           autoComplete="off"
-          aria-label="Destination"
-          className="border-foreground/20 rounded border px-3 py-2 text-base"
+          placeholder="e.g. tokyo · kyoto · taipei"
           {...register("destination")}
           aria-invalid={errors.destination ? "true" : "false"}
         />
+        <span className="hint">
+          a city is best. neighborhoods are okay too &mdash; i can zoom in.
+        </span>
         {errors.destination ? (
-          <span role="alert" className="text-sm text-red-600">
+          <span role="alert" className="annot" style={{ display: "block", marginTop: 6 }}>
             {errors.destination.message}
           </span>
         ) : null}
-      </label>
+      </div>
 
-      <label className="flex flex-col gap-2 text-sm">
-        <span>Notes</span>
+      <div className="field">
+        <label>who you&rsquo;re bringing</label>
+        <Controller
+          control={control}
+          name="companion_ids"
+          render={({ field }) => (
+            <CompanionSelector value={field.value ?? []} onChange={field.onChange} />
+          )}
+        />
+        <span className="hint" style={{ marginTop: 14 }}>
+          tap the names you&rsquo;re bringing. i&rsquo;ll plan around them.
+        </span>
+      </div>
+
+      <div className="field">
+        <label htmlFor="mood">the mood, the foods, what to avoid</label>
         <textarea
-          rows={4}
-          className="border-foreground/20 rounded border px-3 py-2 text-base"
+          id="mood"
+          rows={5}
+          placeholder="tonkotsu ramen. quiet counters. nothing instagrammy."
           {...register("free_text")}
           aria-invalid={errors.free_text ? "true" : "false"}
         />
+        <span className="hint">
+          say it like you&rsquo;d tell a friend. dealbreakers go up top.
+        </span>
         {errors.free_text ? (
-          <span role="alert" className="text-sm text-red-600">
+          <span role="alert" className="annot" style={{ display: "block", marginTop: 6 }}>
             {errors.free_text.message}
           </span>
         ) : null}
-      </label>
+      </div>
 
-      <Controller
-        control={control}
-        name="companion_ids"
-        render={({ field }) => (
-          <CompanionSelector value={field.value ?? []} onChange={field.onChange} />
-        )}
-      />
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="bg-foreground text-background rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
-      >
-        {isSubmitting ? "Planning…" : "Plan trip"}
-      </button>
+      <div style={{ display: "flex", alignItems: "center", gap: 22, marginTop: 28 }}>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="btn btn--red"
+          style={{ opacity: isSubmitting ? 0.55 : 1 }}
+        >
+          {isSubmitting ? "off i go…" : "go look →"}
+        </button>
+        <span className="scrawl" style={{ fontSize: 14 }}>
+          i&rsquo;ll start scribbling the moment you press it.
+          <br />
+          takes about 90 seconds.
+        </span>
+      </div>
 
       {serverError ? (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="annot" style={{ marginTop: 18, display: "block" }}>
           {serverError}
         </p>
       ) : null}

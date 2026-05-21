@@ -3,46 +3,78 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { TRIP_STATUS_META, formatTripDate } from "@/lib/format";
+import { formatTripDate } from "@/lib/format";
+import { tiltStyle } from "@/lib/scrapbook/tilt";
 import type { TripListItem, TripStatus } from "@/lib/schemas/trips";
 
-function StatusBadge({ status }: { status: TripStatus }) {
-  const meta = TRIP_STATUS_META[status];
-  return (
-    <span className={`rounded px-2 py-0.5 text-xs font-medium ${meta.classes}`}>{meta.label}</span>
-  );
-}
+const STATUS_TO_SIGNAL: Record<TripStatus, "live" | "done" | "wait" | "snag"> = {
+  pending: "wait",
+  running: "live",
+  complete: "done",
+  aborted: "snag",
+};
+
+const VERDICT_BY_STATUS: Record<TripStatus, { text: string; soft: boolean }> = {
+  pending: { text: "queued for the weekend", soft: true },
+  running: { text: "still scribbling", soft: true },
+  complete: { text: "pinned ★", soft: false },
+  aborted: { text: "hit a wall", soft: true },
+};
+
+const TAPE_BY_INDEX = ["tape--mint", "tape--blue", "tape--yellow", "tape--red"] as const;
 
 export interface TripCardProps {
   trip: TripListItem;
+  index?: number;
 }
 
-export function TripCard({ trip }: TripCardProps) {
-  // Effect-mounted span so SSR renders empty and the client fills in the
-  // computed relative label on hydration. Avoids React hydration mismatch
-  // warnings from clock skew between server and client. PRD §8.1.
+export function TripCard({ trip, index = 0 }: TripCardProps) {
   const [label, setLabel] = useState<string>("");
   useEffect(() => {
-    // The set-state-in-effect pattern is intentional here — it's the
-    // documented way to defer client-only formatting past hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLabel(formatTripDate(trip.created_at));
   }, [trip.created_at]);
 
+  const status = (trip.status ?? "pending") as TripStatus;
+  const signal = STATUS_TO_SIGNAL[status];
+  const verdict = VERDICT_BY_STATUS[status];
+  const tape = TAPE_BY_INDEX[index % TAPE_BY_INDEX.length];
+
   return (
-    <li className="border-foreground/10 rounded border bg-white/50 transition hover:bg-white/80 dark:bg-black/20 dark:hover:bg-black/30">
-      <Link
-        href={`/app/trips/${trip.trip_id}`}
-        className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+    <Link
+      href={`/app/trips/${trip.trip_id}`}
+      className="photo-card is-typed"
+      style={{ ...tiltStyle(trip.trip_id), textDecoration: "none" }}
+      data-trip-status={status}
+    >
+      <span className={`tape ${tape} cnr`} />
+      <div className="photo" data-label={trip.destination} />
+      <p className="cap">{trip.destination}</p>
+      <p className="scrawl">
+        <time dateTime={trip.created_at}>{label || " "}</time>
+      </p>
+      <span
+        className={verdict.soft ? "verdict verdict--soft" : "verdict"}
+        style={{ fontSize: 14, right: 16, bottom: 16 }}
+        aria-label={verdict.text}
       >
-        <div className="flex flex-col gap-1">
-          <span className="text-base font-medium">{trip.destination}</span>
-          <time dateTime={trip.created_at} className="text-foreground/60 text-xs">
-            {label}
-          </time>
-        </div>
-        <StatusBadge status={trip.status as TripStatus} />
-      </Link>
-    </li>
+        <span
+          aria-hidden="true"
+          style={{
+            display: "inline-block",
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            verticalAlign: 1,
+            marginRight: 6,
+            background: `hsl(var(--signal-${signal}))`,
+            ...(signal === "live"
+              ? { animation: "pulse 1.4s var(--ease-soft) infinite" }
+              : {}),
+          }}
+        />
+        {verdict.text}
+      </span>
+    </Link>
   );
 }

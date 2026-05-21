@@ -2,96 +2,85 @@
 
 import * as React from "react";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { useCompanions } from "@/hooks/useCompanions";
+import { tiltFor } from "@/lib/scrapbook/tilt";
 
 interface CompanionSelectorProps {
   value: string[];
   onChange: (ids: string[]) => void;
 }
 
+const CHIP_TAPES = ["", "chip--blue", "chip--yellow", "chip--red"] as const;
+
 /**
- * Per-trip companion picker. Lists all of the user's companions (created_at
- * ASC, matching the backend) as checkbox rows; emits the selected id array.
- *
- * Empty list = "all companions" on the backend (CreateTripBody default).
- * The label here says "Companions on this trip" to make the picker semantic
- * to the user — the empty-means-all logic is invisible.
+ * Per-trip companion picker rendered as scrapbook "chips" — each is a button
+ * that toggles via `is-on`. Empty selection = all companions, matching the
+ * backend CreateTripBody default.
  */
 export function CompanionSelector({ value, onChange }: CompanionSelectorProps) {
   const { data, isLoading, isError } = useCompanions();
   const companions = data?.companions ?? [];
 
-  const toggle = (id: string, checked: boolean) => {
-    if (checked) {
-      if (!value.includes(id)) onChange([...value, id]);
-    } else {
+  const toggle = (id: string) => {
+    if (value.includes(id)) {
       onChange(value.filter((v) => v !== id));
+    } else {
+      onChange([...value, id]);
     }
   };
 
-  const selectAll = () => onChange(companions.map((c) => c.id));
-  const selectNone = () => onChange([]);
-
   if (isLoading) {
-    return <p className="text-foreground/60 text-sm">Loading companions…</p>;
+    return (
+      <p className="scrawl" style={{ fontSize: 15 }}>
+        pulling your usual crowd&hellip;
+      </p>
+    );
   }
   if (isError) {
     return (
-      <p role="alert" className="text-sm text-red-600">
-        Couldn&apos;t load companions.
+      <p role="alert" className="annot" style={{ display: "block" }}>
+        couldn&rsquo;t open the address book.
       </p>
     );
   }
   if (companions.length === 0) {
     return (
-      <p className="text-foreground/60 text-sm">
-        You don&apos;t have any companions yet. Add some from the Companions page to include them on
-        a trip.
+      <p className="scrawl" style={{ fontSize: 15 }}>
+        no companions in the book yet &mdash;{" "}
+        <a href="/app/companions" className="link-hand" style={{ fontSize: 15 }}>
+          add one
+        </a>
+        , or skip & go solo.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Companions on this trip</span>
-        <div className="flex gap-3 text-xs">
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "12px 14px", paddingTop: 8 }}>
+      {companions.map((c, i) => {
+        const checked = value.includes(c.id);
+        const extra = CHIP_TAPES[i % CHIP_TAPES.length];
+        const tilt = tiltFor(c.id).toFixed(2);
+        return (
           <button
+            key={c.id}
             type="button"
-            onClick={selectAll}
-            className="text-foreground/70 underline-offset-2 hover:underline"
+            onClick={() => toggle(c.id)}
+            className={`chip ${extra} ${checked ? "is-on" : ""}`.trim()}
+            style={{ ["--tilt" as never]: `${tilt}deg` }}
+            aria-pressed={checked}
           >
-            Select all
+            {c.name}
           </button>
-          <button
-            type="button"
-            onClick={selectNone}
-            className="text-foreground/70 underline-offset-2 hover:underline"
-          >
-            None
-          </button>
-        </div>
-      </div>
-      <ul className="border-foreground/10 flex flex-col gap-1 rounded-md border p-2">
-        {companions.map((c) => {
-          const checked = value.includes(c.id);
-          const checkboxId = `companion-${c.id}`;
-          return (
-            <li key={c.id} className="flex items-center gap-2 px-1 py-1">
-              <Checkbox
-                id={checkboxId}
-                checked={checked}
-                onCheckedChange={(state) => toggle(c.id, state === true)}
-              />
-              <Label htmlFor={checkboxId} className="cursor-pointer">
-                {c.name}
-              </Label>
-            </li>
-          );
-        })}
-      </ul>
+        );
+      })}
+      <a
+        href="/app/companions"
+        className="link-hand"
+        style={{ fontSize: 16, alignSelf: "center" }}
+      >
+        + add someone
+      </a>
     </div>
   );
 }

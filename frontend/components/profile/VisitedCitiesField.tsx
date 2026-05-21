@@ -1,12 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import type { VisitedCity } from "@/lib/schemas/profile";
 
 interface VisitedCitiesFieldProps {
@@ -14,11 +9,18 @@ interface VisitedCitiesFieldProps {
   onChange: (value: VisitedCity[]) => void;
 }
 
-/**
- * Inline editable list of visited cities. Each row: city + year (required),
- * rating + feedback (optional). No reorder, no aggregation — see PRD §2
- * Non-goals.
- */
+const FIELD_INPUT_STYLE: React.CSSProperties = {
+  font: "inherit",
+  fontSize: 16,
+  padding: "6px 4px",
+  background: "transparent",
+  border: 0,
+  borderBottom: "1px dashed hsl(var(--kraft))",
+  color: "hsl(var(--ink))",
+  outline: "none",
+  width: "100%",
+};
+
 export function VisitedCitiesField({ value, onChange }: VisitedCitiesFieldProps) {
   const addRow = () => {
     onChange([
@@ -36,35 +38,56 @@ export function VisitedCitiesField({ value, onChange }: VisitedCitiesFieldProps)
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <ul className="flex flex-col gap-3" aria-label="Visited cities list">
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <ul
+        style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}
+        aria-label="Visited cities list"
+      >
         {value.map((row, index) => (
-          <li key={index} className="border-foreground/10 rounded-md border p-3">
-            <div className="flex items-start gap-2">
-              <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor={`vc-city-${index}`}>City</Label>
-                  <Input
+          <li
+            key={index}
+            style={{
+              position: "relative",
+              padding: "16px 18px",
+              background: "hsl(var(--paper))",
+              border: "1px solid hsl(var(--kraft))",
+              transform: `rotate(${((index % 3) - 1) * 0.4}deg)`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div
+                style={{
+                  flex: 1,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 14,
+                }}
+              >
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label htmlFor={`vc-city-${index}`}>city</label>
+                  <input
                     id={`vc-city-${index}`}
                     value={row.city}
                     onChange={(e) => updateRow(index, { city: e.target.value })}
                     maxLength={100}
+                    style={FIELD_INPUT_STYLE}
                   />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor={`vc-year-${index}`}>Year</Label>
-                  <Input
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label htmlFor={`vc-year-${index}`}>year</label>
+                  <input
                     id={`vc-year-${index}`}
                     type="number"
                     min={1900}
                     max={2100}
                     value={row.year}
                     onChange={(e) => updateRow(index, { year: Number(e.target.value) || row.year })}
+                    style={FIELD_INPUT_STYLE}
                   />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor={`vc-rating-${index}`}>Rating (1-5)</Label>
-                  <Input
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label htmlFor={`vc-rating-${index}`}>star rating (1-5)</label>
+                  <input
                     id={`vc-rating-${index}`}
                     type="number"
                     min={1}
@@ -74,11 +97,12 @@ export function VisitedCitiesField({ value, onChange }: VisitedCitiesFieldProps)
                       const raw = e.target.value;
                       updateRow(index, { rating: raw === "" ? null : Number(raw) });
                     }}
+                    style={FIELD_INPUT_STYLE}
                   />
                 </div>
-                <div className="flex flex-col gap-1 sm:col-span-2">
-                  <Label htmlFor={`vc-feedback-${index}`}>Feedback</Label>
-                  <Textarea
+                <div className="field" style={{ marginBottom: 0, gridColumn: "1 / -1" }}>
+                  <label htmlFor={`vc-feedback-${index}`}>what stuck</label>
+                  <textarea
                     id={`vc-feedback-${index}`}
                     rows={2}
                     maxLength={500}
@@ -87,22 +111,30 @@ export function VisitedCitiesField({ value, onChange }: VisitedCitiesFieldProps)
                   />
                 </div>
               </div>
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="icon"
                 onClick={() => removeRow(index)}
-                aria-label={`Remove row ${index + 1}`}
+                aria-label={`remove row ${index + 1}`}
+                className="link-hand"
+                style={{
+                  font: "inherit",
+                  fontSize: 22,
+                  background: "none",
+                  border: 0,
+                  padding: 0,
+                  color: "hsl(var(--ink-3))",
+                  alignSelf: "flex-start",
+                }}
               >
-                <X className="h-4 w-4" />
-              </Button>
+                ×
+              </button>
             </div>
           </li>
         ))}
       </ul>
-      <Button type="button" variant="outline" size="sm" onClick={addRow}>
-        <Plus className="mr-1 h-4 w-4" /> Add city
-      </Button>
+      <button type="button" onClick={addRow} className="btn" style={{ alignSelf: "flex-start" }}>
+        + add a city
+      </button>
     </div>
   );
 }

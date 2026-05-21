@@ -17,8 +17,6 @@
      dot pulse, sticky-arrival wobble, msg "now" dotty animation.
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@400;700&family=Special+Elite&family=Shippori+Mincho:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
-
 /* ────────────────────────────────────────────────────────────
    TOKENS
    ────────────────────────────────────────────────────────────
@@ -79,11 +77,6 @@
      Special Elite = typewriter (stamps, station codes, timestamps).
      Shippori / Noto Serif JP = printed Japanese.
      Plus Jakarta = printed-view fallback only. */
-  --font-hand:        'Caveat', 'Comic Sans MS', cursive;
-  --font-hand-alt:    'Kalam', 'Caveat', cursive;
-  --font-type:        'Special Elite', 'Courier New', monospace;
-  --font-cjk-serif:   'Shippori Mincho', 'Noto Serif JP', 'Yu Mincho', serif;
-  --font-print:       'Plus Jakarta Sans', system-ui, sans-serif;
 
   /* Layout */
   --shell-max: 1180px;
@@ -109,7 +102,7 @@ html { background: hsl(var(--paper)); }
 body {
   min-height: 100dvh;
   color: hsl(var(--ink));
-  font-family: var(--font-hand);
+  font-family: var(--font-hand), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-size: 18px;          /* Caveat is small-x-height; bumps to 18 */
   line-height: 1.4;
   background:
@@ -162,7 +155,7 @@ body::after {
    - .jp         Japanese place-name accent (Shippori Mincho)
 */
 .hand-xxl {
-  font-family: var(--font-hand);
+  font-family: var(--font-hand), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-weight: 600;
   font-size: clamp(56px, 9vw, 96px);
   line-height: .92;
@@ -172,32 +165,32 @@ body::after {
   transform-origin: left center;
 }
 .hand-xl {
-  font-family: var(--font-hand);
+  font-family: var(--font-hand), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-weight: 600;
   font-size: clamp(34px, 4.4vw, 48px);
   line-height: 1;
   color: hsl(var(--ink));
 }
 .hand-lg {
-  font-family: var(--font-hand);
+  font-family: var(--font-hand), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-weight: 500;
   font-size: 28px;
   line-height: 1.1;
 }
 .hand {
-  font-family: var(--font-hand);
+  font-family: var(--font-hand), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-size: 22px;
   line-height: 1.32;
   color: hsl(var(--ink));
 }
 .scrawl {
-  font-family: var(--font-hand-alt);
+  font-family: var(--font-hand-alt), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-size: 15px;
   line-height: 1.45;
   color: hsl(var(--ink-2));
 }
 .annot {
-  font-family: var(--font-hand-alt);
+  font-family: var(--font-hand-alt), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-weight: 700;
   font-size: 14px;
   color: hsl(var(--red));
@@ -206,14 +199,14 @@ body::after {
   display: inline-block;
 }
 .type {
-  font-family: var(--font-type);
+  font-family: var(--font-type), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: hsl(var(--ink-3));
 }
-.type-sm { font-family: var(--font-type); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: hsl(var(--ink-3)); }
-.jp { font-family: var(--font-cjk-serif); font-weight: 500; }
+.type-sm { font-family: var(--font-type), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: hsl(var(--ink-3)); }
+.jp { font-family: var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif; font-weight: 500; }
 
 /* Underline highlighter (yellow washi marker pass) */
 .highlight {
@@ -225,7 +218,7 @@ body::after {
    CREST / MASTHEAD — recurring across every page
    ──────────────────────────────────────────────────────────── */
 .crest {
-  font-family: var(--font-type);
+  font-family: var(--font-type), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-size: 11px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -735,7 +728,7 @@ body::after {
   background: hsl(var(--tape-mint) / .85);
   border: 1px solid hsl(var(--ink) / .25);
   transform: rotate(var(--tilt));
-  font-family: var(--font-hand);
+  font-family: var(--font-hand), var(--font-cjk-serif), var(--font-cjk-serif-fallback), serif;
   font-size: 20px;
   color: hsl(var(--ink));
   box-shadow: 0 3px 6px -2px hsl(0 0% 0% / .12);

@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { fontVariables } from "./fonts";
+import { ViewToggle } from "@/components/scrapbook/view-toggle";
 
 export const metadata: Metadata = {
   title: "Plus One — AI travel planner",
@@ -23,8 +25,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="bg-background text-foreground min-h-screen antialiased">
-        <Providers>{children}</Providers>
+      <body className={`${fontVariables} min-h-dvh`}>
+        <Providers>
+          {children}
+          <ViewToggle />
+        </Providers>
       </body>
     </html>
   );

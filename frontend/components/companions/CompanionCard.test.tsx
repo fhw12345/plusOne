@@ -53,11 +53,11 @@ describe("CompanionCard (SSR markup)", () => {
     expect(clean).toContain("8 km/day");
   });
 
-  it("renders Edit + Delete buttons", () => {
+  it("renders edit + remove controls (lowercase, scrapbook voice)", () => {
     const html = renderToString(
       <CompanionCard companion={SAMPLE} onEdit={vi.fn()} onDelete={vi.fn()} />,
     );
-    expect(html).toContain("Edit");
-    expect(html).toContain("Delete");
+    expect(html).toContain("edit");
+    expect(html).toContain("remove");
   });
 });

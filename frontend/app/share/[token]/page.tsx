@@ -36,13 +36,25 @@ export default async function SharedTripPage({ params }: SharePageProps) {
 
   return (
     <main
-      className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 p-6"
+      className="shell"
       data-shared-trip-page="true"
+      style={{ maxWidth: 920 }}
     >
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">{payload.destination}</h1>
-        <p className="text-foreground/70 mt-1 text-sm">
-          Read-only share &middot; expires {new Date(payload.expires_at).toLocaleString()}
+      <header style={{ position: "relative", padding: "12px 0 28px" }}>
+        <span
+          className="tape tape--mint"
+          style={{ top: -8, left: 60, width: 96, height: 24, transform: "rotate(-3deg)" }}
+        />
+        <p className="crest" style={{ marginBottom: 6 }}>
+          <span className="crest-dot" />
+          PLUS &middot; ONE &middot; shared reading
+        </p>
+        <h1 className="hand-xxl">{payload.destination}</h1>
+        <p className="scrawl" style={{ marginTop: 12, fontSize: 17 }}>
+          read-only &mdash; expires{" "}
+          <span className="type" style={{ fontSize: 12 }}>
+            {new Date(payload.expires_at).toLocaleString()}
+          </span>
         </p>
       </header>
       <ReportView trip={tripForView} readonly />

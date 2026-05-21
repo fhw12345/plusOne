@@ -1,7 +1,10 @@
 import type { Config } from "tailwindcss";
 
-const config: Config = {
+// Tailwind v4 disables `corePlugins.preflight` via the typed Config; the cast
+// keeps tsc happy while still emitting the runtime key tailwind reads.
+const config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
+  corePlugins: { preflight: false },
   theme: {
     extend: {
       colors: {
@@ -25,6 +28,6 @@ const config: Config = {
     },
   },
   plugins: [],
-};
+} satisfies Config & { corePlugins?: { preflight?: boolean } };
 
 export default config;

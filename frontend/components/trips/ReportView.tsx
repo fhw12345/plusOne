@@ -1,11 +1,8 @@
 "use client";
 
-import { Download, Printer } from "lucide-react";
-
 import { LanguageToggle } from "@/components/trips/LanguageToggle";
 import { PerspectiveToggle } from "@/components/trips/PerspectiveToggle";
 import { ReportTabs } from "@/components/trips/ReportTabs";
-import { Button } from "@/components/ui/button";
 import { useReportPrefsHasHydrated } from "@/hooks/useReportPrefsHasHydrated";
 import { downloadMarkdown } from "@/lib/report/exportMarkdown";
 import type { JoinedItem, TripDetail } from "@/lib/schemas/trips";
@@ -13,18 +10,9 @@ import { useReportPrefsStore, type ReportLanguage } from "@/store/reportPrefs";
 
 export interface ReportViewProps {
   trip: TripDetail;
-  /**
-   * Hide owner-only affordances (Delete dialog is rendered by the trip
-   * page itself; this prop hides the print/export buttons we render in
-   * the header below). Used by `/share/[token]` for the public view.
-   */
   readonly?: boolean;
 }
 
-// Resolve which items to render given the user's language preference.
-// Falls back to the source-language ``content.items`` whenever the
-// requested translation is missing (old reports, translator disabled,
-// failed translations) so the report is never blank.
 function resolveItems(content: TripDetail["content"], language: ReportLanguage): JoinedItem[] {
   if (!content) return [];
   if (language === "original") return content.items ?? [];
@@ -35,52 +23,85 @@ function resolveItems(content: TripDetail["content"], language: ReportLanguage):
 export function ReportView({ trip, readonly = false }: ReportViewProps) {
   const hydrated = useReportPrefsHasHydrated();
   const persistedLanguage = useReportPrefsStore((s) => s.language);
-  // Until rehydrate completes, render the SSR-default ``original`` view
-  // so first client paint matches the server.
   const language: ReportLanguage = hydrated ? persistedLanguage : "original";
 
   const items = resolveItems(trip.content, language);
 
   return (
-    <section className="flex flex-col gap-4" data-testid="report-view">
-      <header className="flex items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold tracking-tight">Report</h2>
-        <div className="flex items-center gap-2">
-          <span className="border-foreground/20 rounded border px-2 py-0.5 text-xs tracking-wide uppercase">
-            {trip.status}
-          </span>
-          {/* Markdown export is safe on the public read-only page too —
-              it only reads data already on the page. */}
-          <Button
+    <section
+      data-testid="report-view"
+      style={{
+        position: "relative",
+        marginTop: 12,
+        padding: "30px 32px 36px",
+        background: "hsl(var(--paper-2))",
+        border: "1px solid hsl(var(--kraft))",
+        boxShadow: "0 14px 26px -16px hsl(0 0% 0% / .22)",
+      }}
+    >
+      <span
+        className="tape tape--mint"
+        style={{ top: -10, left: 36, width: 110, height: 24, transform: "rotate(-3deg)" }}
+      />
+
+      <header
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          gap: 16,
+          marginBottom: 18,
+        }}
+      >
+        <div>
+          <h2 className="hand-xl">the reading</h2>
+          <p className="scrawl" style={{ fontSize: 15, marginTop: 4 }}>
+            each card has a source. tap it open to read what the locals said.
+          </p>
+        </div>
+
+        <div
+          className="print:hidden"
+          data-print-hide
+          style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}
+        >
+          <button
             type="button"
-            size="sm"
-            variant="outline"
             onClick={() => downloadMarkdown(trip)}
             data-testid="report-export-md"
-            data-print-hide
-            className="print:hidden"
+            className="btn"
+            style={{ fontSize: 18 }}
           >
-            <Download className="h-4 w-4" />
-            Markdown
-          </Button>
+            save as markdown
+          </button>
           {!readonly ? (
-            <Button
+            <button
               type="button"
-              size="sm"
-              variant="outline"
               onClick={() => window.print()}
               data-testid="report-export-pdf"
-              data-print-hide
-              className="print:hidden"
+              className="btn"
+              style={{ fontSize: 18 }}
             >
-              <Printer className="h-4 w-4" />
-              PDF
-            </Button>
+              print
+            </button>
           ) : null}
         </div>
       </header>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div
+        className="print:hidden"
+        data-print-hide
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: 18,
+          marginBottom: 20,
+          paddingBottom: 16,
+          borderBottom: "1px dotted hsl(var(--kraft))",
+        }}
+      >
         <PerspectiveToggle />
         <LanguageToggle />
       </div>

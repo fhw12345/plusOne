@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
 
 import {
   AlertDialog,
@@ -15,15 +14,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { deleteTrip } from "@/lib/api/trips";
 import { ApiError } from "@/lib/api/client";
 
 export interface DeleteTripDialogProps {
   tripId: string;
-  // Kept on the prop list for future use (e.g. hiding the trigger when
-  // PRD adds a "running" visual treatment); not used for client-side
-  // gating today — the backend returns 409 which we surface inline.
   status: string;
 }
 
@@ -42,11 +37,9 @@ export function DeleteTripDialog({ tripId, status: _status }: DeleteTripDialogPr
       router.replace("/app");
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        setError(
-          "Cannot delete a trip while it's running. Wait for it to finish or be aborted, then try again.",
-        );
+        setError("can't tear out a page that's still being written. wait for it to finish first.");
       } else {
-        setError("Could not delete this trip. Try again in a moment.");
+        setError("couldn't tear this out. one more try?");
       }
     } finally {
       setPending(false);
@@ -56,37 +49,62 @@ export function DeleteTripDialog({ tripId, status: _status }: DeleteTripDialogPr
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" size="sm" data-testid="delete-trip-button">
-          <Trash2 className="h-4 w-4" />
-          Delete
-        </Button>
+        <button type="button" className="btn" data-testid="delete-trip-button">
+          tear it out
+        </button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent
+        style={{
+          background: "hsl(var(--paper-2))",
+          border: "1px solid hsl(var(--kraft))",
+          boxShadow: "0 20px 36px -18px hsl(0 0% 0% / .35)",
+          color: "hsl(var(--ink))",
+        }}
+      >
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this trip?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This permanently removes the trip and its report. This action cannot be undone.
+          <AlertDialogTitle asChild>
+            <p className="hand-lg" style={{ fontSize: 30 }}>
+              tear this page out?
+            </p>
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <p className="scrawl" style={{ fontSize: 15 }}>
+              the reading goes with it &mdash; for good. no putting it back.
+            </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="annot" style={{ display: "block" }}>
             {error}
           </p>
         ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel asChild>
+            <button
+              type="button"
+              className="link-hand"
+              disabled={pending}
+              style={{ font: "inherit", fontSize: 18, background: "none", border: 0, padding: 0 }}
+            >
+              never mind
+            </button>
+          </AlertDialogCancel>
           <AlertDialogAction
-            data-testid="delete-trip-confirm"
+            asChild
             onClick={(e) => {
-              // Prevent the default Radix auto-close so we can show errors
-              // (and keep the dialog open on 409).
               e.preventDefault();
               void handleDelete();
             }}
-            disabled={pending}
-            className="bg-red-600 text-white hover:bg-red-700"
           >
-            {pending ? "Deleting…" : "Delete"}
+            <button
+              type="button"
+              data-testid="delete-trip-confirm"
+              disabled={pending}
+              className="btn btn--red"
+              style={{ opacity: pending ? 0.55 : 1 }}
+            >
+              {pending ? "tearing…" : "yes, tear it out"}
+            </button>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -20,7 +20,7 @@ describe("PerspectiveToggle (SSR markup)", () => {
     const html = renderToString(<PerspectiveToggle />);
     expect(html).toContain("中文社区");
     expect(html).toContain("English community");
-    expect(html).toContain("Fused");
+    expect(html).toContain("blended");
   });
 
   it("renders each option with its data-perspective attribute", () => {

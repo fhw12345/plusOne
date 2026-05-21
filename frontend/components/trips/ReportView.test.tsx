@@ -58,9 +58,11 @@ describe("ReportView (SSR markup)", () => {
     expect(html).toContain("Menya Itto");
   });
 
-  it("renders the Disagreement tab label", () => {
+  it("renders the disagreement tab label (scrapbook voice)", () => {
     const html = renderToString(<ReportView trip={trip([AGREE_GEM])} />);
-    expect(html).toContain("Disagreement");
+    // Tab is labelled "two minds" in scrapbook voice — see TAB_LABELS in
+    // lib/trips/categorize.ts. Avoid the literal "Disagreement" pill word.
+    expect(html).toContain("two minds");
   });
 
   it("includes disagreement items in the disagreement bucket name list", () => {

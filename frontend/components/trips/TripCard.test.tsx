@@ -19,9 +19,13 @@ describe("TripCard (SSR markup)", () => {
     expect(html).toContain("Tokyo");
   });
 
-  it("renders the status badge label for 'complete'", () => {
+  // Scrapbook voice (VOICE.md): status is rendered as a colored signal dot +
+  // verdict copy, NEVER as a pill labelled "Complete"/"Running"/"Aborted".
+  it("renders the 'pinned ★' verdict for complete trips and the done signal color", () => {
     const html = renderToString(<TripCard trip={SAMPLE} />);
-    expect(html).toContain("Complete");
+    expect(html).toContain("pinned ★");
+    expect(html).toContain("hsl(var(--signal-done))");
+    expect(html).not.toContain("Complete");
   });
 
   it("renders a link to the trip detail route", () => {
@@ -34,15 +38,18 @@ describe("TripCard (SSR markup)", () => {
     expect(html).toMatch(/<time[^>]+datetime="2026-05-20T14:30:00\+00:00"/i);
   });
 
-  it("renders the muted-gray (not red) class palette for aborted trips", () => {
+  it("renders the snag signal color + 'hit a wall' verdict for aborted trips", () => {
     const html = renderToString(<TripCard trip={{ ...SAMPLE, status: "aborted" }} />);
-    expect(html).toContain("Aborted");
-    expect(html).not.toMatch(/text-red|bg-red/);
+    expect(html).toContain("hit a wall");
+    expect(html).toContain("hsl(var(--signal-snag))");
+    expect(html).not.toContain("Aborted");
   });
 
-  it("renders 'Running' badge for in-progress trips", () => {
+  it("renders the live signal (with pulse animation) and 'still scribbling' for running trips", () => {
     const html = renderToString(<TripCard trip={{ ...SAMPLE, status: "running" }} />);
-    expect(html).toContain("Running");
-    expect(html).toMatch(/bg-blue/);
+    expect(html).toContain("still scribbling");
+    expect(html).toContain("hsl(var(--signal-live))");
+    expect(html).toContain("animation:pulse");
+    expect(html).not.toContain("Running");
   });
 });

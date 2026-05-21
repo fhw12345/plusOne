@@ -19,24 +19,24 @@ export const TAB_ORDER: TabKey[] = [
 ];
 
 export const TAB_LABELS: Record<TabKey, string> = {
-  together: "🤝 Together",
-  user_only: "🚶 You-only",
-  partner_only: "🚶‍♀️ Partner-only",
-  disagreement: "⚠️ Disagreement",
-  local_gems: "🌟 Local Gems",
-  tourist_traps: "⚠️ Tourist Traps",
+  together: "together",
+  user_only: "you only",
+  partner_only: "them only",
+  disagreement: "two minds",
+  local_gems: "local gems",
+  tourist_traps: "tourist traps",
 };
 
 // Per-tab empty-state copy. Reads as "by design", not "broken".
 export const TAB_EMPTY_COPY: Record<TabKey, string> = {
-  together: "No items in this trip yet.",
+  together: "nothing here yet.",
   user_only:
-    "No you-only items yet. Coming in a future update once per-person preferences are wired in.",
+    "no you-only picks yet — this opens up once per-person tastes are wired in.",
   partner_only:
-    "No partner-only items yet. Coming in a future update once per-person preferences are wired in.",
-  disagreement: "No disagreements flagged for this trip.",
-  local_gems: "No local gems in this report.",
-  tourist_traps: "No tourist traps flagged in this report.",
+    "no partner-only picks yet — coming once per-person tastes are wired in.",
+  disagreement: "no disagreements for this one.",
+  local_gems: "no local gems in this reading.",
+  tourist_traps: "nothing flagged as a tourist trap here.",
 };
 
 // Categorize items into the six tab buckets.

@@ -6,9 +6,6 @@ import { Controller, useForm } from "react-hook-form";
 
 import { ChipInput } from "@/components/profile/ChipInput";
 import { VisitedCitiesField } from "@/components/profile/VisitedCitiesField";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { ApiError } from "@/lib/api/client";
 import {
@@ -44,6 +41,26 @@ function toFormValues(profile: ProfileResponse | undefined): ProfileUpdateBodyT 
   };
 }
 
+interface SectionHeaderProps {
+  caption: string;
+  hint?: string;
+}
+
+function SectionHeader({ caption, hint }: SectionHeaderProps) {
+  return (
+    <div style={{ marginBottom: 6 }}>
+      <h2 className="hand-lg" style={{ fontSize: 28, lineHeight: 1.05 }}>
+        {caption}
+      </h2>
+      {hint ? (
+        <p className="scrawl" style={{ fontSize: 14, marginTop: 2 }}>
+          {hint}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export function ProfileForm() {
   const { data: profile, isLoading, isError } = useProfile();
   const mutation = useUpdateProfile();
@@ -61,8 +78,6 @@ export function ProfileForm() {
     defaultValues: EMPTY,
   });
 
-  // Once profile loads, hydrate the form. Use the React Query data as
-  // source-of-truth (subsequent invalidations after PUT will re-trigger).
   React.useEffect(() => {
     if (profile) reset(toFormValues(profile));
   }, [profile, reset]);
@@ -75,32 +90,49 @@ export function ProfileForm() {
       setSaved(true);
     } catch (err) {
       if (err instanceof ApiError) {
-        setServerError(err.message || "Couldn't save profile. Please try again.");
+        setServerError(err.message || "couldn't save. one more try?");
       } else {
-        setServerError("Couldn't save profile. Please try again.");
+        setServerError("couldn't save. one more try?");
       }
     }
   };
 
   if (isLoading) {
-    return <p className="text-foreground/60 text-sm">Loading profile…</p>;
+    return (
+      <p className="scrawl" style={{ fontSize: 16 }}>
+        one sec &mdash; pulling your notes&hellip;
+      </p>
+    );
   }
   if (isError) {
     return (
-      <p role="alert" className="text-sm text-red-600">
-        Couldn&apos;t load your profile.
+      <p role="alert" className="annot" style={{ display: "block" }}>
+        couldn&rsquo;t open your page.
       </p>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6" noValidate>
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Demographics</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="age_range">Age range</Label>
-            <Input
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      style={{ display: "flex", flexDirection: "column", gap: 30 }}
+    >
+      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <SectionHeader
+          caption="about you"
+          hint="age + language. helps pace + voice."
+        />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 18,
+          }}
+        >
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="age_range">age range</label>
+            <input
               id="age_range"
               maxLength={20}
               placeholder="e.g. 30-39"
@@ -109,9 +141,9 @@ export function ProfileForm() {
               })}
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="language">Preferred language</Label>
-            <Input
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="language">first language</label>
+            <input
               id="language"
               maxLength={10}
               placeholder="e.g. en"
@@ -123,12 +155,21 @@ export function ProfileForm() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Travel style</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="budget_sensitivity">Budget sensitivity</Label>
-            <Input
+      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <SectionHeader
+          caption="how you travel"
+          hint="rough strokes &mdash; budget, pace, comfort."
+        />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: 18,
+          }}
+        >
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="budget_sensitivity">budget</label>
+            <input
               id="budget_sensitivity"
               maxLength={20}
               placeholder="e.g. moderate"
@@ -137,9 +178,9 @@ export function ProfileForm() {
               })}
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="pace">Pace</Label>
-            <Input
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="pace">pace</label>
+            <input
               id="pace"
               maxLength={20}
               placeholder="e.g. relaxed"
@@ -148,9 +189,9 @@ export function ProfileForm() {
               })}
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="comfort">Comfort</Label>
-            <Input
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="comfort">comfort</label>
+            <input
               id="comfort"
               maxLength={20}
               placeholder="e.g. mid-range"
@@ -162,11 +203,14 @@ export function ProfileForm() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Loves & hates</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-1">
-            <Label>Loves</Label>
+      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <SectionHeader
+          caption="loves &amp; dealbreakers"
+          hint="hit enter after each one. the dealbreakers go further than the loves."
+        />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label>loves</label>
             <Controller
               control={control}
               name="explicit_preferences.loves"
@@ -180,8 +224,8 @@ export function ProfileForm() {
               )}
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <Label>Hates</Label>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label>dealbreakers</label>
             <Controller
               control={control}
               name="explicit_preferences.hates"
@@ -198,8 +242,11 @@ export function ProfileForm() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Visited cities</h2>
+      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <SectionHeader
+          caption="been there"
+          hint="cities you've already done. i'll soften repeats."
+        />
         <Controller
           control={control}
           name="visited_cities"
@@ -209,17 +256,30 @@ export function ProfileForm() {
         />
       </section>
 
-      <div className="flex items-center gap-3">
-        <Button type="submit" disabled={isSubmitting || mutation.isPending}>
-          {isSubmitting || mutation.isPending ? "Saving…" : "Save profile"}
-        </Button>
+      <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
+        <button
+          type="submit"
+          disabled={isSubmitting || mutation.isPending}
+          className="btn btn--red"
+          style={{ opacity: isSubmitting || mutation.isPending ? 0.55 : 1 }}
+        >
+          {isSubmitting || mutation.isPending ? "pinning…" : "pin it"}
+        </button>
         {saved ? (
-          <span role="status" className="text-sm text-emerald-600">
-            Saved
+          <span
+            role="status"
+            className="annot"
+            style={{ display: "inline-block", fontSize: 16 }}
+          >
+            pinned ★
           </span>
         ) : null}
         {serverError ? (
-          <span role="alert" className="text-sm text-red-600">
+          <span
+            role="alert"
+            className="annot"
+            style={{ display: "inline-block" }}
+          >
             {serverError}
           </span>
         ) : null}
