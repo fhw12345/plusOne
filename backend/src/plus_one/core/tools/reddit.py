@@ -1,34 +1,41 @@
-"""Reddit search tool — fixture-backed in default mode, PRAW-backed in real mode.
+"""Reddit search tool — fixture-backed in default mode, JSON-backed in real mode.
 
-Mode is resolved per-call via ``get_tools_mode()`` (see ``_mode.py``).
-Real-mode behavior:
+Real mode (ADR-007) hits the unauthenticated public endpoint
+``https://www.reddit.com/r/{sub}/search.json`` via ``httpx.AsyncClient``,
+relying on OS-level ``HTTPS_PROXY`` / ``NO_PROXY`` env vars rather than
+in-Python proxy logic. No PRAW, no credentials.
 
-  * Lazy PRAW client construction in ``__init__`` — fails loud if
-    required creds are missing (``REDDIT_CLIENT_ID`` etc).
-  * Cache-or-fetch: look up DB cache first, fall back to PRAW
-    (wrapped in ``asyncio.to_thread`` since PRAW is sync), then write
-    the response back to the cache for TTL (24h, set in
-    ``_cache_db.py::_TTL_BY_SOURCE``).
+Behavior:
+
+  * Cache-or-fetch: look up DB cache first, fall back to the JSON
+    endpoint, then write the response back to the cache for TTL (24h,
+    set in ``_cache_db.py::_TTL_BY_SOURCE``).
   * Concurrency-bounded by a module-level ``asyncio.Semaphore(3)`` and
-    a 1.0s minimum interval between starts of the PRAW call (PRD §4.4).
+    a 1.0s minimum interval between starts of the HTTP call.
+  * Every failure mode (network, HTTP error, bad JSON) returns
+    ``ToolResult(ok=True, output=[], notes=...)`` so the joiner's
+    empty-evidence fallback is preserved — we never raise out of
+    ``execute``.
 """
 
 from __future__ import annotations
 
 import asyncio
 import os
+import re
 import time
 from pathlib import Path
 from typing import Any, ClassVar
 
+import httpx
 import structlog
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from plus_one.config import settings
 from plus_one.core.agents.framework.tools import ToolResult
 from plus_one.core.tools._cache import cache_key, load_json_fixture
 from plus_one.core.tools._cache_db import get_cached, put_cached
-from plus_one.core.tools._mode import get_tools_mode, require_env
+from plus_one.core.tools._mode import get_tools_mode
 
 logger = structlog.get_logger()
 
@@ -42,15 +49,25 @@ _last_call_lock = asyncio.Lock()
 _last_call_monotonic: list[float] = [0.0]
 
 
-async def _rate_limit() -> None:
-    """Enforce a 1s minimum gap between starts of PRAW calls.
+def _make_client() -> httpx.AsyncClient:
+    """Construct the async HTTP client. Monkeypatch seam for tests.
 
-    Held under ``_last_call_lock`` so concurrent callers serialize the
-    interval check; the actual sleep happens BEFORE releasing the lock
-    so the gap is enforced even when called from many tasks at once.
-    The semaphore (acquired by the caller) caps concurrency at 3 on
-    top of this.
+    Reads ``PLUS_ONE_REDDIT_PROXY`` (dedicated, opt-in) rather than the
+    OS-wide ``HTTPS_PROXY`` so we can route Reddit through a GFW bypass
+    without also routing Maestro / localhost traffic through it.
     """
+    ua = os.getenv("REDDIT_USER_AGENT", "plus-one/0.1 (+contact via repo)")
+    proxy = os.getenv("PLUS_ONE_REDDIT_PROXY") or None
+    return httpx.AsyncClient(
+        headers={"User-Agent": ua},
+        timeout=15.0,
+        follow_redirects=True,
+        proxy=proxy,
+    )
+
+
+async def _rate_limit() -> None:
+    """Enforce a 1s minimum gap between starts of Reddit calls."""
     async with _last_call_lock:
         now = time.monotonic()
         elapsed = now - _last_call_monotonic[0]
@@ -74,12 +91,25 @@ class RedditPost(BaseModel):
     created_utc: float | None = None
 
 
+_SUBREDDIT_RE = re.compile(r"^[A-Za-z0-9_]{1,50}$")
+
+
 class RedditSearchInput(BaseModel):
     """Args for ``reddit_search``."""
 
     query: str = Field(min_length=1, max_length=200)
     subreddits: tuple[str, ...] = Field(default=())
     limit: int = Field(default=25, ge=1, le=100)
+
+    @field_validator("subreddits")
+    @classmethod
+    def _check_subreddits(cls, v: tuple[str, ...]) -> tuple[str, ...]:
+        for sub in v:
+            if not _SUBREDDIT_RE.match(sub):
+                raise ValueError(
+                    f"invalid subreddit name {sub!r} — must match {_SUBREDDIT_RE.pattern}"
+                )
+        return v
 
 
 class RedditSearchTool:
@@ -100,16 +130,7 @@ class RedditSearchTool:
 
     def __init__(self, fixtures_dir: Path | None = None) -> None:
         self._fixtures_dir = (fixtures_dir or settings.fixtures_dir) / "reddit"
-        # In real mode, fail loud at construction if any required env
-        # is missing. The PRAW client itself is built lazily so fixture
-        # mode (CI / e2e / dev) never imports praw needlessly.
-        require_env(
-            "REDDIT_CLIENT_ID",
-            "REDDIT_CLIENT_SECRET",
-            "REDDIT_USER_AGENT",
-            tool=self.name,
-        )
-        self._reddit_client: Any | None = None
+        # ADR-007: no credentials required. UA defaulted in _make_client().
 
     # === fixture mode (unchanged behavior) ===========================
 
@@ -125,44 +146,55 @@ class RedditSearchTool:
 
     # === real mode ===================================================
 
-    def _get_reddit_client(self) -> Any:
-        """Lazily build a PRAW ``Reddit`` client. Cached on the instance."""
-        if self._reddit_client is not None:
-            return self._reddit_client
-        # Local import so fixture-mode imports stay cheap and praw stays
-        # an optional runtime dep.
-        import praw  # noqa: PLC0415
-
-        self._reddit_client = praw.Reddit(
-            client_id=os.environ["REDDIT_CLIENT_ID"],
-            client_secret=os.environ["REDDIT_CLIENT_SECRET"],
-            user_agent=os.environ["REDDIT_USER_AGENT"],
-            check_for_async=False,
-        )
-        return self._reddit_client
-
-    def _fetch_from_praw_sync(
+    async def _fetch_from_json(
         self, query: str, subreddits: tuple[str, ...], limit: int
     ) -> list[dict[str, Any]]:
-        """Blocking PRAW call. Always run via ``asyncio.to_thread``."""
-        client = self._get_reddit_client()
+        """Hit ``/r/{subs}/search.json`` and map to RedditPost dict shape.
+
+        Lets ``httpx.HTTPStatusError`` / ``ConnectError`` / ``TimeoutException``
+        propagate to ``_execute_real`` which converts them to empty results.
+        Raises ``ValueError`` on JSON decode failure.
+        """
         target = "+".join(sorted(subreddits)) if subreddits else "all"
+        url = f"https://www.reddit.com/r/{target}/search.json"
+        params = {
+            "q": query,
+            "restrict_sr": "1",
+            "limit": str(limit),
+            "raw_json": "1",
+        }
+        async with _make_client() as client:
+            resp = await client.get(url, params=params)
+            resp.raise_for_status()
+            try:
+                body = resp.json()
+            except Exception as exc:
+                raise ValueError(f"reddit returned non-JSON body: {exc}") from exc
+
+        children = body.get("data", {}).get("children") or []
         out: list[dict[str, Any]] = []
-        for submission in client.subreddit(target).search(query, limit=limit):
+        for child in children:
+            data = child.get("data") or {}
+            permalink_raw = data.get("permalink", "") or ""
+            permalink = (
+                f"https://reddit.com{permalink_raw}"
+                if permalink_raw.startswith("/")
+                else permalink_raw
+            )
             out.append(
                 {
-                    "id": str(submission.id),
-                    "subreddit": str(submission.subreddit.display_name),
-                    "title": str(submission.title or ""),
-                    "body": str(getattr(submission, "selftext", "") or ""),
-                    "author": str(submission.author.name)
-                    if submission.author is not None
-                    else "[deleted]",
-                    "score": int(getattr(submission, "score", 0) or 0),
-                    "permalink": f"https://reddit.com{submission.permalink}",
-                    "created_utc": float(submission.created_utc)
-                    if getattr(submission, "created_utc", None) is not None
-                    else None,
+                    "id": str(data.get("id", "")),
+                    "subreddit": str(data.get("subreddit", "")),
+                    "title": str(data.get("title", "") or ""),
+                    "body": str(data.get("selftext", "") or ""),
+                    "author": str(data.get("author", "[deleted]") or "[deleted]"),
+                    "score": int(data.get("score", 0) or 0),
+                    "permalink": permalink,
+                    "created_utc": (
+                        float(data["created_utc"])
+                        if data.get("created_utc") is not None
+                        else None
+                    ),
                 }
             )
         return out
@@ -182,19 +214,38 @@ class RedditSearchTool:
         async with _REDDIT_SEMAPHORE:
             await _rate_limit()
             try:
-                raw = await asyncio.to_thread(
-                    self._fetch_from_praw_sync,
+                raw = await self._fetch_from_json(
                     args.query,
                     tuple(sorted(args.subreddits)),
                     args.limit,
+                )
+            except (httpx.ConnectError, httpx.TimeoutException) as exc:
+                logger.warning("reddit_network_error", key=key, error=str(exc))
+                return ToolResult(
+                    tool=self.name,
+                    ok=True,
+                    output=[],
+                    notes=f"reddit network error: {exc}",
+                )
+            except httpx.HTTPStatusError as exc:
+                logger.warning(
+                    "reddit_http_error",
+                    key=key,
+                    status=exc.response.status_code,
+                )
+                return ToolResult(
+                    tool=self.name,
+                    ok=True,
+                    output=[],
+                    notes=f"reddit http {exc.response.status_code}: {exc}",
                 )
             except Exception as exc:
                 logger.warning("reddit_fetch_failed", key=key, error=str(exc))
                 return ToolResult(
                     tool=self.name,
-                    ok=False,
-                    output=None,
-                    error=f"reddit fetch failed: {exc}",
+                    ok=True,
+                    output=[],
+                    notes=f"reddit fetch failed: {exc}",
                 )
 
         await put_cached(self._SOURCE, key, raw)
@@ -202,7 +253,7 @@ class RedditSearchTool:
         return ToolResult(
             tool=self.name,
             output=posts,
-            notes=f"fetched {len(posts)} posts via PRAW, key {key!r}",
+            notes=f"fetched {len(posts)} posts via json, key {key!r}",
         )
 
     async def execute(self, args: RedditSearchInput) -> ToolResult[list[RedditPost]]:

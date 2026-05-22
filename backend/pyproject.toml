@@ -42,7 +42,6 @@ dependencies = [
 
     # Scraping
     "playwright>=1.49.0",
-    "praw>=7.8.0",
     "httpx>=0.28.0",
     "googlemaps>=4.10.0",
 
@@ -92,4 +91,5 @@ markers = [
     "unit: fast, isolated unit tests",
     "integration: integration tests requiring docker-compose services",
     "eval: LLM evaluation tests (slow, costs tokens)",
+    "live: live integration tests that hit real external APIs (skipped by default)",
 ]

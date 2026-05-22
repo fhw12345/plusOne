@@ -17,6 +17,7 @@ import re
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -66,6 +67,18 @@ def _install_access_log_scrubber() -> None:
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup / shutdown hooks."""
     os.environ.setdefault("PLUS_ONE_ALLOW_REAL_LLM", "1")
+
+    # batch-2v: warn loudly if real-mode tools are enabled but no OS-level
+    # proxy env is set — local dev behind GFW needs HTTPS_PROXY to reach
+    # reddit.com / googleapis.com. Production VMs leave these unset and
+    # connect direct, so we only log; we never abort.
+    if os.getenv("PLUS_ONE_TOOLS_MODE", "").lower() == "real" and (
+        os.getenv("PLUS_ONE_REDDIT_PROXY") is None
+    ):
+        structlog.get_logger().warning(
+            "reddit_proxy_unset",
+            note="PLUS_ONE_REDDIT_PROXY unset; real-mode Reddit may fail outside cloud env",
+        )
 
     # batch-2m: admin log tail handler + secret-redacting filter.
     install_admin_tail()

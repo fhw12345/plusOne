@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-05-13)
+Accepted (2026-05-13). Superseded in part: see [ADR-007](./ADR-007-reddit-unauthenticated-json.md) for the Reddit clause.
 
 ## Context
 
