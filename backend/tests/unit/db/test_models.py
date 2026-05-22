@@ -12,7 +12,7 @@ import pytest
 
 from plus_one.core.db.base import Base, new_uuid
 from plus_one.core.db.models import (
-    MagicLinkToken,
+    EmailCode,
     Profile,
     Trip,
     User,
@@ -30,21 +30,48 @@ def test_all_models_registered_on_metadata() -> None:
         "trip_companions",
         "reports",
         "feedback",
-        "magic_link_tokens",
+        "email_codes",
     }
     assert expected.issubset(set(Base.metadata.tables.keys()))
 
 
 @pytest.mark.unit
+def test_magic_link_tokens_table_is_gone() -> None:
+    """batch-2m dropped magic_link_tokens — it must not be registered."""
+    assert "magic_link_tokens" not in Base.metadata.tables
+
+
+@pytest.mark.unit
 def test_user_relationships_lazy_construct() -> None:
     """Relationship attributes should be present and start empty for a new instance."""
-    user = User(email="a@example.com", is_active=True)
-    # SQLAlchemy InstrumentedList lazy-init: companions/trips are list-like
+    user = User(
+        email="a@example.com",
+        username="alice",
+        password_hash="x",
+        is_active=True,
+    )
     assert user.email == "a@example.com"
+    assert user.username == "alice"
     assert user.is_active is True
     assert user.profile is None
     assert list(user.companions) == []
     assert list(user.trips) == []
+
+
+@pytest.mark.unit
+def test_user_has_new_credential_columns() -> None:
+    """batch-2m: username / password_hash / is_admin / email_verified_at /
+    failed_login_attempts / locked_until exist on users."""
+    cols = {c.name for c in Base.metadata.tables["users"].columns}
+    for new in (
+        "username",
+        "password_hash",
+        "is_admin",
+        "email_verified_at",
+        "failed_login_attempts",
+        "locked_until",
+    ):
+        assert new in cols, f"missing user column {new}"
 
 
 @pytest.mark.unit
@@ -105,20 +132,27 @@ def test_feedback_composite_index_declared() -> None:
 
 
 @pytest.mark.unit
-def test_magic_link_token_pk_is_token_string() -> None:
-    pk_cols = [c.name for c in Base.metadata.tables["magic_link_tokens"].primary_key.columns]
-    assert pk_cols == ["token"]
+def test_email_code_pk_and_indexes_declared() -> None:
+    """batch-2m: email_codes has uuid PK + email index + active partial unique."""
+    table = Base.metadata.tables["email_codes"]
+    pk_cols = [c.name for c in table.primary_key.columns]
+    assert pk_cols == ["id"]
+    indexes = {idx.name for idx in table.indexes}
+    assert "ix_email_codes_email" in indexes
+    assert "uq_email_codes_active" in indexes
 
 
 @pytest.mark.unit
-def test_magic_link_token_does_not_have_timestamp_mixin_columns() -> None:
-    cols = {c.name for c in Base.metadata.tables["magic_link_tokens"].columns}
-    # Has its own issued_at / expires_at / consumed_at
-    assert "issued_at" in cols
-    assert "expires_at" in cols
-    # But NOT the TimestampMixin pair
-    assert "created_at" not in cols
-    assert "updated_at" not in cols
+def test_email_code_construction() -> None:
+    now = datetime.now(UTC)
+    row = EmailCode(
+        email="a@example.com",
+        code_hash="$argon2id$...",
+        purpose="verify_email",
+        expires_at=now,
+    )
+    assert row.purpose == "verify_email"
+    assert row.consumed_at is None
 
 
 @pytest.mark.unit
@@ -137,16 +171,22 @@ def test_naming_convention_is_applied() -> None:
 
 
 @pytest.mark.unit
+def test_email_code_purpose_check_constraint_declared() -> None:
+    """purpose IN ('verify_email','login') CHECK exists."""
+    table = Base.metadata.tables["email_codes"]
+    check_names = {
+        c.name for c in table.constraints if c.__class__.__name__ == "CheckConstraint" and c.name
+    }
+    assert "ck_email_codes_purpose" in check_names
+
+
+@pytest.mark.unit
 def test_magic_link_token_construction() -> None:
-    now = datetime.now(UTC)
-    tok = MagicLinkToken(
-        token="abc123",
-        user_id=new_uuid(),
-        issued_at=now,
-        expires_at=now,
-    )
-    assert tok.token == "abc123"
-    assert tok.consumed_at is None
+    # Placeholder kept so historical test names don't break in CI logs.
+    # MagicLinkToken is gone; this just asserts that fact.
+    from plus_one.core.db import models as m
+
+    assert not hasattr(m, "MagicLinkToken")
 
 
 @pytest.mark.unit
@@ -160,11 +200,30 @@ def test_trip_status_check_constraint_declared() -> None:
 
 
 @pytest.mark.unit
-def test_magic_link_token_extra_indexes_declared() -> None:
-    """Reviewer-required indexes for cleanup + partial-unique replay guard."""
-    indexes = {idx.name for idx in Base.metadata.tables["magic_link_tokens"].indexes}
-    assert "ix_magic_link_tokens_expires_at" in indexes
-    assert "uq_magic_link_tokens_user_id_unconsumed" in indexes
+def test_trip_status_check_constraint_includes_clarifying() -> None:
+    """batch-2t widened the CHECK to allow ``'clarifying'``."""
+    table = Base.metadata.tables["trips"]
+    check = next(
+        c
+        for c in table.constraints
+        if c.__class__.__name__ == "CheckConstraint" and c.name == "ck_trips_status"
+    )
+    text = str(getattr(check, "sqltext", check))
+    assert "clarifying" in text
+
+
+@pytest.mark.unit
+def test_trip_clarifier_columns_present() -> None:
+    """batch-2t: ``clarifier_questions`` + ``clarifier_answers`` JSONB columns."""
+    cols = {c.name for c in Base.metadata.tables["trips"].columns}
+    assert "clarifier_questions" in cols
+    assert "clarifier_answers" in cols
+
+
+@pytest.mark.unit
+def test_email_codes_table_present() -> None:
+    """batch-2m sanity: email_codes table is registered."""
+    assert "email_codes" in Base.metadata.tables
 
 
 @pytest.mark.unit

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  clarifyTrip,
   createShare,
   createTrip,
   deleteTrip,
@@ -8,6 +9,7 @@ import {
   getTrip,
   listTrips,
   revokeShare,
+  skipClarify,
 } from "@/lib/api/trips";
 import { ApiError } from "@/lib/api/client";
 import { useAuthStore } from "@/store/auth";
@@ -16,7 +18,7 @@ const originalFetch = globalThis.fetch;
 
 describe("createTrip", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
   });
 
   afterEach(() => {
@@ -60,7 +62,7 @@ describe("createTrip", () => {
 
 describe("getTrip", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
   });
 
   afterEach(() => {
@@ -98,7 +100,7 @@ describe("getTrip", () => {
 
 describe("listTrips", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
   });
 
   afterEach(() => {
@@ -182,7 +184,7 @@ describe("listTrips", () => {
 
 describe("createShare", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
   });
   afterEach(() => {
     globalThis.fetch = originalFetch;
@@ -220,7 +222,7 @@ describe("createShare", () => {
 
 describe("revokeShare", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
   });
   afterEach(() => {
     globalThis.fetch = originalFetch;
@@ -248,7 +250,7 @@ describe("revokeShare", () => {
 
 describe("deleteTrip", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
   });
   afterEach(() => {
     globalThis.fetch = originalFetch;
@@ -335,5 +337,152 @@ describe("getSharedTrip", () => {
     ) as unknown as typeof fetch;
 
     await expect(getSharedTrip("nope")).rejects.toThrow(/share_not_found_or_expired/);
+  });
+});
+
+// === Clarifier (batch-2t) =================================================
+
+describe("clarifyTrip", () => {
+  beforeEach(() => {
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+    useAuthStore.setState({ token: null, user: null });
+  });
+
+  it("POSTs answers and parses the response", async () => {
+    const spy = vi.fn(
+      async (_input: Parameters<typeof fetch>[0], _init?: Parameters<typeof fetch>[1]) =>
+        new Response(JSON.stringify({ status: "running" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+    );
+    globalThis.fetch = spy as unknown as typeof fetch;
+
+    const tripId = "11111111-2222-4333-8444-555555555555";
+    const res = await clarifyTrip(tripId, [
+      { id: "q1", text: "fixed: may 4–7" },
+    ]);
+    expect(res.status).toBe("running");
+    const call = spy.mock.calls[0];
+    const url = String(call?.[0]);
+    const init = (call?.[1] ?? {}) as RequestInit;
+    expect(url).toContain(`/api/trips/${tripId}/clarify`);
+    expect(init.method).toBe("POST");
+    expect(init.body).toBe(
+      JSON.stringify({ answers: [{ id: "q1", text: "fixed: may 4–7" }] }),
+    );
+  });
+
+  it("surfaces 409 as ApiError so the UI can navigate anyway", async () => {
+    globalThis.fetch = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ detail: "trip_not_clarifying" }), {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        }),
+    ) as unknown as typeof fetch;
+    await expect(
+      clarifyTrip("11111111-2222-4333-8444-555555555555", [
+        { id: "q1", text: "yes" },
+      ]),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("skipClarify", () => {
+  beforeEach(() => {
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+    useAuthStore.setState({ token: null, user: null });
+  });
+
+  it("POSTs to the skip endpoint with no body and parses the response", async () => {
+    const spy = vi.fn(
+      async (_input: Parameters<typeof fetch>[0], _init?: Parameters<typeof fetch>[1]) =>
+        new Response(JSON.stringify({ status: "running" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+    );
+    globalThis.fetch = spy as unknown as typeof fetch;
+
+    const tripId = "11111111-2222-4333-8444-555555555555";
+    const res = await skipClarify(tripId);
+    expect(res.status).toBe("running");
+    const call = spy.mock.calls[0];
+    const url = String(call?.[0]);
+    const init = (call?.[1] ?? {}) as RequestInit;
+    expect(url).toContain(`/api/trips/${tripId}/clarify/skip`);
+    expect(init.method).toBe("POST");
+    expect(init.body).toBeUndefined();
+  });
+});
+
+describe("createTrip — batch-2t clarifying response", () => {
+  beforeEach(() => {
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
+  });
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+    useAuthStore.setState({ token: null, user: null });
+  });
+
+  it("parses clarifier_questions when status is clarifying", async () => {
+    globalThis.fetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            trip_id: "11111111-2222-4333-8444-555555555555",
+            status: "clarifying",
+            clarifier_questions: [
+              { id: "q1", text: "fixed dates or flexible?" },
+              { id: "q2", text: "okay with bus / metro / both?" },
+            ],
+          }),
+          { status: 201, headers: { "Content-Type": "application/json" } },
+        ),
+    ) as unknown as typeof fetch;
+
+    const res = await createTrip({ destination: "kyoto" });
+    expect(res.status).toBe("clarifying");
+    expect(res.clarifier_questions).toHaveLength(2);
+    expect(res.clarifier_questions?.[0]).toEqual({
+      id: "q1",
+      text: "fixed dates or flexible?",
+    });
+  });
+
+  it("defaults clarifier_questions to [] when omitted (backward compat)", async () => {
+    globalThis.fetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            trip_id: "11111111-2222-4333-8444-555555555555",
+            status: "running",
+          }),
+          { status: 201, headers: { "Content-Type": "application/json" } },
+        ),
+    ) as unknown as typeof fetch;
+
+    const res = await createTrip({ destination: "kyoto" });
+    expect(res.status).toBe("running");
+    expect(res.clarifier_questions).toEqual([]);
   });
 });

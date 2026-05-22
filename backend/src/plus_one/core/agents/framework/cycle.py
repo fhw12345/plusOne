@@ -77,12 +77,31 @@ class CycleResult[TJoined]:
 
 
 type ProducerFn[TCand] = Callable[[AgentContext], Awaitable[PhaseResult[list[TCand]]]]
+# Batch-2q widened the joiner phase result from a bare ``list`` to a
+# payload object carrying ``items`` (the cycle's append target) alongside
+# extra report-level fields like ``tl_dr``. The cycle stays generic by
+# accepting either shape — see ``_extract_joined_items`` below.
 type JoinerFn[TCand, TJoined] = Callable[
-    [list[TCand], AgentContext], Awaitable[PhaseResult[list[TJoined]]]
+    [list[TCand], AgentContext], Awaitable[PhaseResult[Any]]
 ]
 type ControllerFn[TJoined] = Callable[
     [list[TJoined], AgentContext], Awaitable[PhaseResult[Decision]]
 ]
+
+
+def _extract_joined_items(payload: Any) -> list[Any]:
+    """Pull the joined-items list out of a Joiner phase payload.
+
+    Accepts either:
+      * a plain ``list`` (legacy v1/v2 joiner shape), or
+      * an object with an ``items`` attribute (batch-2q ``JoinerPayload``).
+    """
+    if isinstance(payload, list):
+        return payload
+    items = getattr(payload, "items", None)
+    if isinstance(items, list):
+        return items
+    return []
 
 
 async def _await_with_timeout[T](coro: Awaitable[T], seconds: float | None) -> T:
@@ -154,7 +173,7 @@ async def _step_cycle[TCand, TJoined](
             yield _Event.make("cycle_aborted", ctx.depth, reason="cancelled")
             raise
 
-        joined_items = joiner_result.payload
+        joined_items = _extract_joined_items(joiner_result.payload)
         accumulated.extend(joined_items)
         yield _Event.make(
             "joiner",

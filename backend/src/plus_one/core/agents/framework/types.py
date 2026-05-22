@@ -9,6 +9,7 @@ the framework, not here.
 from __future__ import annotations
 
 from typing import Any
+from uuid import UUID  # noqa: TC003 — runtime use as Pydantic field annotation
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -60,6 +61,11 @@ class UserProfileForContext(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    # Identity of the underlying ``User`` row, when known. ``None`` means
+    # the agent context was constructed without a known user (unit tests,
+    # synthetic flows) — agents that need to key per-person output (e.g.
+    # joiner ``match_scores``) skip the user side in that case.
+    id: UUID | None = None
     loves: tuple[str, ...] = ()
     hates: tuple[str, ...] = ()
 
@@ -69,6 +75,10 @@ class CompanionForContext(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    # Identity of the underlying ``Companion`` row, when known. Mirrors
+    # ``UserProfileForContext.id`` (see batch-2p PRD §4.1) so the joiner
+    # can key per-person ``match_scores`` against stable UUIDs.
+    id: UUID | None = None
     name: str
     loves: tuple[str, ...] = ()
     hates: tuple[str, ...] = ()

@@ -54,7 +54,7 @@ describe("useTrips", () => {
     // during renderToString. This proves the hook's gating logic includes
     // the hydration check — not just the token. Real enablement happens
     // post-mount in the browser; the e2e spec covers that path.
-    useAuthStore.setState({ token: "jwt", user: { id: "u", email: "a@b" } });
+    useAuthStore.setState({ token: "jwt", user: { id: "u", email: "a@b", username: "u", is_admin: false } });
     const state = renderProbe();
     expect(state.isFetching).toBe(false);
     expect(listTripsMock).not.toHaveBeenCalled();

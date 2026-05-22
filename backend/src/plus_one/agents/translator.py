@@ -104,3 +104,52 @@ async def translate_items(
     semaphore = asyncio.Semaphore(_TRANSLATOR_CONCURRENCY)
     tasks = [_translate_one(item, src_lang, dst_lang, semaphore) for item in items]
     return await asyncio.gather(*tasks)
+
+
+async def translate_tl_dr(
+    text: str,
+    src_lang: str,
+    dst_lang: str,
+) -> str:
+    """Translate the report-level TL;DR paragraph from ``src_lang`` to ``dst_lang``.
+
+    One-shot LLM call — TL;DR is a single paragraph, so no per-item
+    semaphore is needed. Uses a dedicated sibling prompt
+    (``prompts/translator/tldr_v1.md``) tuned to preserve the scrapbook
+    voice and return a bare paragraph (no JSON wrapper).
+
+    Fail-soft: any exception or empty response falls back to the source
+    string under the target-lang key so the language toggle always has
+    something to render.
+    """
+    src = text.strip()
+    if not src:
+        return ""
+    try:
+        llm = llm_factory.get_llm_provider("translator_agent")
+        system_template = load_prompt("translator", "tldr_v1")
+        system = system_template.replace("{SRC_LANG}", src_lang).replace("{DST_LANG}", dst_lang)
+        # Bare ``complete`` (no ``response_model``) returns ``Response[BaseModel]``
+        # which mypy can't infer the type-arg for at the call site; assign a
+        # specific Any-shaped local to keep mypy happy without losing runtime
+        # safety — we only read ``.text`` below.
+        response: Any = await llm.complete(
+            system=system,
+            messages=[Message(role="user", content=src)],
+            temperature=0.2,
+        )
+        translated = (response.text or "").strip()
+        if not translated:
+            logger.warning(
+                "translator_tl_dr_empty",
+                dst_lang=dst_lang,
+            )
+            return src
+        return translated
+    except Exception as exc:
+        logger.warning(
+            "translator_tl_dr_failed",
+            reason=str(exc),
+            dst_lang=dst_lang,
+        )
+        return src

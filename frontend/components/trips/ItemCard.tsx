@@ -4,10 +4,41 @@ import { useId, useState } from "react";
 
 import { tiltStyle } from "@/lib/scrapbook/tilt";
 import type { JoinedItem, JoinedItemView } from "@/lib/schemas/trips";
+import { resolveClassification } from "@/lib/trips/resolveClassification";
+import type { Perspective } from "@/store/reportPrefs";
 
 export interface ItemCardProps {
   item: JoinedItem;
   index?: number;
+  // PRD batch-2r §4.2(d): passed by ReportTabs from the same store read
+  // (avoids each card re-subscribing). Defaults to ``fused`` so callers
+  // outside the tabbed report (and old tests) keep today's behaviour.
+  perspective?: Perspective;
+  // PRD batch-2p §4.2: the trip's party (user_id + companion_ids), used
+  // together with ``partyNames`` to render per-person ``match_scores``
+  // labels in the expanded view. Both are optional — without them the
+  // match line is hidden (no labels = no signal worth showing).
+  party?: { user_id: string; companion_ids: string[] } | null;
+  partyNames?: Record<string, string>;
+}
+
+// PRD batch-2r §4.2(d): which evidence sources to keep per perspective.
+// `google_places` is the "neutral" source and stays in every view.
+// Unknown / future sources fall through and are kept (defensive — we
+// don't want to silently drop new providers).
+function filterEvidenceByPerspective(
+  evidence: NonNullable<JoinedItemView["evidence"]>,
+  perspective: Perspective,
+): NonNullable<JoinedItemView["evidence"]> {
+  if (perspective === "fused") return evidence;
+  return evidence.filter((ev) => {
+    const source = ev?.source;
+    if (source == null) return true;
+    if (source === "google_places") return true;
+    if (perspective === "zh") return source === "xiaohongshu";
+    if (perspective === "en") return source === "reddit";
+    return true;
+  });
 }
 
 const VERDICT_BY_CLASS: Record<string, { text: string; signal: "live" | "done" | "wait" | "snag" }> = {
@@ -40,12 +71,20 @@ function truncate(s: string, n = 140): string {
 
 const TAPE_BY_INDEX = ["tape--mint", "tape--blue", "tape--yellow", "tape--red"] as const;
 
-export function ItemCard({ item, index = 0 }: ItemCardProps) {
+export function ItemCard({
+  item,
+  index = 0,
+  perspective = "fused",
+  party = null,
+  partyNames,
+}: ItemCardProps) {
   const view = item as JoinedItemView;
   const name = view.candidate?.name ?? "untitled";
-  const evidence = view.evidence ?? [];
+  const allEvidence = view.evidence ?? [];
+  const evidence = filterEvidenceByPerspective(allEvidence, perspective);
   const evidenceCount = evidence.length;
-  const verdict = view.classification ? VERDICT_BY_CLASS[view.classification] ?? null : null;
+  const effectiveClassification = resolveClassification(item, perspective);
+  const verdict = effectiveClassification ? VERDICT_BY_CLASS[effectiveClassification] ?? null : null;
   const confidence =
     typeof view.confidence === "number" && !Number.isNaN(view.confidence)
       ? Math.round(view.confidence * 100)
@@ -62,6 +101,30 @@ export function ItemCard({ item, index = 0 }: ItemCardProps) {
   const bodyId = useId();
   const tape = TAPE_BY_INDEX[index % TAPE_BY_INDEX.length];
   const areaStyleLine = [area, style].filter(Boolean).join(" · ");
+
+  // Batch-2p: build the per-person match line for the expanded view.
+  // Order: user first (label "you"), then companions in party order.
+  // We only render the row when (a) match_scores exists, (b) the trip
+  // has at least one companion (no signal otherwise), and (c) at least
+  // one person in the party has a score we can show.
+  const matchEntries: Array<{ label: string; score: number }> = [];
+  if (party && view.match_scores) {
+    const userVal = view.match_scores[party.user_id];
+    if (typeof userVal === "number") {
+      matchEntries.push({ label: "you", score: userVal });
+    }
+    for (const cid of party.companion_ids) {
+      const val = view.match_scores[cid];
+      if (typeof val !== "number") continue;
+      const rawName = partyNames?.[cid] ?? "";
+      const label = rawName.trim() ? rawName.trim().toLowerCase() : "friend";
+      matchEntries.push({ label, score: val });
+    }
+  }
+  const showMatchLine =
+    matchEntries.length > 0 &&
+    party != null &&
+    party.companion_ids.length > 0;
 
   return (
     <article
@@ -196,6 +259,19 @@ export function ItemCard({ item, index = 0 }: ItemCardProps) {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {showMatchLine ? (
+            <p
+              data-testid="match-line"
+              className="scrawl"
+              style={{ fontSize: 14, color: "hsl(var(--ink-3))" }}
+            >
+              <span className="type" style={{ marginRight: 4 }}>match</span>
+              {" "}
+              {matchEntries
+                .map((entry) => `${entry.label}: ${entry.score.toFixed(1)}`)
+                .join(" · ")}
+            </p>
+          ) : null}
           {summary ? (
             <p className="hand" style={{ fontSize: 18, lineHeight: 1.3, color: "hsl(var(--ink))" }}>
               {summary}

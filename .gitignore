@@ -33,6 +33,13 @@ env/
 # Playwright MCP screenshot scratch dir
 .playwright-mcp/
 
+# Loose Playwright / browser screenshots in repo root (test scratch — not source)
+/after-*.png
+/flow-*.png
+/goal-*.png
+/baseline-*.png
+/e2e-*.png
+
 # Env
 .env
 .env.local

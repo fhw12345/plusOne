@@ -6,6 +6,9 @@ import { persist, createJSONStorage } from "zustand/middleware";
 export interface AuthUser {
   id: string;
   email: string;
+  // Added in batch-2m: real credentials replace magic-link.
+  username: string;
+  is_admin: boolean;
 }
 
 export interface AuthState {

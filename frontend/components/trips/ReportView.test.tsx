@@ -1,9 +1,21 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { renderToString } from "react-dom/server";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ReportView } from "@/components/trips/ReportView";
 import type { TripDetail } from "@/lib/schemas/trips";
 import { useReportPrefsStore } from "@/store/reportPrefs";
+
+function renderWithProviders(node: React.ReactElement): string {
+  // ReportView (batch-2p) reads ``useCurrentUser`` / ``useCompanions``
+  // via TanStack Query. SSR rendering still walks those hooks, so the
+  // tests must hand in a QueryClient even though both queries are
+  // ``enabled: false`` (no auth token in test).
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return renderToString(
+    <QueryClientProvider client={client}>{node}</QueryClientProvider>,
+  );
+}
 
 function trip(items: Array<Record<string, unknown>>): TripDetail {
   return {
@@ -48,18 +60,18 @@ describe("ReportView (SSR markup)", () => {
   });
 
   it("renders the perspective toggle even when there are no items", () => {
-    const html = renderToString(<ReportView trip={trip([])} />);
+    const html = renderWithProviders(<ReportView trip={trip([])} />);
     expect(html).toMatch(/data-testid="perspective-toggle"/);
   });
 
   it("renders the perspective toggle alongside items", () => {
-    const html = renderToString(<ReportView trip={trip([AGREE_GEM])} />);
+    const html = renderWithProviders(<ReportView trip={trip([AGREE_GEM])} />);
     expect(html).toMatch(/data-testid="perspective-toggle"/);
     expect(html).toContain("Menya Itto");
   });
 
   it("renders the disagreement tab label (scrapbook voice)", () => {
-    const html = renderToString(<ReportView trip={trip([AGREE_GEM])} />);
+    const html = renderWithProviders(<ReportView trip={trip([AGREE_GEM])} />);
     // Tab is labelled "two minds" in scrapbook voice — see TAB_LABELS in
     // lib/trips/categorize.ts. Avoid the literal "Disagreement" pill word.
     expect(html).toContain("two minds");
@@ -69,7 +81,7 @@ describe("ReportView (SSR markup)", () => {
     // The default 'together' tab is the visible one on SSR; other tab
     // panes also serialize to markup (hidden via data-state), so we can
     // assert that the disputed item's name shows up in the rendered HTML.
-    const html = renderToString(<ReportView trip={trip([AGREE_GEM, DISAGREE])} />);
+    const html = renderWithProviders(<ReportView trip={trip([AGREE_GEM, DISAGREE])} />);
     expect(html).toContain("Disputed Spot");
   });
 
@@ -79,18 +91,18 @@ describe("ReportView (SSR markup)", () => {
       classification: "local_gem",
       confidence: 0.5,
     };
-    const html = renderToString(<ReportView trip={trip([oldItem])} />);
+    const html = renderWithProviders(<ReportView trip={trip([oldItem])} />);
     expect(html).toContain("Legacy Item");
   });
 
   it("includes the per-language badges on items that have them", () => {
-    const html = renderToString(<ReportView trip={trip([DISAGREE])} />);
+    const html = renderWithProviders(<ReportView trip={trip([DISAGREE])} />);
     expect(html).toMatch(/data-perlang="en"/);
     expect(html).toMatch(/data-perlang="zh"/);
   });
 
   it("omits per-language badges when a side is null (EN-only item)", () => {
-    const html = renderToString(<ReportView trip={trip([EN_ONLY])} />);
+    const html = renderWithProviders(<ReportView trip={trip([EN_ONLY])} />);
     expect(html).toMatch(/data-perlang="en"/);
     expect(html).not.toMatch(/data-perlang="zh"/);
   });

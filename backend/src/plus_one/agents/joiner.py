@@ -12,10 +12,12 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any, cast
+from uuid import UUID  # noqa: TC003 — runtime use as Pydantic field annotation
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from plus_one.agents._divergence import divergence_score
+from plus_one.agents._scoring import render_person_roster, validate_match_scores
 from plus_one.agents.preferences import render_preferences_section
 from plus_one.agents.producer import Candidate
 from plus_one.agents.prompts import load_prompt
@@ -51,10 +53,34 @@ class JoinedItem(BaseModel):
     # ``joiner`` after the LLM call from ``divergence_score(en, zh)`` —
     # the LLM never authors this value. See PRD batch2i §4.3 / §4.4.
     divergence_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    # Batch-2p: per-person match scores in [0.0, 1.0]. Keyed by user.id
+    # (for the requesting user) and companion.id (for each selected
+    # companion). ``None`` = not scored (old reports, candidates where
+    # scoring did not apply, or no party identity available). The LLM
+    # may emit string UUID keys; Pydantic coerces.
+    match_scores: dict[UUID, float] | None = Field(default=None)
+
+
+class JoinerPayload(BaseModel):
+    """What the joiner phase returns inside ``PhaseResult.payload``.
+
+    Batch-2q widens the payload from a bare ``list[JoinedItem]`` to a
+    small structured object carrying the report-level ``tl_dr`` alongside
+    the items. Callers that only consume items can read ``payload.items``;
+    the report-save path picks up ``payload.tl_dr``.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+
+    items: list[JoinedItem] = Field(default_factory=list)
+    tl_dr: str | None = Field(default=None)
 
 
 class _JoinerOutput(BaseModel):
     items: list[JoinedItem] = Field(default_factory=list, max_length=30)
+    # Optional one-paragraph synthesis written at the very end of the
+    # joiner call. See batch-2q PRD §4.1.
+    tl_dr: str | None = Field(default=None)
 
 
 # How many hits per source per candidate to serialize into the LLM prompt.
@@ -124,7 +150,7 @@ def _build_tool_calls(candidate: Candidate, query: str) -> list[ToolCall]:
     ]
 
 
-async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[list[JoinedItem]]:
+async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[JoinerPayload]:
     """Run the Joiner phase: fetch evidence + classify each candidate."""
     registry = _default_registry()
 
@@ -137,14 +163,21 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
     # LLM has actual evidence to cite (Reviewer B1: prompt forbids
     # inventing URLs, so the payload must contain the URLs to cite).
     llm = llm_factory.get_llm_provider("joiner_agent")
-    # Use .replace (not .format) for {preferences} so the literal JSON
+    # Use .replace (not .format) for the placeholders so the literal JSON
     # braces in the prompt's output-format block stay untouched. Producer
     # uses .format because its braces are already doubled; the Joiner
     # prompt would need every JSON brace re-doubled to switch, so we
     # keep the call simple and surgical (PRD §7).
-    system = load_prompt("joiner", "v2").replace(
-        "{preferences}",
-        render_preferences_section(ctx.user_profile, ctx.selected_companions),
+    system = (
+        load_prompt("joiner", "v3")
+        .replace(
+            "{preferences}",
+            render_preferences_section(ctx.user_profile, ctx.selected_companions),
+        )
+        .replace(
+            "{person_roster}",
+            render_person_roster(ctx.user_profile, ctx.selected_companions),
+        )
     )
     user_payload_lines: list[str] = [f"User query: {ctx.query}", ""]
     for candidate, results in zip(candidates, all_results, strict=True):
@@ -167,6 +200,14 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
 
     parsed = response.parsed if response.parsed is not None else _JoinerOutput()
 
+    # Build the set of allowed person ids for match_scores validation.
+    allowed_ids: set[UUID] = set()
+    if ctx.user_profile.id is not None:
+        allowed_ids.add(ctx.user_profile.id)
+    for companion in ctx.selected_companions:
+        if companion.id is not None:
+            allowed_ids.add(companion.id)
+
     # Reviewer B3: the prompt asks the LLM to "echo back the candidate
     # object as given," but Pydantic accepts whatever it returns. Replace
     # each parsed candidate with the original Producer Candidate (matched
@@ -185,16 +226,23 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
         # may or may not have emitted it; we are the single source of
         # truth (PRD batch2i §4.4).
         score = divergence_score(item.classification_en, item.classification_zh)
+        # Batch-2p: sanitise per-person match_scores against the known
+        # party. Drops hallucinated UUIDs, fills missing required keys
+        # with the neutral default, clamps values to [0, 1].
+        sanitised_scores = validate_match_scores(item.match_scores, allowed_ids)
         updates: dict[str, object] = {}
         if item.candidate is not original:
             updates["candidate"] = original
         if score != item.divergence_score:
             updates["divergence_score"] = score
+        if sanitised_scores != item.match_scores:
+            updates["match_scores"] = sanitised_scores
         repaired_item = item.model_copy(update=updates) if updates else item
         repaired.append(repaired_item)
 
+    payload = JoinerPayload(items=repaired, tl_dr=parsed.tl_dr)
     return PhaseResult(
-        payload=repaired,
+        payload=payload,
         notes=(
             f"candidates_in={len(candidates)} joined_out={len(repaired)} "
             f"dropped_unknown={dropped} "

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { TripForm } from "@/components/trips/TripForm";
+import { AdminWireLink } from "@/components/AdminWireLink";
 import { useAuthStore } from "@/store/auth";
 
 export default function NewTripPage() {
@@ -45,6 +46,7 @@ export default function NewTripPage() {
         <Link href="/app/companions">who you bring</Link>
         <span className="sep" />
         <Link href="/app/profile">about you</Link>
+        <AdminWireLink />
       </nav>
 
       <header style={{ position: "relative", padding: "12px 0 36px" }}>

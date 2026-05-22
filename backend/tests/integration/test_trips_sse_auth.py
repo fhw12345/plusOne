@@ -48,7 +48,7 @@ class _StubSession:
 
 
 def _make_user_and_trip() -> tuple[User, Trip]:
-    user = User(email="sse@example.com", is_active=True)
+    user = User(email="sse@example.com", username="u_" + uuid.uuid4().hex[:10], password_hash="x", is_active=True)
     user.id = uuid.uuid4()
     trip = Trip(user_id=user.id, destination="Tokyo", free_text=None, status="running")
     trip.id = uuid.uuid4()

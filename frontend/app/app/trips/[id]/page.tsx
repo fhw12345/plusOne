@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { ProgressFeed } from "@/components/trips/ProgressFeed";
+import { RefinePanel } from "@/components/trips/RefinePanel";
+import { RefinementHistory } from "@/components/trips/RefinementHistory";
 import { ReportView } from "@/components/trips/ReportView";
 import { DeleteTripDialog } from "@/components/trips/DeleteTripDialog";
 import { ShareDialog } from "@/components/trips/ShareDialog";
+import { AdminWireLink } from "@/components/AdminWireLink";
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { useTrip } from "@/hooks/useTrip";
 import { useTripStream } from "@/hooks/useTripStream";
@@ -42,6 +46,11 @@ export default function TripDetailPage() {
   const token = useAuthStore((s) => s.token);
   const params = useParams<{ id: string }>();
   const tripId = params?.id ?? null;
+  const qc = useQueryClient();
+  // Local-only selector for which Report revision the ReportView renders.
+  // ``null`` = follow the latest (default). Reset whenever a fresh
+  // trip_complete event lands so a refine snaps back to the new active.
+  const [shownReportId, setShownReportId] = useState<string | null>(null);
 
   useEffect(() => {
     if (hydrated && !token) {
@@ -76,8 +85,28 @@ export default function TripDetailPage() {
   useEffect(() => {
     if (fromEvents) {
       refetch();
+      // Batch-2u: a fresh trip_complete (initial or refine) invalidates the
+      // revision list so RefinementHistory picks up the new row.
+      if (tripId) {
+        qc.invalidateQueries({ queryKey: ["trip-reports", tripId] });
+      }
     }
-  }, [fromEvents, refetch]);
+  }, [fromEvents, refetch, qc, tripId]);
+
+  // Track the most recent trip_complete count; whenever it ticks up
+  // (e.g. a refine just landed) we want to reset the local report
+  // selector back to "follow latest" without using setState-in-effect.
+  // The render-time setState pattern is what React 19's `react-hooks/
+  // set-state-in-effect` lint rule asks us to use here.
+  const completeCount = stream.events.reduce(
+    (n, e) => (e.name === "trip_complete" ? n + 1 : n),
+    0,
+  );
+  const [lastSeenCompleteCount, setLastSeenCompleteCount] = useState(completeCount);
+  if (completeCount !== lastSeenCompleteCount) {
+    setLastSeenCompleteCount(completeCount);
+    if (shownReportId !== null) setShownReportId(null);
+  }
 
   useEffect(() => {
     if (!ready || !tripId) return;
@@ -122,6 +151,7 @@ export default function TripDetailPage() {
         <Link href="/app/companions">who you bring</Link>
         <span className="sep" />
         <Link href="/app/profile">about you</Link>
+        <AdminWireLink />
       </nav>
 
       <header style={{ position: "relative", padding: "12px 0 32px" }}>
@@ -197,6 +227,16 @@ export default function TripDetailPage() {
       </section>
 
       {terminal && trip ? <ReportView trip={trip} /> : null}
+      {derived === "complete" && trip ? (
+        <>
+          <RefinePanel tripId={trip.trip_id} disabled={derived !== "complete"} />
+          <RefinementHistory
+            tripId={trip.trip_id}
+            currentReportId={shownReportId}
+            onSelectReport={setShownReportId}
+          />
+        </>
+      ) : null}
 
       <footer
         style={{ marginTop: 80, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}

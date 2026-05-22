@@ -42,11 +42,12 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from plus_one.agents.controller import controller as controller_phase
-from plus_one.agents.joiner import JoinedItem
+from plus_one.agents.joiner import JoinedItem, JoinerPayload
 from plus_one.agents.joiner import joiner as joiner_phase
 from plus_one.agents.producer import Candidate
 from plus_one.agents.producer import producer as producer_phase
-from plus_one.agents.translator import translate_items
+from plus_one.agents.refiner import refine as refine_phase
+from plus_one.agents.translator import translate_items, translate_tl_dr
 from plus_one.core.agents.framework.cycle import run_cycle
 from plus_one.core.agents.framework.errors import CycleAbortedError
 from plus_one.core.agents.framework.types import (
@@ -160,17 +161,24 @@ async def _save_report(
     trace: list[dict[str, object]],
     input_tokens: int,
     output_tokens: int,
+    tl_dr: str | None = None,
 ) -> UUID:
     # Same defense-in-depth as _set_status: retry the insert if the FK
     # validation trips (trip row not yet visible to this session). Fail
     # loud after 3 attempts so a real bug isn't silently swallowed.
     last_exc: IntegrityError | None = None
+    # Batch-2q: optional report-level TL;DR. We only set the key when the
+    # joiner emitted a non-empty, non-whitespace string so old-report
+    # consumers don't accidentally render an empty sticky note.
+    content: dict[str, Any] = {"items": [i.model_dump(mode="json") for i in items]}
+    if tl_dr is not None and tl_dr.strip():
+        content["tl_dr"] = tl_dr.strip()
     for attempt in range(_RETRY_ATTEMPTS):
         try:
             async with session_scope() as session:
                 report = Report(
                     trip_id=trip_id,
-                    content={"items": [i.model_dump(mode="json") for i in items]},
+                    content=content,
                     trace=trace,
                     input_tokens=input_tokens,
                     output_tokens=output_tokens,
@@ -217,11 +225,18 @@ def _translate_langs() -> tuple[str, ...]:
 async def _run_translations_and_update(
     report_id: UUID,
     items: list[JoinedItem],
+    tl_dr: str | None = None,
 ) -> None:
-    """Translate ``items`` into each enabled target lang, persist to Report.
+    """Translate ``items`` (+ optional ``tl_dr``) into each enabled lang.
 
     Best-effort: any exception is logged and swallowed (the trip already
     saved the original-language report, so the user still sees results).
+
+    Batch-2q widened the per-language shape: ``translations[lang]`` is now
+    an object ``{"items": [...], "tl_dr": "..."}`` so the language toggle
+    can swap both the per-card text and the top-of-report TL;DR. Old
+    reports that pre-date this batch keep their bare-array shape and the
+    frontend zod transform normalises both shapes to the object form.
 
     The Report row is re-read inside its own ``session_scope`` so we
     don't hold a transaction across the LLM calls (~ADR-006 + ADR
@@ -233,12 +248,29 @@ async def _run_translations_and_update(
     if not langs:
         return
 
-    translations: dict[str, list[dict[str, Any]]] = {}
+    translations: dict[str, dict[str, Any]] = {}
     for lang in langs:
+        per_lang: dict[str, Any] = {}
         try:
-            translations[lang] = await translate_items(items, src_lang="original", dst_lang=lang)
+            per_lang["items"] = await translate_items(items, src_lang="original", dst_lang=lang)
         except Exception:
             logger.exception("translation_failed", report_id=str(report_id), lang=lang)
+            # If items translation blew up, don't carry a half-built entry —
+            # the frontend would render an empty tab.
+            continue
+        if tl_dr is not None and tl_dr.strip():
+            try:
+                per_lang["tl_dr"] = await translate_tl_dr(
+                    tl_dr.strip(), src_lang="original", dst_lang=lang
+                )
+            except Exception:
+                logger.exception(
+                    "translation_tl_dr_failed", report_id=str(report_id), lang=lang
+                )
+                # Fail-soft to the source string so the language toggle
+                # still has something to show.
+                per_lang["tl_dr"] = tl_dr.strip()
+        translations[lang] = per_lang
 
     if not translations:
         return
@@ -289,10 +321,11 @@ async def _load_profile_context(
             companion_stmt = companion_stmt.where(Companion.id.in_(companion_ids))
         companion_rows = (await session.execute(companion_stmt)).scalars().all()
 
-    user_profile = UserProfileForContext()
+    user_profile = UserProfileForContext(id=user_id)
     if profile_row is not None:
         explicit = profile_row.explicit_preferences or {}
         user_profile = UserProfileForContext(
+            id=user_id,
             loves=tuple(explicit.get("loves") or ()),
             hates=tuple(explicit.get("hates") or ()),
         )
@@ -302,6 +335,7 @@ async def _load_profile_context(
         explicit = c.explicit_preferences or {}
         companions.append(
             CompanionForContext(
+                id=c.id,
                 name=c.name,
                 loves=tuple(explicit.get("loves") or ()),
                 hates=tuple(explicit.get("hates") or ()),
@@ -329,6 +363,13 @@ async def run_trip(
     ``companion_ids`` (None / [] = all-companions, non-empty = filter to
     that subset) drives per-trip companion selection. See
     ``_load_profile_context``.
+
+    Batch-2o note: ``Trip.date_start``, ``Trip.date_end``,
+    ``Trip.budget_amount``, ``Trip.budget_currency`` are persisted by
+    the POST handler but NOT yet projected into ``AgentContext``. The
+    agents currently see only the destination + free_text concatenation
+    via ``query``. Follow-up batch will widen ``AgentContext`` to carry
+    the structured hints so the planner can use them.
     """
     register(trip_id)  # idempotent guard in case POST handler forgot
     try:
@@ -350,6 +391,11 @@ async def run_trip(
         # The wrappers also capture token counts via the agent's notes
         # field (the agents log usage there as "in_tokens=X out_tokens=Y").
         token_totals = {"in": 0, "out": 0}
+        # Batch-2q: the joiner emits a per-round ``tl_dr`` paragraph; the
+        # final round's value wins (earlier rounds are discarded, same
+        # lifecycle as ``ctx.summary``). Stored in a single-key dict so
+        # the nested ``joiner_pump`` closure can mutate it.
+        latest_tl_dr: dict[str, str | None] = {"value": None}
 
         def _accumulate_tokens(notes: str) -> None:
             for tok_kind, key in (("in_tokens=", "in"), ("out_tokens=", "out")):
@@ -378,20 +424,25 @@ async def run_trip(
 
         async def joiner_pump(
             cands: list[Candidate], c: AgentContext
-        ) -> PhaseResult[list[JoinedItem]]:
+        ) -> PhaseResult[JoinerPayload]:
             result = await joiner_phase(cands, c)
             ev = {
                 "name": "joiner",
                 "depth": c.depth,
                 "data": {
                     "n_in": len(cands),
-                    "n_out": len(result.payload),
+                    "n_out": len(result.payload.items),
                     "notes": result.notes,
                 },
             }
             trace.append(ev)
             await _publish(trip_id, ev)
             _accumulate_tokens(result.notes)
+            # Capture the latest TL;DR — the final round wins, mirroring
+            # how ``summary`` is overwritten each iteration. See batch-2q
+            # PRD §4.1 ("last round's tl_dr is what gets persisted").
+            if result.payload.tl_dr is not None:
+                latest_tl_dr["value"] = result.payload.tl_dr
             return result
 
         async def controller_pump(
@@ -443,6 +494,7 @@ async def run_trip(
                 trace,
                 input_tokens=token_totals["in"],
                 output_tokens=token_totals["out"],
+                tl_dr=latest_tl_dr["value"],
             )
         except Exception:
             logger.exception("report_save_failed", trip_id=str(trip_id))
@@ -465,7 +517,7 @@ async def run_trip(
             and _translate_enabled()
         ):
             with contextlib.suppress(Exception):
-                await _run_translations_and_update(report_id, items)
+                await _run_translations_and_update(report_id, items, latest_tl_dr["value"])
 
         with contextlib.suppress(Exception):
             await _set_status(trip_id, final_status)
@@ -484,4 +536,223 @@ async def run_trip(
         # Always drop the queue — even on cancellation / unhandled error
         # so the per-trip queue dictionary doesn't leak across hot reloads
         # or worker restarts.
+        _drop_queue(trip_id)
+
+
+# ---------------------------------------------------------------------------
+# Refine cycle (batch-2u)
+# ---------------------------------------------------------------------------
+#
+# Unlike `run_trip`, `run_refine` does NOT re-run the producer/joiner/
+# controller cycle. It runs a single LLM call (the refiner agent) that
+# takes the previous report's items + the user's hint and emits a new
+# items list. The new Report row is written with `content.refine`
+# metadata so the UI can render the version history.
+#
+# It piggy-backs on the existing per-trip SSE queue: the API handler
+# calls `register(trip_id)` before scheduling the BackgroundTask, and
+# we publish the same `started` / `iteration_start` / `joiner` /
+# `trip_complete` event names plus a new `refine_started` event so
+# the existing frontend stream parser keeps working.
+
+
+async def _save_refine_report(
+    report_id: UUID,
+    trip_id: UUID,
+    items: list[JoinedItem],
+    trace: list[dict[str, object]],
+    input_tokens: int,
+    output_tokens: int,
+    previous_report_id: UUID,
+    hint: str,
+    tl_dr: str = "",
+) -> UUID:
+    """Persist a refine Report row at a pre-allocated id.
+
+    The id is allocated by the API handler so the 202 response can
+    promise the client which row will land. We use INSERT with an
+    explicit primary key (not ``default=new_uuid``) — SQLAlchemy treats
+    that as a plain column write.
+
+    Same defense-in-depth retry as :func:`_save_report`: an FK
+    violation can happen if the trip-row write hasn't propagated yet,
+    so retry a couple of times before failing the cycle.
+    """
+    content: dict[str, Any] = {
+        "items": [i.model_dump(mode="json") for i in items],
+        "refine": {
+            "previous_report_id": str(previous_report_id),
+            "hint": hint,
+        },
+    }
+    if tl_dr:
+        content["tl_dr"] = tl_dr
+
+    last_exc: IntegrityError | None = None
+    for attempt in range(_RETRY_ATTEMPTS):
+        try:
+            async with session_scope() as session:
+                report = Report(
+                    id=report_id,
+                    trip_id=trip_id,
+                    content=content,
+                    trace=trace,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                )
+                session.add(report)
+                await session.flush()
+                return report.id
+        except IntegrityError as exc:
+            last_exc = exc
+            if attempt < _RETRY_ATTEMPTS - 1:
+                await asyncio.sleep(0.05)
+    assert last_exc is not None
+    raise last_exc
+
+
+async def run_refine(
+    trip_id: UUID,
+    previous_report_id: UUID,
+    hint: str,
+    user_id: UUID,
+    report_id: UUID,
+) -> None:
+    """Run one refine cycle end-to-end.
+
+    Designed for FastAPI BackgroundTask. Errors are caught + recorded
+    as a status flip + a final SSE event, NEVER re-raised — same
+    fire-and-forget contract as :func:`run_trip`.
+
+    Args:
+        trip_id: The trip being refined.
+        previous_report_id: The report the user is refining against
+            (almost always the latest, but the API hands it through
+            explicitly so this coroutine doesn't need to query again).
+        hint: User's verbatim refinement instruction (already trimmed
+            + length-validated at the API boundary).
+        user_id: Owner of the trip. Kept in the signature for symmetry
+            with :func:`run_trip` and for future profile re-snapshot.
+        report_id: Pre-allocated UUID for the new Report row. The 202
+            response already returned this to the client.
+    """
+    del user_id  # reserved for future profile re-snapshot (PRD §8.3)
+    register(trip_id)  # idempotent guard in case POST handler forgot
+    try:
+        await _set_status(trip_id, "running")
+        await _publish(trip_id, {"name": "started", "trip_id": str(trip_id)})
+        await _publish(
+            trip_id,
+            {
+                "name": "refine_started",
+                "trip_id": str(trip_id),
+                "previous_report_id": str(previous_report_id),
+                "hint": hint,
+            },
+        )
+
+        trace: list[dict[str, object]] = []
+        previous_items: list[dict[str, Any]] = []
+        previous_tl_dr: str = ""
+
+        # Load the previous report's content so the refiner has something
+        # to work from. We accept whatever shape was persisted — old
+        # reports may not carry tl_dr, and that's fine.
+        async with session_scope() as session:
+            prev = await session.get(Report, previous_report_id)
+            if prev is not None and isinstance(prev.content, dict):
+                raw_items = prev.content.get("items")
+                if isinstance(raw_items, list):
+                    previous_items = raw_items
+                raw_tl_dr = prev.content.get("tl_dr")
+                if isinstance(raw_tl_dr, str):
+                    previous_tl_dr = raw_tl_dr
+
+        aborted_reason: str | None = None
+        new_items: list[JoinedItem] = []
+        new_tl_dr = ""
+        input_tokens = 0
+        output_tokens = 0
+        try:
+            new_items, new_tl_dr, input_tokens, output_tokens = await refine_phase(
+                previous_items=previous_items,
+                previous_tl_dr=previous_tl_dr,
+                hint=hint,
+            )
+            ev = {
+                "name": "joiner",
+                "depth": 0,
+                "data": {
+                    "n_in": len(previous_items),
+                    "n_out": len(new_items),
+                    "notes": (
+                        f"refine in_tokens={input_tokens} out_tokens={output_tokens}"
+                    ),
+                },
+            }
+            trace.append(ev)
+            await _publish(trip_id, ev)
+        except Exception as exc:
+            aborted_reason = str(exc)
+            ev = {"name": "cycle_aborted", "depth": 0, "data": {"reason": aborted_reason}}
+            trace.append(ev)
+            await _publish(trip_id, ev)
+            logger.info(
+                "run_refine_aborted",
+                trip_id=str(trip_id),
+                previous_report_id=str(previous_report_id),
+                refine=True,
+                refine_hint_len=len(hint),
+                reason=aborted_reason,
+            )
+
+        report_save_failed = False
+        if not aborted_reason:
+            try:
+                await _save_refine_report(
+                    report_id,
+                    trip_id,
+                    new_items,
+                    trace,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    previous_report_id=previous_report_id,
+                    hint=hint,
+                    tl_dr=new_tl_dr,
+                )
+            except Exception:
+                logger.exception(
+                    "refine_report_save_failed",
+                    trip_id=str(trip_id),
+                    refine=True,
+                )
+                report_save_failed = True
+
+        if aborted_reason is not None or report_save_failed:  # noqa: SIM108
+            final_status = "aborted"
+        else:
+            final_status = "complete"
+
+        if (
+            final_status == "complete"
+            and new_items
+            and _translate_enabled()
+        ):
+            with contextlib.suppress(Exception):
+                await _run_translations_and_update(report_id, new_items)
+
+        with contextlib.suppress(Exception):
+            await _set_status(trip_id, final_status)
+
+        await _publish(
+            trip_id,
+            {
+                "name": "trip_complete",
+                "trip_id": str(trip_id),
+                "status": final_status,
+                "report_id": str(report_id) if final_status == "complete" else None,
+            },
+        )
+        await _publish(trip_id, _EOF)
+    finally:
         _drop_queue(trip_id)

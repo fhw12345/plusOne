@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { CompanionCard } from "@/components/companions/CompanionCard";
 import { CompanionDialog } from "@/components/companions/CompanionDialog";
 import { DeleteCompanionDialog } from "@/components/companions/DeleteCompanionDialog";
+import { AdminWireLink } from "@/components/AdminWireLink";
 import { useCompanions } from "@/hooks/useCompanions";
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import type { CompanionResponse } from "@/lib/schemas/companions";
@@ -73,6 +74,7 @@ export default function CompanionsPage() {
         </Link>
         <span className="sep" />
         <Link href="/app/profile">about you</Link>
+        <AdminWireLink />
       </nav>
 
       <header style={{ position: "relative", padding: "12px 0 32px" }}>

@@ -31,9 +31,10 @@ describe("formatTripDate", () => {
 });
 
 describe("TRIP_STATUS_META", () => {
-  it("covers all four trip statuses", () => {
+  it("covers all trip statuses (incl. batch-2t clarifying)", () => {
     expect(Object.keys(TRIP_STATUS_META).sort()).toEqual([
       "aborted",
+      "clarifying",
       "complete",
       "pending",
       "running",

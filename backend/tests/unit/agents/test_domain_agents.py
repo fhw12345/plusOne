@@ -107,8 +107,8 @@ async def test_joiner_classifies_candidates(mock_llm: MockLLMProvider) -> None:
 
     result = await joiner([cand], AgentContext(query="Tokyo ramen"))
 
-    assert len(result.payload) == 1
-    item = result.payload[0]
+    assert len(result.payload.items) == 1
+    item = result.payload.items[0]
     assert item.classification == "local_gem"
     assert item.classification_en == "local_gem"
     assert item.classification_zh == "local_gem"
@@ -148,8 +148,8 @@ async def test_joiner_computes_divergence_for_disagreement_case(
     )
 
     result = await joiner([cand], AgentContext(query="Tokyo"))
-    assert len(result.payload) == 1
-    item = result.payload[0]
+    assert len(result.payload.items) == 1
+    item = result.payload.items[0]
     assert item.classification_en == "local_gem"
     assert item.classification_zh == "tourist_trap"
     assert item.divergence_score == 1.0
@@ -183,8 +183,8 @@ async def test_joiner_handles_null_per_language_classification(
     )
 
     result = await joiner([cand], AgentContext(query="Tokyo"))
-    assert len(result.payload) == 1
-    item = result.payload[0]
+    assert len(result.payload.items) == 1
+    item = result.payload.items[0]
     assert item.classification_en == "local_gem"
     assert item.classification_zh is None
     assert item.divergence_score == 0.0
@@ -200,7 +200,7 @@ async def test_joiner_handles_empty_candidate_list(
         parsed_data={"items": []},
     )
     result = await joiner([], AgentContext(query="x"))
-    assert result.payload == []
+    assert result.payload.items == []
 
 
 @pytest.mark.unit
@@ -234,10 +234,10 @@ async def test_joiner_repairs_llm_paraphrased_candidate_name(
         parsed_data=output,
     )
     result = await joiner([cand], AgentContext(query="Tokyo"))
-    assert len(result.payload) == 1
+    assert len(result.payload.items) == 1
     # Restored from the original Candidate
-    assert result.payload[0].candidate.area == "Shinkoiwa"
-    assert result.payload[0].candidate.style == "tonkotsu"
+    assert result.payload.items[0].candidate.area == "Shinkoiwa"
+    assert result.payload.items[0].candidate.style == "tonkotsu"
 
 
 @pytest.mark.unit
@@ -271,9 +271,146 @@ async def test_joiner_drops_hallucinated_candidates(
         parsed_data=output,
     )
     result = await joiner([cand], AgentContext(query="Tokyo"))
-    assert len(result.payload) == 1
-    assert result.payload[0].candidate.name == "Menya Itto"
+    assert len(result.payload.items) == 1
+    assert result.payload.items[0].candidate.name == "Menya Itto"
     assert "dropped_unknown=1" in result.notes
+
+
+# === Joiner v3 (batch-2p + batch-2q) ====================================
+
+
+@pytest.mark.unit
+async def test_joiner_v3_prompt_loads_without_unbalanced_braces(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """v3.md must parse via the load_prompt path with the two `.replace`
+    placeholders, including the literal JSON braces in the output-format
+    block (the joiner uses ``.replace`` precisely so those stay safe).
+    """
+    cand = Candidate(name="Menya Itto", rationale="r")
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text='{"items": [], "tl_dr": null}',
+        parsed_data={"items": [], "tl_dr": None},
+    )
+    result = await joiner([cand], AgentContext(query="Tokyo"))
+    assert result.payload.items == []
+    assert result.payload.tl_dr is None
+
+
+@pytest.mark.unit
+async def test_joiner_v3_passes_through_match_scores(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """LLM emits a fully-populated match_scores map keyed by the trip's
+    party; joiner accepts it unchanged (after the clamp/fill pass)."""
+    import uuid as _uuid
+
+    from plus_one.core.agents.framework.types import (
+        CompanionForContext,
+        UserProfileForContext,
+    )
+
+    user_id = _uuid.uuid4()
+    alice_id = _uuid.uuid4()
+    cand = Candidate(name="Menya Itto", rationale="r")
+    output = {
+        "tl_dr": "tokyo's a place for counters not chains. nishikoiwa's the move.",
+        "items": [
+            {
+                "candidate": cand.model_dump(),
+                "classification": "local_gem",
+                "confidence": 0.8,
+                "evidence": [],
+                "summary": "ok",
+                "match_scores": {str(user_id): 0.8, str(alice_id): 0.3},
+            }
+        ],
+    }
+    mock_llm.queue_response(
+        role="joiner_agent", text="{}", parsed_data=output
+    )
+    ctx = AgentContext(
+        query="Tokyo",
+        user_profile=UserProfileForContext(id=user_id, loves=("ramen",)),
+        selected_companions=[CompanionForContext(id=alice_id, name="alice")],
+    )
+    result = await joiner([cand], ctx)
+    item = result.payload.items[0]
+    assert item.match_scores is not None
+    assert item.match_scores[user_id] == 0.8
+    assert item.match_scores[alice_id] == 0.3
+    assert result.payload.tl_dr is not None
+    assert result.payload.tl_dr.startswith("tokyo")
+
+
+@pytest.mark.unit
+async def test_joiner_v3_drops_hallucinated_score_keys_and_fills_missing(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """LLM hallucinates a UUID + omits a real one + emits out-of-range. We
+    drop the hallucination, fill the missing key with 0.5, and clamp."""
+    import uuid as _uuid
+
+    from plus_one.core.agents.framework.types import (
+        CompanionForContext,
+        UserProfileForContext,
+    )
+
+    user_id = _uuid.uuid4()
+    alice_id = _uuid.uuid4()
+    bogus_id = _uuid.uuid4()
+    cand = Candidate(name="Menya Itto", rationale="r")
+    output = {
+        "items": [
+            {
+                "candidate": cand.model_dump(),
+                "classification": "local_gem",
+                "confidence": 0.8,
+                "evidence": [],
+                "summary": "ok",
+                # user gets out-of-range, alice is missing, bogus is hallucinated.
+                "match_scores": {str(user_id): 1.7, str(bogus_id): 0.5},
+            }
+        ]
+    }
+    mock_llm.queue_response(role="joiner_agent", text="{}", parsed_data=output)
+    ctx = AgentContext(
+        query="Tokyo",
+        user_profile=UserProfileForContext(id=user_id),
+        selected_companions=[CompanionForContext(id=alice_id, name="alice")],
+    )
+    result = await joiner([cand], ctx)
+    item = result.payload.items[0]
+    assert item.match_scores is not None
+    assert set(item.match_scores.keys()) == {user_id, alice_id}
+    assert item.match_scores[user_id] == 1.0  # clamped
+    assert item.match_scores[alice_id] == 0.5  # filled default
+
+
+@pytest.mark.unit
+async def test_joiner_v3_no_party_identity_skips_match_scores(
+    mock_llm: MockLLMProvider,
+) -> None:
+    """When ctx has no user/companion ids (unit-test style), match_scores
+    must coerce to None — there's nothing to key against."""
+    cand = Candidate(name="Menya Itto", rationale="r")
+    output = {
+        "items": [
+            {
+                "candidate": cand.model_dump(),
+                "classification": "local_gem",
+                "confidence": 0.8,
+                "evidence": [],
+                "summary": "ok",
+                "match_scores": {"00000000-0000-4000-8000-000000000001": 0.7},
+            }
+        ]
+    }
+    mock_llm.queue_response(role="joiner_agent", text="{}", parsed_data=output)
+    result = await joiner([cand], AgentContext(query="Tokyo"))
+    item = result.payload.items[0]
+    assert item.match_scores is None
 
 
 # === Controller ==========================================================

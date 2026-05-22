@@ -1,23 +1,88 @@
 import { z } from "zod";
 
+// Batch-2o: closed currency whitelist (mirrors backend
+// ``_ALLOWED_CURRENCIES`` in api/trips.py). Extending is a deliberate
+// product call — keep it narrow.
+export const CURRENCIES = ["USD", "EUR", "JPY", "CNY", "GBP", "TWD", "KRW", "AUD"] as const;
+export const Currency = z.enum(CURRENCIES);
+export type Currency = z.infer<typeof Currency>;
+
 // Mirror of backend `CreateTripBody`
 // (backend/src/plus_one/api/trips.py:34-43). `companion_ids` is optional
 // on the wire (backend defaults to `[]`); when non-empty, the runner
 // filters AgentContext.selected_companions to that subset.
-export const CreateTripBody = z.object({
-  destination: z.string().min(1, "Destination is required").max(200),
-  free_text: z.string().max(2000).optional(),
-  companion_ids: z.array(z.string().uuid()).max(50).optional(),
-});
+//
+// Batch-2o adds four optional structured hints: date_start, date_end,
+// budget_amount, budget_currency. All four are independently optional;
+// the cross-field check (end>=start) lives in the ``superRefine`` below.
+export const CreateTripBody = z
+  .object({
+    destination: z.string().min(1, "destination is required").max(200),
+    free_text: z.string().max(2000).optional(),
+    companion_ids: z.array(z.string().uuid()).max(50).optional(),
+    date_start: z.string().datetime({ offset: true }).optional(),
+    date_end: z.string().datetime({ offset: true }).optional(),
+    budget_amount: z
+      .number()
+      .int("whole numbers only.")
+      .nonnegative("budget can't be negative.")
+      .max(10_000_000)
+      .optional(),
+    budget_currency: Currency.optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (val.date_start && val.date_end && val.date_end < val.date_start) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["date_end"],
+        message: "the end is before the start. flip them?",
+      });
+    }
+  });
 export type CreateTripBody = z.infer<typeof CreateTripBody>;
 
 export const CreateTripResponse = z.object({
   trip_id: z.string().uuid(),
   status: z.string(),
+  // batch-2t: 0–3 clarifier questions surfaced when ``status === "clarifying"``.
+  // Backend always returns an array (empty list on the pass-through path);
+  // we accept missing for backward compatibility with pre-2t fixtures.
+  clarifier_questions: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        text: z.string().min(1),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 export type CreateTripResponse = z.infer<typeof CreateTripResponse>;
 
-export const TripStatus = z.enum(["pending", "running", "complete", "aborted"]);
+// batch-2t: client-side answer shape sent to POST /api/trips/{id}/clarify.
+export const ClarifierAnswer = z.object({
+  id: z.string().min(1),
+  text: z.string().min(1, "give me something here or skip.").max(1000),
+});
+export type ClarifierAnswer = z.infer<typeof ClarifierAnswer>;
+
+export const ClarifyBody = z.object({
+  answers: z.array(ClarifierAnswer).min(1).max(3),
+});
+export type ClarifyBody = z.infer<typeof ClarifyBody>;
+
+export const ClarifyResponse = z.object({
+  status: z.string(),
+});
+export type ClarifyResponse = z.infer<typeof ClarifyResponse>;
+
+export const TripStatus = z.enum([
+  "pending",
+  "clarifying",
+  "running",
+  "complete",
+  "aborted",
+]);
 export type TripStatus = z.infer<typeof TripStatus>;
 
 // JoinedItem shape is intentionally loose for v1 — the backend's
@@ -53,23 +118,53 @@ export type JoinedItemView = {
   classification_en?: "local_gem" | "tourist_trap" | "neutral" | "insufficient" | null;
   classification_zh?: "local_gem" | "tourist_trap" | "neutral" | "insufficient" | null;
   divergence_score?: number;
+  // Batch-2p — per-person match scores keyed by user.id / companion.id.
+  // Float 0..1. Null on solo trips or pre-2p items.
+  match_scores?: Record<string, number> | null;
 };
+
+// Per-language sub-shape for `translations[lang]`. Batch-2q widens it
+// from a bare array of items to an object carrying both `items` and an
+// optional `tl_dr`. We accept either shape on the wire and normalise to
+// the object form so call sites can always read `translations[lang].items`.
+// Reports written between batch-2k and batch-2q have the bare-array
+// payload; reports written from batch-2q forward have the object.
+const TripContentTranslation = z
+  .union([
+    z.array(JoinedItemSchema),
+    z.object({
+      items: z.array(JoinedItemSchema).optional(),
+      tl_dr: z.string().nullable().optional(),
+    }),
+  ])
+  .transform((v) => (Array.isArray(v) ? { items: v } : v));
 
 export const TripContent = z.object({
   items: z.array(JoinedItemSchema),
+  // Batch-2q — report-level TL;DR paragraph. Pre-2q reports omit.
+  tl_dr: z.string().nullable().optional(),
   // PRD batch 2k §6.3 Option B: translations live alongside the source
   // items under a per-language key. Optional + per-lang optional so old
   // reports (pre-batch-2k) still validate and the frontend's fallback
   // path (`translations[lang] ?? items`) handles them.
   translations: z
     .object({
-      en: z.array(JoinedItemSchema).optional(),
-      zh: z.array(JoinedItemSchema).optional(),
+      en: TripContentTranslation.optional(),
+      zh: TripContentTranslation.optional(),
     })
     .partial()
     .optional(),
 });
 export type TripContent = z.infer<typeof TripContent>;
+
+// Batch-2p: identity of who's on the trip. Carried on TripDetail so the
+// frontend can render labels like `match  you: 0.8 · alice: 0.3` for
+// the per-person scores on each card.
+export const TripParty = z.object({
+  user_id: z.string().uuid(),
+  companion_ids: z.array(z.string().uuid()),
+});
+export type TripParty = z.infer<typeof TripParty>;
 
 export const TripDetail = z.object({
   trip_id: z.string().uuid(),
@@ -77,6 +172,15 @@ export const TripDetail = z.object({
   status: TripStatus,
   latest_report_id: z.string().uuid().nullable(),
   content: TripContent.nullable(),
+  // Batch-2o: mirror the four optional structured hints. Pre-2o trips
+  // return ``null`` for each; new trips echo what the user submitted.
+  date_start: z.string().datetime({ offset: true }).nullable().optional(),
+  date_end: z.string().datetime({ offset: true }).nullable().optional(),
+  budget_amount: z.number().int().nonnegative().nullable().optional(),
+  budget_currency: Currency.nullable().optional(),
+  // Batch-2p: optional party block so the frontend can resolve
+  // ``match_scores`` keys to display names.
+  party: TripParty.nullable().optional(),
 });
 export type TripDetail = z.infer<typeof TripDetail>;
 
@@ -120,3 +224,36 @@ export const SharedTripResponse = z.object({
   expires_at: z.string().datetime({ offset: true }),
 });
 export type SharedTripResponse = z.infer<typeof SharedTripResponse>;
+
+// === Refine (batch-2u) ====================================================
+
+// Mirror of backend `RefineTripBody` — single hint string, 1-500 chars.
+// We don't bother trimming here; the backend strips whitespace and the
+// UI's send-button disables when the field is empty after .trim().
+export const RefineTripBody = z.object({
+  hint: z.string().min(1).max(500),
+});
+export type RefineTripBody = z.infer<typeof RefineTripBody>;
+
+export const RefineTripResponse = z.object({
+  report_id: z.string().uuid(),
+  status: z.string(),
+});
+export type RefineTripResponse = z.infer<typeof RefineTripResponse>;
+
+// One entry in the trip's revision list. `is_original` differentiates the
+// initial cycle's report from a refine; `hint` + `previous_report_id` are
+// non-null only on refine rows.
+export const TripReportSummary = z.object({
+  report_id: z.string().uuid(),
+  created_at: z.string().datetime({ offset: true }),
+  is_original: z.boolean(),
+  hint: z.string().nullable(),
+  previous_report_id: z.string().uuid().nullable(),
+});
+export type TripReportSummary = z.infer<typeof TripReportSummary>;
+
+export const TripReportsResponse = z.object({
+  reports: z.array(TripReportSummary),
+});
+export type TripReportsResponse = z.infer<typeof TripReportsResponse>;

@@ -97,9 +97,64 @@ async def test_run_translations_and_update_persists_translations(
 
     assert "translations" in report_holder.content
     assert set(report_holder.content["translations"].keys()) == {"en", "zh"}
-    assert len(report_holder.content["translations"]["en"]) == 2
-    assert report_holder.content["translations"]["en"][0]["candidate"]["name"] == "Menya Itto-en"
-    assert report_holder.content["translations"]["zh"][1]["candidate"]["name"] == "Tsuta-zh"
+    # Batch-2q widened per-lang shape from bare-array to {items, tl_dr}.
+    en_block = report_holder.content["translations"]["en"]
+    zh_block = report_holder.content["translations"]["zh"]
+    assert isinstance(en_block, dict)
+    assert len(en_block["items"]) == 2
+    assert en_block["items"][0]["candidate"]["name"] == "Menya Itto-en"
+    assert zh_block["items"][1]["candidate"]["name"] == "Tsuta-zh"
+    # No tl_dr was supplied → key absent (we never write empty TL;DRs).
+    assert "tl_dr" not in en_block
+    assert "tl_dr" not in zh_block
+
+
+@pytest.mark.integration
+async def test_run_translations_and_update_translates_tl_dr_when_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """batch-2q: per-lang shape becomes {items, tl_dr} when tl_dr present."""
+    monkeypatch.setenv("PLUS_ONE_TRANSLATE_ENABLED", "1")
+    monkeypatch.setenv("PLUS_ONE_TRANSLATE_LANGS", "en,zh")
+
+    report_holder = _ReportHolder()
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        yield _StubSession(report_holder)
+
+    monkeypatch.setattr(trip_runner, "session_scope", fake_session_scope)
+
+    async def fake_translate_items(
+        items: list[JoinedItem], src_lang: str, dst_lang: str
+    ) -> list[dict[str, Any]]:
+        return [
+            {
+                "candidate": {"name": f"{i.candidate.name}-{dst_lang}", "area": "Tokyo"},
+                "classification": "local_gem",
+                "confidence": 0.8,
+                "evidence": [],
+                "summary": f"summary-{dst_lang}",
+            }
+            for i in items
+        ]
+
+    async def fake_translate_tl_dr(text: str, src_lang: str, dst_lang: str) -> str:
+        return f"{text} [{dst_lang}]"
+
+    monkeypatch.setattr(trip_runner, "translate_items", fake_translate_items)
+    monkeypatch.setattr(trip_runner, "translate_tl_dr", fake_translate_tl_dr)
+
+    items = [_item("Menya Itto")]
+    await trip_runner._run_translations_and_update(
+        uuid.uuid4(), items, "kyoto's still a place where good tea matters."
+    )
+
+    en_block = report_holder.content["translations"]["en"]
+    zh_block = report_holder.content["translations"]["zh"]
+    assert en_block["tl_dr"].endswith("[en]")
+    assert zh_block["tl_dr"].endswith("[zh]")
+    assert len(en_block["items"]) == 1
 
 
 @pytest.mark.integration

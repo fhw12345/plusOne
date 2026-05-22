@@ -1,41 +1,45 @@
 import { test, expect } from "@playwright/test";
 
-// Batch 2f PR A — full magic-link happy path.
-// Backend already ships POST /api/auth/request-link + POST /api/auth/exchange
-// (see backend/src/plus_one/api/auth.py). The flow exercised here:
+// Batch 2m — full credential auth happy path.
+// Replaces the magic-link flow that batch 2f PR A originally exercised.
 //
-//   1.  visit /login, submit email
-//   2.  test harness reads the latest magic-link token (dev-only endpoint
-//       to be added by Code Agent: GET /api/auth/dev/last-link?email=...)
-//   3.  open /auth/exchange?token=...  (matches the URL backend emails)
+//   1.  visit /register, submit username + email + password
+//   2.  test harness reads the latest verify code (dev-only endpoint:
+//       GET /api/auth/dev/last-code?email=...)
+//   3.  visit /verify?email=... and submit the code
 //   4.  land on /app, see authed-state UI
 //   5.  sign out -> back at landing
-//
-// Scaffolded as fixme until those pages land.
 
-test.describe("auth flow (magic link, happy path)", () => {
-  test("request → verify → authed → sign out", async ({ page, request }) => {
-    const email = `e2e+${Date.now()}@plusone.test`;
+test.describe("auth flow (credential, happy path)", () => {
+  test("register → verify → authed → sign out", async ({ page, request }) => {
+    const suffix = `${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+    const email = `e2e${suffix}@plusone.test`;
+    const username = `e2e${suffix.slice(0, 12)}`.toLowerCase();
+    const password = "e2epassword1";
 
-    // Step 1: request a link
-    await page.goto("/login");
-    await page.getByLabel(/email/i).fill(email);
-    await page.getByRole("button", { name: /send.*link|magic link/i }).click();
-    await expect(page.getByText(/check your inbox|email sent|link sent/i)).toBeVisible();
+    // Step 1: register
+    await page.goto("/register");
+    await page.getByLabel(/^username$/i).fill(username);
+    await page.getByLabel(/your email/i).fill(email);
+    await page.getByLabel(/^password$/i).fill(password);
+    await page.getByLabel(/say it again/i).fill(password);
+    await page.getByRole("button", { name: /save the page/i }).click();
+    await expect(page).toHaveURL(/\/verify/);
 
-    // Step 2: harness fetches the token (dev-only endpoint)
+    // Step 2: harness fetches the verify code (dev-only endpoint)
     const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-    const lastLink = await request.get(
-      `${apiBase}/api/auth/dev/last-link?email=${encodeURIComponent(email)}`,
+    const lastCode = await request.get(
+      `${apiBase}/api/auth/dev/last-code?email=${encodeURIComponent(email)}`,
     );
-    expect(lastLink.status(), "dev last-link endpoint must respond").toBe(200);
-    const { token } = (await lastLink.json()) as { token: string };
-    expect(token, "magic-link token must be non-empty").toBeTruthy();
+    expect(lastCode.status(), "dev last-code endpoint must respond").toBe(200);
+    const { code } = (await lastCode.json()) as { code: string };
+    expect(code, "verify code must be non-empty").toBeTruthy();
 
-    // Step 3+4: exchange and land in the authed area
-    await page.goto(`/auth/exchange?token=${encodeURIComponent(token)}`);
+    // Step 3+4: submit the code and land in the authed area
+    await page.getByLabel(/the code/i).fill(code);
+    await page.getByRole("button", { name: /^let me in$/i }).click();
     await expect(page).toHaveURL(/\/app(\/|$)/);
-    await expect(page.getByText(email)).toBeVisible();
+    await expect(page.getByText(email.split("@")[0] ?? email)).toBeVisible();
 
     // Step 5: sign out
     await page.getByRole("button", { name: /sign out|log out/i }).click();

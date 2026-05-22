@@ -9,7 +9,7 @@ import pytest
 
 from plus_one.agents.joiner import JoinedItem
 from plus_one.agents.producer import Candidate
-from plus_one.agents.translator import translate_items
+from plus_one.agents.translator import translate_items, translate_tl_dr
 
 
 def _make_item(name: str, summary: str = "original summary") -> JoinedItem:
@@ -167,3 +167,47 @@ async def test_input_items_not_mutated(mock_llm) -> None:
     # mutation isn't even possible, but assert structurally too.
     assert items[0].summary == "do-not-touch"
     assert items[0].candidate.name == "Original"
+
+
+# === translate_tl_dr (batch-2q) =========================================
+
+
+@pytest.mark.unit
+async def test_translate_tl_dr_empty_input_returns_empty(mock_llm) -> None:
+    out = await translate_tl_dr("   ", "original", "zh")
+    assert out == ""
+    assert mock_llm.call_count == 0
+
+
+@pytest.mark.unit
+async def test_translate_tl_dr_round_trips_translated_paragraph(mock_llm) -> None:
+    mock_llm.queue_response(
+        role="translator_agent",
+        text="京都仍然是好茶讲究的地方。",
+    )
+    out = await translate_tl_dr("kyoto's still a place where good tea matters.", "original", "zh")
+    assert out == "京都仍然是好茶讲究的地方。"
+    assert mock_llm.calls_for_role("translator_agent")
+
+
+@pytest.mark.unit
+async def test_translate_tl_dr_fail_soft_on_exception(mock_llm, monkeypatch) -> None:
+    """LLM raises → fallback to the source string under the target lang."""
+    src = "kyoto's still a place where good tea matters."
+
+    async def raising_complete(**_: Any) -> Any:
+        raise RuntimeError("LLM exploded")
+
+    monkeypatch.setattr(mock_llm, "complete", raising_complete)
+
+    out = await translate_tl_dr(src, "original", "zh")
+    assert out == src
+
+
+@pytest.mark.unit
+async def test_translate_tl_dr_empty_response_falls_back_to_source(mock_llm) -> None:
+    """When the LLM returns text but it's empty/whitespace, fall back."""
+    src = "kyoto's still a place where good tea matters."
+    mock_llm.queue_response(role="translator_agent", text="   ")
+    out = await translate_tl_dr(src, "original", "en")
+    assert out == src

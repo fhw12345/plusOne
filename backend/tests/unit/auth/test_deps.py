@@ -50,7 +50,12 @@ def _make_app(stub_user: User | None) -> FastAPI:
 
 
 def _make_user() -> User:
-    user = User(email="x@example.com", is_active=True)
+    user = User(
+        email="x@example.com",
+        username="xuser",
+        password_hash="x",
+        is_active=True,
+    )
     user.id = uuid.uuid4()
     return user
 

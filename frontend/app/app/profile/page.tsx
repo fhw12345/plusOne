@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { AdminWireLink } from "@/components/AdminWireLink";
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { useAuthStore } from "@/store/auth";
 
@@ -45,6 +46,7 @@ export default function ProfilePage() {
         <Link className="is-on" href="/app/profile">
           about you
         </Link>
+        <AdminWireLink />
       </nav>
 
       <header style={{ position: "relative", padding: "12px 0 32px" }}>

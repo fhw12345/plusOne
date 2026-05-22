@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { TripCard } from "@/components/trips/TripCard";
 import { TripListEmpty } from "@/components/trips/TripListEmpty";
+import { AdminWireLink } from "@/components/AdminWireLink";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { useTrips } from "@/hooks/useTrips";
@@ -107,6 +108,7 @@ export default function AppPage() {
         <Link href="/app/companions">who you bring</Link>
         <span className="sep" />
         <Link href="/app/profile">about you</Link>
+        <AdminWireLink />
         <span className="sep" />
         <button type="button" onClick={onSignOut} className="muted" style={{ font: "inherit" }}>
           log out

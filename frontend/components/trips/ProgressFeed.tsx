@@ -22,6 +22,7 @@ function eventSignal(event: TripEvent): RenderedLine["signal"] {
     case "started":
     case "iteration_start":
     case "producer":
+    case "refine_started":
       return "live";
     case "joiner":
     case "controller":

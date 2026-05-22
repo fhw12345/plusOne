@@ -67,6 +67,77 @@ describe("CreateTripBody", () => {
     );
     expect(CreateTripBody.safeParse({ destination: "Tokyo", companion_ids }).success).toBe(false);
   });
+
+  // === Batch-2o: dates + budget ===========================================
+
+  it("accepts full payload with dates + budget + currency", () => {
+    const parsed = CreateTripBody.parse({
+      destination: "tokyo",
+      date_start: "2026-10-12T00:00:00Z",
+      date_end: "2026-10-19T00:00:00Z",
+      budget_amount: 2500,
+      budget_currency: "USD",
+    });
+    expect(parsed.budget_amount).toBe(2500);
+    expect(parsed.budget_currency).toBe("USD");
+  });
+
+  it("rejects date_end before date_start with voice copy on date_end path", () => {
+    const result = CreateTripBody.safeParse({
+      destination: "tokyo",
+      date_start: "2026-11-05T00:00:00Z",
+      date_end: "2026-11-02T00:00:00Z",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find((i) => i.path.join(".") === "date_end");
+      expect(issue?.message).toBe("the end is before the start. flip them?");
+    }
+  });
+
+  it("accepts equal date_start and date_end", () => {
+    const parsed = CreateTripBody.parse({
+      destination: "tokyo",
+      date_start: "2026-10-12T00:00:00Z",
+      date_end: "2026-10-12T00:00:00Z",
+    });
+    expect(parsed.date_start).toBe(parsed.date_end);
+  });
+
+  it("rejects unknown currency", () => {
+    expect(
+      CreateTripBody.safeParse({ destination: "tokyo", budget_currency: "ZZZ" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects negative budget with voice copy", () => {
+    const result = CreateTripBody.safeParse({ destination: "tokyo", budget_amount: -5 });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find((i) => i.path.join(".") === "budget_amount");
+      expect(issue?.message).toBe("budget can't be negative.");
+    }
+  });
+
+  it("rejects non-integer budget with voice copy", () => {
+    const result = CreateTripBody.safeParse({ destination: "tokyo", budget_amount: 2.5 });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find((i) => i.path.join(".") === "budget_amount");
+      expect(issue?.message).toBe("whole numbers only.");
+    }
+  });
+
+  it("accepts zero budget", () => {
+    const parsed = CreateTripBody.parse({ destination: "tokyo", budget_amount: 0 });
+    expect(parsed.budget_amount).toBe(0);
+  });
+
+  it("accepts missing currency when amount is also missing", () => {
+    const parsed = CreateTripBody.parse({ destination: "tokyo" });
+    expect(parsed.budget_amount).toBeUndefined();
+    expect(parsed.budget_currency).toBeUndefined();
+  });
 });
 
 describe("CreateTripResponse", () => {
@@ -181,5 +252,60 @@ describe("TripListResponse", () => {
     });
     expect(parsed.next_cursor).toBe("abc123");
     expect(parsed.trips).toHaveLength(1);
+  });
+});
+
+
+describe("TripContent backwards compatibility (batch-2p + batch-2q)", () => {
+  it("accepts the legacy bare-array translations shape and normalises to object form", async () => {
+    const { TripContent } = await import("@/lib/schemas/trips");
+    const parsed = TripContent.parse({
+      items: [{ candidate: { name: "x" } }],
+      translations: {
+        zh: [{ candidate: { name: "翻译" } }],
+      },
+    });
+    expect(parsed.translations?.zh).toEqual({ items: [{ candidate: { name: "翻译" } }] });
+  });
+
+  it("accepts the new object translations shape with tl_dr", async () => {
+    const { TripContent } = await import("@/lib/schemas/trips");
+    const parsed = TripContent.parse({
+      items: [{ candidate: { name: "x" } }],
+      tl_dr: "kyoto's still a place where good tea matters.",
+      translations: {
+        en: { items: [{ candidate: { name: "x-en" } }], tl_dr: "english tl_dr" },
+      },
+    });
+    expect(parsed.tl_dr).toContain("kyoto");
+    expect(parsed.translations?.en?.tl_dr).toBe("english tl_dr");
+  });
+
+  it("accepts TripDetail with optional party (batch-2p)", async () => {
+    const { TripDetail } = await import("@/lib/schemas/trips");
+    const parsed = TripDetail.parse({
+      trip_id: "11111111-2222-4333-8444-555555555555",
+      destination: "Tokyo",
+      status: "complete",
+      latest_report_id: null,
+      content: null,
+      party: {
+        user_id: "11111111-2222-4333-8444-666666666666",
+        companion_ids: ["22222222-3333-4444-8555-777777777777"],
+      },
+    });
+    expect(parsed.party?.companion_ids).toHaveLength(1);
+  });
+
+  it("accepts TripDetail without party (pre-2p shape)", async () => {
+    const { TripDetail } = await import("@/lib/schemas/trips");
+    const parsed = TripDetail.parse({
+      trip_id: "11111111-2222-4333-8444-555555555555",
+      destination: "Tokyo",
+      status: "complete",
+      latest_report_id: null,
+      content: null,
+    });
+    expect(parsed.party).toBeUndefined();
   });
 });

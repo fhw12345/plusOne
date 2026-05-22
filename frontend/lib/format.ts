@@ -47,6 +47,10 @@ export const TRIP_STATUS_META: Record<TripStatus, StatusMeta> = {
     label: "Pending",
     classes: "bg-foreground/10 text-foreground/70",
   },
+  clarifying: {
+    label: "Clarifying",
+    classes: "bg-foreground/10 text-foreground/70",
+  },
   running: {
     label: "Running",
     classes: "bg-blue-100 text-blue-800",

@@ -142,7 +142,7 @@ class _StubSession:
 
 
 def _make_user() -> User:
-    user = User(email="comp@example.com", is_active=True)
+    user = User(email="comp@example.com", username="u_" + uuid.uuid4().hex[:10], password_hash="x", is_active=True)
     user.id = uuid.uuid4()
     return user
 

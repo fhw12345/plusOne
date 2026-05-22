@@ -52,7 +52,15 @@ class User(Base, TimestampMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=new_uuid)
     email: Mapped[str] = mapped_column(String(320), nullable=False, unique=True)
+    username: Mapped[str] = mapped_column(String(32), nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    failed_login_attempts: Mapped[int] = mapped_column(nullable=False, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     profile: Mapped[Profile | None] = relationship(
@@ -157,8 +165,9 @@ trip_companions = Table(
 
 
 # Valid Trip.status values. Enforced at the DB layer via CHECK so a typo
-# in worker code can't silently corrupt state.
-_TRIP_STATUSES = ("pending", "running", "complete", "aborted")
+# in worker code can't silently corrupt state. batch-2t added
+# ``'clarifying'`` for the post-create / pre-cycle clarifier loop.
+_TRIP_STATUSES = ("pending", "clarifying", "running", "complete", "aborted")
 
 
 class Trip(Base, TimestampMixin):
@@ -189,6 +198,19 @@ class Trip(Base, TimestampMixin):
     budget_amount: Mapped[int | None] = mapped_column(nullable=True)
     budget_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     free_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # batch-2t: clarifier loop. ``clarifier_questions`` holds the 1-3
+    # ``{id, text}`` items the LLM emitted at create time (NULL when the
+    # clarifier returned 0 questions or for pre-2t legacy trips).
+    # ``clarifier_answers`` mirrors the user's submitted answers — NULL
+    # means "skipped" or "not yet collected"; we never write an empty
+    # list. Both shapes are enforced at the Pydantic / service layer.
+    clarifier_questions: Mapped[list[dict[str, Any]] | None] = mapped_column(
+        JSONB, nullable=True
+    )
+    clarifier_answers: Mapped[list[dict[str, Any]] | None] = mapped_column(
+        JSONB, nullable=True
+    )
 
     # Status of the in-flight cycle. Stays "pending" -> "running" -> one of
     # "complete" | "aborted". Workers update; readers poll or subscribe via SSE.
@@ -304,41 +326,46 @@ class Feedback(Base, TimestampMixin):
     text: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
-# === MagicLinkToken ======================================================
+# === EmailCode ===========================================================
 
 
-class MagicLinkToken(Base):
-    """Single-use token issued on /auth/magic-link request, exchanged for JWT.
+class EmailCode(Base):
+    """Single-use email verification / login code (batch-2m).
 
-    No TimestampMixin: ``issued_at`` is enough; ``updated_at`` semantics
-    don't apply (we never update tokens — we either consume or expire them).
+    Replaces MagicLinkToken. Used for both 'verify_email' (post-register)
+    and 'login' (passwordless code login) purposes. The active row per
+    (email, purpose) is enforced by a partial unique index on
+    consumed_at IS NULL — re-requesting requires consuming the previous
+    row first.
     """
 
-    __tablename__ = "magic_link_tokens"
+    __tablename__ = "email_codes"
     __table_args__ = (
-        # Cleanup query "DELETE WHERE expires_at < now()" should not full-scan.
-        Index("ix_magic_link_tokens_expires_at", "expires_at"),
-        # At most one live (unconsumed) token per user — replay/abuse guard.
-        # Partial unique requires a Postgres-only WHERE clause; harmless on
-        # other dialects, which simply ignore postgresql_where.
+        CheckConstraint(
+            "purpose IN ('verify_email', 'login')",
+            name="purpose",
+        ),
+        Index("ix_email_codes_email", "email"),
         Index(
-            "uq_magic_link_tokens_user_id_unconsumed",
-            "user_id",
+            "uq_email_codes_active",
+            "email",
+            "purpose",
             unique=True,
             postgresql_where=text("consumed_at IS NULL"),
         ),
     )
 
-    token: Mapped[str] = mapped_column(String(128), primary_key=True)
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        PGUUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=new_uuid)
+    email: Mapped[str] = mapped_column(String(320), nullable=False)
+    code_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    purpose: Mapped[str] = mapped_column(String(32), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+    )
 
 
 # === ToolCache ===========================================================

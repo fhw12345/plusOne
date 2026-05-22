@@ -1,17 +1,27 @@
 import { apiFetch } from "@/lib/api/client";
 import {
+  ClarifyBody,
+  ClarifyResponse,
   CreateShareResponse,
   CreateTripBody,
   CreateTripResponse,
+  RefineTripBody,
+  RefineTripResponse,
   SharedTripResponse,
   TripDetail,
   TripListResponse,
+  TripReportsResponse,
+  type ClarifierAnswer as ClarifierAnswerT,
+  type ClarifyResponse as ClarifyResponseT,
   type CreateShareResponse as CreateShareResponseT,
   type CreateTripBody as CreateTripBodyT,
   type CreateTripResponse as CreateTripResponseT,
+  type RefineTripBody as RefineTripBodyT,
+  type RefineTripResponse as RefineTripResponseT,
   type SharedTripResponse as SharedTripResponseT,
   type TripDetail as TripDetailT,
   type TripListResponse as TripListResponseT,
+  type TripReportsResponse as TripReportsResponseT,
 } from "@/lib/schemas/trips";
 
 export async function createTrip(body: CreateTripBodyT): Promise<CreateTripResponseT> {
@@ -60,6 +70,63 @@ export async function revokeShare(tripId: string, token: string): Promise<void> 
 
 export async function deleteTrip(tripId: string): Promise<void> {
   await apiFetch<void>(`/api/trips/${tripId}`, { method: "DELETE" });
+}
+
+// === Refine (batch-2u) ====================================================
+
+/**
+ * Trigger a refinement cycle on a completed trip. Returns the
+ * pre-allocated report id the backend will write the new revision
+ * under. The existing trip stream (keyed by trip_id) picks up the
+ * new cycle's events automatically — we surface the id so callers can
+ * correlate the eventual `trip_complete` event.
+ */
+export async function refineTrip(
+  tripId: string,
+  body: RefineTripBodyT,
+): Promise<RefineTripResponseT> {
+  const validBody = RefineTripBody.parse(body);
+  const raw = await apiFetch<unknown>(`/api/trips/${tripId}/refine`, {
+    method: "POST",
+    body: JSON.stringify(validBody),
+  });
+  return RefineTripResponse.parse(raw);
+}
+
+/**
+ * List the chronological history of Report revisions for a trip. The
+ * first row is always the original cycle's report; subsequent rows
+ * carry the `hint` that produced them.
+ */
+export async function listTripReports(tripId: string): Promise<TripReportsResponseT> {
+  const raw = await apiFetch<unknown>(`/api/trips/${tripId}/reports`, {
+    method: "GET",
+  });
+  return TripReportsResponse.parse(raw);
+}
+
+// === Clarifier (batch-2t) =================================================
+
+export async function clarifyTrip(
+  tripId: string,
+  answers: ClarifierAnswerT[],
+): Promise<ClarifyResponseT> {
+  const validBody = ClarifyBody.parse({ answers });
+  const raw = await apiFetch<unknown>(
+    `/api/trips/${tripId}/clarify`,
+    {
+      method: "POST",
+      body: JSON.stringify(validBody),
+    },
+  );
+  return ClarifyResponse.parse(raw);
+}
+
+export async function skipClarify(tripId: string): Promise<ClarifyResponseT> {
+  const raw = await apiFetch<unknown>(`/api/trips/${tripId}/clarify/skip`, {
+    method: "POST",
+  });
+  return ClarifyResponse.parse(raw);
 }
 
 /**

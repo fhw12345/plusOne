@@ -1,42 +1,37 @@
-"""Authentication: magic-link issuance + JWT session.
+"""Authentication: password + email-code login + admin guard (batch-2m).
 
-Flow:
-  1. POST /auth/request-link {email} ->
-     - Create User if not exists
-     - Issue MagicLinkToken (single-use, short-lived)
-     - Email the link (or log it in dev)
+Replaced magic-link in batch-2m. Flow:
 
-  2. User clicks link -> POST /auth/exchange {token} ->
-     - Verify token unconsumed + unexpired
-     - Mark consumed, mint JWT, return to client
+  1. POST /auth/register {username, email, password} ->
+     - Insert User (email_verified_at NULL)
+     - Issue verify_email code, SMTP send
 
-  3. Subsequent requests carry JWT in Authorization header
+  2. POST /auth/verify {email, code} ->
+     - Verify + consume code, set email_verified_at, return JWT
+
+  3. POST /auth/login {identifier, password} -> JWT
+     POST /auth/request-code + /auth/login-with-code — code login
+
+  4. Subsequent requests carry JWT in Authorization header
      -> current_user dependency validates + loads User
 """
 
+from plus_one.core.auth.admin import RequireAdmin
 from plus_one.core.auth.deps import CurrentUser, current_user
 from plus_one.core.auth.jwt import (
     JWTPayload,
     create_access_token,
     decode_access_token,
 )
-from plus_one.core.auth.tokens import (
-    MagicLinkAlreadyConsumedError,
-    MagicLinkExpiredError,
-    MagicLinkInvalidError,
-    consume_magic_link,
-    issue_magic_link,
-)
+from plus_one.core.auth.passwords import hash_password, verify_password
 
 __all__ = [
     "CurrentUser",
     "JWTPayload",
-    "MagicLinkAlreadyConsumedError",
-    "MagicLinkExpiredError",
-    "MagicLinkInvalidError",
-    "consume_magic_link",
+    "RequireAdmin",
     "create_access_token",
     "current_user",
     "decode_access_token",
-    "issue_magic_link",
+    "hash_password",
+    "verify_password",
 ]

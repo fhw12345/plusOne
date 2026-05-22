@@ -83,6 +83,26 @@ class Settings(BaseSettings):
     auth_cookie_secure: bool = True  # set False on plain-http localhost
     auth_cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
+    # === SMTP (batch-2m) ===
+    smtp_host: str = ""
+    smtp_port: int = 465
+    smtp_use_ssl: bool = True
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_from_name: str = "plus one"
+
+    # === Admin seed (batch-2m) ===
+    admin_username: str = "admin"
+    admin_password: str = "admin"
+    admin_email: str = "ffffhhhww@qq.com"
+
+    # === Email-code login (batch-2m) ===
+    email_code_ttl_minutes: int = 10
+    email_code_length: int = 6
+    login_max_failed_attempts: int = 5
+    login_lockout_minutes: int = 15
+
     # === Observability ===
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

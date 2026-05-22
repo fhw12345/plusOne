@@ -63,12 +63,13 @@ async def current_user_or_sse(
     creds: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
     session: Annotated[AsyncSession, Depends(get_request_session)],
     access_token: str | None = None,
+    token: str | None = None,
 ) -> User:
     """Auth dep for SSE endpoints — header preferred, query param fallback.
 
     Browsers using ``EventSource`` cannot set request headers, so we accept
-    the JWT via ``?access_token=`` as a narrow fallback for SSE endpoints
-    only. Use the standard ``current_user`` everywhere else.
+    the JWT via ``?access_token=`` or ``?token=`` as a narrow fallback for
+    SSE endpoints only. Use the standard ``current_user`` everywhere else.
 
     SECURITY NOTE: tokens in URLs can leak via access logs and DevTools.
     Mitigated in-process by the uvicorn access-log scrubbing filter
@@ -77,16 +78,18 @@ async def current_user_or_sse(
     proxy's access log (operations runbook task).
     """
     if creds is not None and creds.scheme.lower() == "bearer":
-        token = creds.credentials
+        bearer_token = creds.credentials
     elif access_token:
-        token = access_token
+        bearer_token = access_token
+    elif token:
+        bearer_token = token
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or malformed Authorization (header or ?access_token)",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return await _load_user_from_token(token, session)
+    return await _load_user_from_token(bearer_token, session)
 
 
 # Type aliases so endpoints can write `user: CurrentUser` / `user: CurrentUserOrSse`

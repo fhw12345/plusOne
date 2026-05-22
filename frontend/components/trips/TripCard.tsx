@@ -9,6 +9,7 @@ import type { TripListItem, TripStatus } from "@/lib/schemas/trips";
 
 const STATUS_TO_SIGNAL: Record<TripStatus, "live" | "done" | "wait" | "snag"> = {
   pending: "wait",
+  clarifying: "wait",
   running: "live",
   complete: "done",
   aborted: "snag",
@@ -16,6 +17,7 @@ const STATUS_TO_SIGNAL: Record<TripStatus, "live" | "done" | "wait" | "snag"> = 
 
 const VERDICT_BY_STATUS: Record<TripStatus, { text: string; soft: boolean }> = {
   pending: { text: "queued for the weekend", soft: true },
+  clarifying: { text: "waiting on you", soft: true },
   running: { text: "still scribbling", soft: true },
   complete: { text: "pinned ★", soft: false },
   aborted: { text: "hit a wall", soft: true },

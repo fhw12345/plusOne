@@ -140,6 +140,13 @@ export function voiceFor(
       }
       return { line: pick(TRIP_COMPLETE_OK, index) };
     }
+
+    case "refine_started": {
+      // Batch-2u: surface the user's tweak so the field log makes the
+      // context shift obvious. Hint is verbatim so we don't bother
+      // rotating through a pool — there's only one for this cycle.
+      return { line: "tweaking — pulling the previous reading + your hint." };
+    }
   }
 }
 

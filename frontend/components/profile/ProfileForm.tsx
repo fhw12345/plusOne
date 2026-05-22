@@ -5,7 +5,9 @@ import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ChipInput } from "@/components/profile/ChipInput";
+import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 import { VisitedCitiesField } from "@/components/profile/VisitedCitiesField";
+import { useExportMe } from "@/hooks/useExportMe";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { ApiError } from "@/lib/api/client";
 import {
@@ -113,11 +115,12 @@ export function ProfileForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      style={{ display: "flex", flexDirection: "column", gap: 30 }}
-    >
+    <>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        style={{ display: "flex", flexDirection: "column", gap: 30 }}
+      >
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <SectionHeader
           caption="about you"
@@ -285,5 +288,84 @@ export function ProfileForm() {
         ) : null}
       </div>
     </form>
+
+      <ExportDataSection />
+      <DangerZoneSection />
+    </>
+  );
+}
+
+function ExportDataSection() {
+  const exportMut = useExportMe();
+  const failed = exportMut.isError;
+
+  return (
+    <section
+      style={{
+        position: "relative",
+        marginTop: 36,
+        padding: "24px 28px 28px",
+        background: "hsl(var(--paper-2))",
+        border: "1px solid hsl(var(--kraft))",
+        boxShadow: "0 10px 20px -16px hsl(0 0% 0% / .2)",
+      }}
+    >
+      <span
+        className="tape tape--mint"
+        style={{ top: -10, left: 28, width: 96, height: 22, transform: "rotate(-3deg)" }}
+      />
+      <h2 className="hand-lg" style={{ fontSize: 28, lineHeight: 1.05 }}>
+        your data
+      </h2>
+      <p className="scrawl" style={{ fontSize: 14, marginTop: 2 }}>
+        everything you&rsquo;ve pinned, packed up. one click.
+      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 14 }}>
+        <button
+          type="button"
+          className="btn"
+          data-testid="export-data-button"
+          disabled={exportMut.isPending}
+          onClick={() => exportMut.mutate()}
+          style={{ opacity: exportMut.isPending ? 0.55 : 1 }}
+        >
+          {exportMut.isPending ? "packing…" : "download my data"}
+        </button>
+        {failed ? (
+          <span role="alert" className="annot" style={{ display: "inline-block" }}>
+            couldn&rsquo;t pack it up. one more try?
+          </span>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function DangerZoneSection() {
+  return (
+    <section
+      style={{
+        position: "relative",
+        marginTop: 32,
+        padding: "24px 28px 28px",
+        background: "hsl(var(--paper-2))",
+        border: "1px solid hsl(0 70% 40% / .55)",
+        boxShadow: "0 10px 20px -16px hsl(0 0% 0% / .2)",
+      }}
+    >
+      <span
+        className="tape tape--red"
+        style={{ top: -10, left: 28, width: 96, height: 22, transform: "rotate(3deg)" }}
+      />
+      <h2 className="hand-lg" style={{ fontSize: 28, lineHeight: 1.05 }}>
+        the page goes
+      </h2>
+      <p className="scrawl" style={{ fontSize: 14, marginTop: 2 }}>
+        this clears everything. no putting it back.
+      </p>
+      <div style={{ marginTop: 14 }}>
+        <DeleteAccountDialog />
+      </div>
+    </section>
   );
 }

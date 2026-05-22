@@ -10,6 +10,7 @@ export const TripEventName = z.enum([
   "controller",
   "cycle_aborted",
   "trip_complete",
+  "refine_started",
 ]);
 export type TripEventName = z.infer<typeof TripEventName>;
 
@@ -94,6 +95,17 @@ const TripCompleteEvent = z
   })
   .passthrough();
 
+// Batch-2u: emitted once at the start of a refine cycle. Carries the
+// previous report id (for context) and the verbatim user hint.
+const RefineStartedEvent = z
+  .object({
+    name: z.literal("refine_started"),
+    trip_id: z.string(),
+    previous_report_id: z.string(),
+    hint: z.string(),
+  })
+  .passthrough();
+
 export const TripEvent = z.discriminatedUnion("name", [
   StartedEvent,
   IterationStartEvent,
@@ -102,5 +114,6 @@ export const TripEvent = z.discriminatedUnion("name", [
   ControllerEvent,
   CycleAbortedEvent,
   TripCompleteEvent,
+  RefineStartedEvent,
 ]);
 export type TripEvent = z.infer<typeof TripEvent>;

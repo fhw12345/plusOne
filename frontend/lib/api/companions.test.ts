@@ -29,7 +29,7 @@ const CREATE_BODY = {
 
 describe("companions API client", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test" } });
+    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
   });
 
   afterEach(() => {
