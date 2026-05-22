@@ -91,18 +91,14 @@ def test_create_trip_body_rejects_end_before_start() -> None:
 
 @pytest.mark.unit
 def test_create_trip_body_accepts_only_start_date() -> None:
-    body = CreateTripBody(
-        destination="Tokyo", date_start=datetime(2026, 10, 12, tzinfo=UTC)
-    )
+    body = CreateTripBody(destination="Tokyo", date_start=datetime(2026, 10, 12, tzinfo=UTC))
     assert body.date_start is not None
     assert body.date_end is None
 
 
 @pytest.mark.unit
 def test_create_trip_body_accepts_only_end_date() -> None:
-    body = CreateTripBody(
-        destination="Tokyo", date_end=datetime(2026, 10, 19, tzinfo=UTC)
-    )
+    body = CreateTripBody(destination="Tokyo", date_end=datetime(2026, 10, 19, tzinfo=UTC))
     assert body.date_end is not None
     assert body.date_start is None
 
@@ -140,9 +136,7 @@ def test_create_trip_body_rejects_unknown_currency() -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize(
-    "code", ["USD", "EUR", "JPY", "CNY", "GBP", "TWD", "KRW", "AUD"]
-)
+@pytest.mark.parametrize("code", ["USD", "EUR", "JPY", "CNY", "GBP", "TWD", "KRW", "AUD"])
 def test_create_trip_body_accepts_each_whitelisted_currency(code: str) -> None:
     body = CreateTripBody(destination="Tokyo", budget_currency=code, budget_amount=10)
     assert body.budget_currency == code

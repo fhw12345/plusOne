@@ -81,9 +81,7 @@ type ProducerFn[TCand] = Callable[[AgentContext], Awaitable[PhaseResult[list[TCa
 # payload object carrying ``items`` (the cycle's append target) alongside
 # extra report-level fields like ``tl_dr``. The cycle stays generic by
 # accepting either shape — see ``_extract_joined_items`` below.
-type JoinerFn[TCand, TJoined] = Callable[
-    [list[TCand], AgentContext], Awaitable[PhaseResult[Any]]
-]
+type JoinerFn[TCand, TJoined] = Callable[[list[TCand], AgentContext], Awaitable[PhaseResult[Any]]]
 type ControllerFn[TJoined] = Callable[
     [list[TJoined], AgentContext], Awaitable[PhaseResult[Decision]]
 ]

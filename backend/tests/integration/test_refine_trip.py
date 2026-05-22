@@ -186,9 +186,7 @@ async def test_refine_strips_whitespace_from_hint(
 
 
 @pytest.mark.integration
-async def test_refine_404_for_non_owner(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_refine_404_for_non_owner(client: AsyncClient, db_session: AsyncSession) -> None:
     owner = await _persist_user(db_session)
     attacker = await _persist_user(db_session)
     trip = await _persist_trip(db_session, owner.id)
@@ -205,9 +203,7 @@ async def test_refine_404_for_non_owner(
 
 
 @pytest.mark.integration
-async def test_refine_404_for_unknown_trip(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_refine_404_for_unknown_trip(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     await db_session.commit()
 
@@ -220,9 +216,7 @@ async def test_refine_404_for_unknown_trip(
 
 
 @pytest.mark.integration
-async def test_refine_401_without_token(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_refine_401_without_token(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     trip = await _persist_trip(db_session, user.id)
     await _persist_report(db_session, trip.id)
@@ -239,9 +233,7 @@ async def test_refine_401_without_token(
 
 
 @pytest.mark.integration
-async def test_refine_409_when_trip_running(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_refine_409_when_trip_running(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     trip = await _persist_trip(db_session, user.id, status="running")
     await db_session.commit()
@@ -256,9 +248,7 @@ async def test_refine_409_when_trip_running(
 
 
 @pytest.mark.integration
-async def test_refine_409_when_trip_pending(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_refine_409_when_trip_pending(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     trip = await _persist_trip(db_session, user.id, status="pending")
     await db_session.commit()
@@ -273,9 +263,7 @@ async def test_refine_409_when_trip_pending(
 
 
 @pytest.mark.integration
-async def test_refine_409_when_trip_aborted(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_refine_409_when_trip_aborted(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     trip = await _persist_trip(db_session, user.id, status="aborted")
     await db_session.commit()
@@ -310,9 +298,7 @@ async def test_refine_409_when_trip_complete_but_no_report(
 
 
 @pytest.mark.integration
-async def test_refine_422_empty_hint(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_refine_422_empty_hint(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     trip = await _persist_trip(db_session, user.id)
     await _persist_report(db_session, trip.id)
@@ -344,9 +330,7 @@ async def test_refine_422_whitespace_only_hint(
 
 
 @pytest.mark.integration
-async def test_refine_422_long_hint(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_refine_422_long_hint(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     trip = await _persist_trip(db_session, user.id)
     await _persist_report(db_session, trip.id)
@@ -369,9 +353,7 @@ async def test_list_reports_returns_chronological_with_metadata(
 ) -> None:
     user = await _persist_user(db_session)
     trip = await _persist_trip(db_session, user.id)
-    original = await _persist_report(
-        db_session, trip.id, content={"items": [{"name": "a"}]}
-    )
+    original = await _persist_report(db_session, trip.id, content={"items": [{"name": "a"}]})
     await db_session.flush()
     refine_r = await _persist_report(
         db_session,
@@ -418,19 +400,13 @@ async def test_list_reports_404_for_non_owner(
 
 
 @pytest.mark.integration
-async def test_get_report_returns_payload(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_get_report_returns_payload(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     trip = await _persist_trip(db_session, user.id)
-    report = await _persist_report(
-        db_session, trip.id, content={"items": [{"name": "x"}]}
-    )
+    report = await _persist_report(db_session, trip.id, content={"items": [{"name": "x"}]})
     await db_session.commit()
 
-    resp = await client.get(
-        f"/api/trips/{trip.id}/reports/{report.id}", headers=_auth(user)
-    )
+    resp = await client.get(f"/api/trips/{trip.id}/reports/{report.id}", headers=_auth(user))
     assert resp.status_code == 200
     body = resp.json()
     assert body["report_id"] == str(report.id)
@@ -449,7 +425,5 @@ async def test_get_report_404_when_report_belongs_to_other_trip(
     report_a = await _persist_report(db_session, trip_a.id)
     await db_session.commit()
 
-    resp = await client.get(
-        f"/api/trips/{trip_b.id}/reports/{report_a.id}", headers=_auth(user)
-    )
+    resp = await client.get(f"/api/trips/{trip_b.id}/reports/{report_a.id}", headers=_auth(user))
     assert resp.status_code == 404

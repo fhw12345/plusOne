@@ -264,9 +264,7 @@ async def _run_translations_and_update(
                     tl_dr.strip(), src_lang="original", dst_lang=lang
                 )
             except Exception:
-                logger.exception(
-                    "translation_tl_dr_failed", report_id=str(report_id), lang=lang
-                )
+                logger.exception("translation_tl_dr_failed", report_id=str(report_id), lang=lang)
                 # Fail-soft to the source string so the language toggle
                 # still has something to show.
                 per_lang["tl_dr"] = tl_dr.strip()
@@ -685,9 +683,7 @@ async def run_refine(
                 "data": {
                     "n_in": len(previous_items),
                     "n_out": len(new_items),
-                    "notes": (
-                        f"refine in_tokens={input_tokens} out_tokens={output_tokens}"
-                    ),
+                    "notes": (f"refine in_tokens={input_tokens} out_tokens={output_tokens}"),
                 },
             }
             trace.append(ev)
@@ -733,11 +729,7 @@ async def run_refine(
         else:
             final_status = "complete"
 
-        if (
-            final_status == "complete"
-            and new_items
-            and _translate_enabled()
-        ):
+        if final_status == "complete" and new_items and _translate_enabled():
             with contextlib.suppress(Exception):
                 await _run_translations_and_update(report_id, new_items)
 

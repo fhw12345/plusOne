@@ -23,9 +23,7 @@ from plus_one.agents.clarifier import (
 
 def _mk_response(parsed_data: dict[str, Any] | None, text: str = "{}") -> Any:
     """Build a fake LLMProvider.complete() return value."""
-    parsed = (
-        _ClarifierOutput.model_validate(parsed_data) if parsed_data is not None else None
-    )
+    parsed = _ClarifierOutput.model_validate(parsed_data) if parsed_data is not None else None
 
     class _Usage:
         input_tokens = 0
@@ -75,9 +73,7 @@ async def test_returns_one_question_with_normalised_id(
 ) -> None:
     _patch_llm(
         monkeypatch,
-        _mk_response(
-            {"questions": [{"id": "q1", "text": "fixed dates or flexible?"}]}
-        ),
+        _mk_response({"questions": [{"id": "q1", "text": "fixed dates or flexible?"}]}),
     )
     result = await run_clarifier(destination="kyoto", free_text=None)
     assert result == [{"id": "q1", "text": "fixed dates or flexible?"}]

@@ -145,9 +145,7 @@ async def test_create_trip_omits_all_structured_fields(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
     user = await _persist_user(db_session)
-    resp = await client.post(
-        "/api/trips", json={"destination": "kyoto"}, headers=_auth(user)
-    )
+    resp = await client.post("/api/trips", json={"destination": "kyoto"}, headers=_auth(user))
     assert resp.status_code == 201
     trip = await db_session.get(Trip, uuid.UUID(resp.json()["trip_id"]))
     assert trip is not None
@@ -161,9 +159,7 @@ async def test_create_trip_omits_all_structured_fields(
 
 
 @pytest.mark.integration
-async def test_create_trip_dates_only(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_create_trip_dates_only(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     resp = await client.post(
         "/api/trips",
@@ -187,9 +183,7 @@ async def test_create_trip_dates_only(
 
 
 @pytest.mark.integration
-async def test_create_trip_budget_only(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_create_trip_budget_only(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     resp = await client.post(
         "/api/trips",
@@ -313,9 +307,7 @@ async def test_trip_detail_returns_null_for_legacy_trip(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
     user = await _persist_user(db_session)
-    trip = Trip(
-        user_id=user.id, destination="legacy-city", free_text=None, status="pending"
-    )
+    trip = Trip(user_id=user.id, destination="legacy-city", free_text=None, status="pending")
     # Avoid the lazy ``selectin`` load fired by the detail handler's
     # ``trip.companions`` access — assigning an empty list pre-populates
     # the relationship so the sync attribute read inside the request

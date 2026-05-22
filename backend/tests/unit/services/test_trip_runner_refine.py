@@ -167,9 +167,7 @@ async def test_run_refine_emits_refine_started_event(
     refine_mock = AsyncMock(return_value=([_joined("x")], "", 1, 1))
     monkeypatch.setattr(trip_runner, "refine_phase", refine_mock)
 
-    events = await _run_refine_and_collect(
-        trip_id, previous_id, "my hint", uuid4(), pre_report_id
-    )
+    events = await _run_refine_and_collect(trip_id, previous_id, "my hint", uuid4(), pre_report_id)
 
     names = [e["name"] for e in events]
     assert names[0] == "started"
@@ -197,9 +195,7 @@ async def test_run_refine_aborts_on_agent_failure(
 
     monkeypatch.setattr(trip_runner, "refine_phase", boom)
 
-    events = await _run_refine_and_collect(
-        trip_id, uuid4(), "anything", uuid4(), pre_report_id
-    )
+    events = await _run_refine_and_collect(trip_id, uuid4(), "anything", uuid4(), pre_report_id)
 
     names = [e["name"] for e in events]
     assert "cycle_aborted" in names

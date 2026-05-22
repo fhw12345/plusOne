@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import or_, select
@@ -125,16 +125,10 @@ async def register(
     # Uniqueness — split into two queries so we can report which collided.
     existing_email = await session.execute(select(User).where(User.email == body.email))
     if existing_email.scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="email_taken"
-        )
-    existing_username = await session.execute(
-        select(User).where(User.username == body.username)
-    )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="email_taken")
+    existing_username = await session.execute(select(User).where(User.username == body.username))
     if existing_username.scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="username_taken"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="username_taken")
 
     user = User(
         email=body.email,
@@ -173,13 +167,9 @@ async def verify(
             session, email=body.email, purpose="verify_email", code=body.code
         )
     except CodeExpiredError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="code_expired"
-        ) from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="code_expired") from exc
     except CodeError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="code_invalid"
-        ) from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="code_invalid") from exc
 
     await consume_code(session, code_row)
 
@@ -187,9 +177,7 @@ async def verify(
     user = user_result.scalar_one_or_none()
     if user is None:
         # Code matched but no user — corruption; treat as invalid.
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="code_invalid"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="code_invalid")
     user.email_verified_at = datetime.now(UTC)
     user.last_login_at = datetime.now(UTC)
     reset_attempts(user)
@@ -219,9 +207,7 @@ async def login(
     if user is None:
         # No counter increment for unknown identifiers — otherwise an
         # attacker could lock anyone out by guessing their name.
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials")
 
     if is_locked(user):
         raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="locked")
@@ -229,16 +215,12 @@ async def login(
     if not verify_password(user.password_hash, body.password):
         record_failed_attempt(user)
         await session.flush()
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials")
 
     if user.email_verified_at is None:
         # Password is right but the email's never been confirmed — the
         # frontend routes to /verify when it sees this detail string.
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="email_not_verified"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="email_not_verified")
 
     reset_attempts(user)
     user.last_login_at = datetime.now(UTC)
@@ -275,7 +257,9 @@ async def request_code(
     if user is None:
         return
 
-    purpose = "login" if user.email_verified_at is not None else "verify_email"
+    purpose: Literal["verify_email", "login"] = (
+        "login" if user.email_verified_at is not None else "verify_email"
+    )
     code = generate_code()
     await save_code(session, email=body.email, purpose=purpose, code=code)
     await _send_code_or_503(body.email, code)
@@ -298,22 +282,14 @@ async def login_with_code(
     user = user_result.scalar_one_or_none()
     if user is None or user.email_verified_at is None:
         # Don't tell the caller which one — generic 401.
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid_credentials")
 
     try:
-        code_row = await verify_code(
-            session, email=body.email, purpose="login", code=body.code
-        )
+        code_row = await verify_code(session, email=body.email, purpose="login", code=body.code)
     except CodeExpiredError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="code_expired"
-        ) from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="code_expired") from exc
     except CodeError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="code_invalid"
-        ) from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="code_invalid") from exc
 
     await consume_code(session, code_row)
     reset_attempts(user)

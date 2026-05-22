@@ -66,41 +66,27 @@ def _clear_ring() -> None:
 
 
 @pytest.mark.integration
-async def test_admin_logs_frontend_non_admin_403(
-    client: AsyncClient, regular_user: User
-) -> None:
+async def test_admin_logs_frontend_non_admin_403(client: AsyncClient, regular_user: User) -> None:
     r = await client.post(
         "/api/admin/logs/frontend",
         headers=_auth(regular_user),
-        json={
-            "entries": [
-                {"ts": "2026-05-21T12:00:00Z", "level": "log", "message": "hi"}
-            ]
-        },
+        json={"entries": [{"ts": "2026-05-21T12:00:00Z", "level": "log", "message": "hi"}]},
     )
     assert r.status_code == 403
 
 
 @pytest.mark.integration
-async def test_admin_logs_frontend_admin_204(
-    client: AsyncClient, admin_user: User
-) -> None:
+async def test_admin_logs_frontend_admin_204(client: AsyncClient, admin_user: User) -> None:
     r = await client.post(
         "/api/admin/logs/frontend",
         headers=_auth(admin_user),
-        json={
-            "entries": [
-                {"ts": "2026-05-21T12:00:00Z", "level": "log", "message": "hello"}
-            ]
-        },
+        json={"entries": [{"ts": "2026-05-21T12:00:00Z", "level": "log", "message": "hello"}]},
     )
     assert r.status_code == 204
 
 
 @pytest.mark.integration
-async def test_admin_logs_frontend_oversize_413(
-    client: AsyncClient, admin_user: User
-) -> None:
+async def test_admin_logs_frontend_oversize_413(client: AsyncClient, admin_user: User) -> None:
     # Push past the 4 KB body limit.
     huge = "x" * (5 * 1024)
     r = await client.post(
@@ -115,10 +101,7 @@ async def test_admin_logs_frontend_oversize_413(
 async def test_admin_logs_frontend_batch_overflow_422(
     client: AsyncClient, admin_user: User
 ) -> None:
-    entries = [
-        {"ts": "2026-05-21T12:00:00Z", "level": "log", "message": str(i)}
-        for i in range(51)
-    ]
+    entries = [{"ts": "2026-05-21T12:00:00Z", "level": "log", "message": str(i)} for i in range(51)]
     r = await client.post(
         "/api/admin/logs/frontend",
         headers=_auth(admin_user),
@@ -128,9 +111,7 @@ async def test_admin_logs_frontend_batch_overflow_422(
 
 
 @pytest.mark.integration
-async def test_admin_logs_stream_non_admin_403(
-    client: AsyncClient, regular_user: User
-) -> None:
+async def test_admin_logs_stream_non_admin_403(client: AsyncClient, regular_user: User) -> None:
     r = await client.get("/api/admin/logs/stream", headers=_auth(regular_user))
     assert r.status_code == 403
 
@@ -141,9 +122,7 @@ async def test_admin_logs_stream_admin_200_text_event_stream(
 ) -> None:
     # Use the streaming context to read at least one chunk then bail —
     # otherwise the SSE generator runs forever.
-    async with client.stream(
-        "GET", "/api/admin/logs/stream", headers=_auth(admin_user)
-    ) as r:
+    async with client.stream("GET", "/api/admin/logs/stream", headers=_auth(admin_user)) as r:
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("text/event-stream")
         # Force at least one read so we don't leave the gen suspended.

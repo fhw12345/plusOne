@@ -39,9 +39,7 @@ async def test_register_happy_path_201_and_sends_code(
     assert "user_id" in body
 
     # User row exists, unverified, with Argon2id hash.
-    user = (
-        await db_session.execute(select(User).where(User.email == email))
-    ).scalar_one()
+    user = (await db_session.execute(select(User).where(User.email == email))).scalar_one()
     assert user.username == username
     assert user.email_verified_at is None
     assert user.is_admin is False

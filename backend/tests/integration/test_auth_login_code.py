@@ -150,9 +150,7 @@ async def test_login_with_code_wrong_code_400(
     smtp_spy.calls.clear()
     await client.post("/api/auth/request-code", json={"email": email})
 
-    r = await client.post(
-        "/api/auth/login-with-code", json={"email": email, "code": "999999"}
-    )
+    r = await client.post("/api/auth/login-with-code", json={"email": email, "code": "999999"})
     # Most attempts will be 400 (wrong) but if the random code happened
     # to be "999999" we still pass since /login-with-code returned 200
     # earlier. Defensive:

@@ -76,9 +76,7 @@ def _auth(user: User) -> dict[str, str]:
 
 
 @pytest_asyncio.fixture
-async def client_factory(
-    db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
-) -> Any:
+async def client_factory(db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch) -> Any:
     """Returns a callable: ``await make_client(clarifier_questions=[...])``.
 
     Pre-installs the BackgroundTasks no-op, then wires the clarifier to
@@ -89,9 +87,7 @@ async def client_factory(
 
     background_calls: list[tuple[Any, tuple[Any, ...], dict[str, Any]]] = []
 
-    def _capturing_add_task(
-        self: BackgroundTasks, func: Any, *args: Any, **kwargs: Any
-    ) -> None:
+    def _capturing_add_task(self: BackgroundTasks, func: Any, *args: Any, **kwargs: Any) -> None:
         background_calls.append((func, args, kwargs))
 
     monkeypatch.setattr(BackgroundTasks, "add_task", _capturing_add_task)
@@ -127,9 +123,7 @@ async def test_create_trip_pass_through_when_clarifier_empty(
 ) -> None:
     user = await _persist_user(db_session)
     async with await client_factory([]) as client:
-        resp = await client.post(
-            "/api/trips", json={"destination": "kyoto"}, headers=_auth(user)
-        )
+        resp = await client.post("/api/trips", json={"destination": "kyoto"}, headers=_auth(user))
     assert resp.status_code == 201, resp.text
     body = resp.json()
     assert body["status"] == "running"
@@ -179,9 +173,7 @@ async def test_clarify_happy_path_flips_to_running(
     user = await _persist_user(db_session)
     questions = [{"id": "q1", "text": "fixed dates or flexible?"}]
     async with await client_factory(questions) as client:
-        create = await client.post(
-            "/api/trips", json={"destination": "kyoto"}, headers=_auth(user)
-        )
+        create = await client.post("/api/trips", json={"destination": "kyoto"}, headers=_auth(user))
         trip_id = create.json()["trip_id"]
         client_factory.background_calls.clear()
         resp = await client.post(
@@ -205,12 +197,8 @@ async def test_clarify_second_call_returns_409(
     client_factory: Any, db_session: AsyncSession
 ) -> None:
     user = await _persist_user(db_session)
-    async with await client_factory(
-        [{"id": "q1", "text": "fixed dates or flexible?"}]
-    ) as client:
-        create = await client.post(
-            "/api/trips", json={"destination": "kyoto"}, headers=_auth(user)
-        )
+    async with await client_factory([{"id": "q1", "text": "fixed dates or flexible?"}]) as client:
+        create = await client.post("/api/trips", json={"destination": "kyoto"}, headers=_auth(user))
         trip_id = create.json()["trip_id"]
         first = await client.post(
             f"/api/trips/{trip_id}/clarify",
@@ -232,12 +220,8 @@ async def test_clarify_mismatched_ids_returns_422(
     client_factory: Any, db_session: AsyncSession
 ) -> None:
     user = await _persist_user(db_session)
-    async with await client_factory(
-        [{"id": "q1", "text": "fixed dates or flexible?"}]
-    ) as client:
-        create = await client.post(
-            "/api/trips", json={"destination": "kyoto"}, headers=_auth(user)
-        )
+    async with await client_factory([{"id": "q1", "text": "fixed dates or flexible?"}]) as client:
+        create = await client.post("/api/trips", json={"destination": "kyoto"}, headers=_auth(user))
         trip_id = create.json()["trip_id"]
         resp = await client.post(
             f"/api/trips/{trip_id}/clarify",
@@ -252,12 +236,8 @@ async def test_clarify_empty_text_returns_422(
     client_factory: Any, db_session: AsyncSession
 ) -> None:
     user = await _persist_user(db_session)
-    async with await client_factory(
-        [{"id": "q1", "text": "fixed dates or flexible?"}]
-    ) as client:
-        create = await client.post(
-            "/api/trips", json={"destination": "kyoto"}, headers=_auth(user)
-        )
+    async with await client_factory([{"id": "q1", "text": "fixed dates or flexible?"}]) as client:
+        create = await client.post("/api/trips", json={"destination": "kyoto"}, headers=_auth(user))
         trip_id = create.json()["trip_id"]
         resp = await client.post(
             f"/api/trips/{trip_id}/clarify",
@@ -275,9 +255,7 @@ async def test_clarify_foreign_user_returns_404(
 ) -> None:
     owner = await _persist_user(db_session)
     attacker = await _persist_user(db_session)
-    async with await client_factory(
-        [{"id": "q1", "text": "fixed dates or flexible?"}]
-    ) as client:
+    async with await client_factory([{"id": "q1", "text": "fixed dates or flexible?"}]) as client:
         create = await client.post(
             "/api/trips", json={"destination": "kyoto"}, headers=_auth(owner)
         )
@@ -295,21 +273,13 @@ async def test_clarify_foreign_user_returns_404(
 
 
 @pytest.mark.integration
-async def test_skip_happy_path(
-    client_factory: Any, db_session: AsyncSession
-) -> None:
+async def test_skip_happy_path(client_factory: Any, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
-    async with await client_factory(
-        [{"id": "q1", "text": "fixed dates or flexible?"}]
-    ) as client:
-        create = await client.post(
-            "/api/trips", json={"destination": "kyoto"}, headers=_auth(user)
-        )
+    async with await client_factory([{"id": "q1", "text": "fixed dates or flexible?"}]) as client:
+        create = await client.post("/api/trips", json={"destination": "kyoto"}, headers=_auth(user))
         trip_id = create.json()["trip_id"]
         client_factory.background_calls.clear()
-        resp = await client.post(
-            f"/api/trips/{trip_id}/clarify/skip", headers=_auth(user)
-        )
+        resp = await client.post(f"/api/trips/{trip_id}/clarify/skip", headers=_auth(user))
     assert resp.status_code == 200, resp.text
     assert resp.json() == {"status": "running"}
     db_session.expire_all()
@@ -327,12 +297,8 @@ async def test_skip_already_running_returns_409(
     user = await _persist_user(db_session)
     async with await client_factory([]) as client:
         # No questions: trip is created directly in ``running``.
-        create = await client.post(
-            "/api/trips", json={"destination": "kyoto"}, headers=_auth(user)
-        )
+        create = await client.post("/api/trips", json={"destination": "kyoto"}, headers=_auth(user))
         trip_id = create.json()["trip_id"]
-        resp = await client.post(
-            f"/api/trips/{trip_id}/clarify/skip", headers=_auth(user)
-        )
+        resp = await client.post(f"/api/trips/{trip_id}/clarify/skip", headers=_auth(user))
     assert resp.status_code == 409
     assert resp.json()["detail"] == "trip_not_clarifying"

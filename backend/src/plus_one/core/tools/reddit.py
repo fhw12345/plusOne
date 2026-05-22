@@ -191,9 +191,7 @@ class RedditSearchTool:
                     "score": int(data.get("score", 0) or 0),
                     "permalink": permalink,
                     "created_utc": (
-                        float(data["created_utc"])
-                        if data.get("created_utc") is not None
-                        else None
+                        float(data["created_utc"]) if data.get("created_utc") is not None else None
                     ),
                 }
             )

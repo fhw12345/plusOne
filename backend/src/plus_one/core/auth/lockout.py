@@ -34,9 +34,7 @@ def record_failed_attempt(user: User) -> bool:
     """
     user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
     if user.failed_login_attempts >= settings.login_max_failed_attempts:
-        user.locked_until = datetime.now(UTC) + timedelta(
-            minutes=settings.login_lockout_minutes
-        )
+        user.locked_until = datetime.now(UTC) + timedelta(minutes=settings.login_lockout_minutes)
         user.failed_login_attempts = 0
         return True
     return False

@@ -34,7 +34,12 @@ if TYPE_CHECKING:
 
 
 async def _persist_user(session: AsyncSession, email: str | None = None) -> User:
-    user = User(email=email or f"share-{uuid.uuid4().hex[:8]}@example.com", username="u_" + uuid.uuid4().hex[:10], password_hash="x", is_active=True)
+    user = User(
+        email=email or f"share-{uuid.uuid4().hex[:8]}@example.com",
+        username="u_" + uuid.uuid4().hex[:10],
+        password_hash="x",
+        is_active=True,
+    )
     session.add(user)
     await session.flush()
     return user

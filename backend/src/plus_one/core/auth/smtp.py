@@ -64,9 +64,7 @@ async def send_email(
     if not settings.smtp_host:
         raise EmailSendError("smtp_host not configured")
 
-    msg = _build_message(
-        to=to, subject=subject, body_text=body_text, body_html=body_html
-    )
+    msg = _build_message(to=to, subject=subject, body_text=body_text, body_html=body_html)
 
     try:
         if settings.smtp_use_ssl:

@@ -94,7 +94,7 @@ class Settings(BaseSettings):
 
     # === Admin seed (batch-2m) ===
     admin_username: str = "admin"
-    admin_password: str = "admin"
+    admin_password: str = "admin"  # noqa: S105
     admin_email: str = "ffffhhhww@qq.com"
 
     # === Email-code login (batch-2m) ===

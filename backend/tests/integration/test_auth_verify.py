@@ -55,9 +55,7 @@ async def test_verify_happy_path_returns_token_and_marks_verified(
     user = (await db_session.execute(select(User).where(User.email == email))).scalar_one()
     assert user.email_verified_at is not None
     code_row = (
-        await db_session.execute(
-            select(EmailCode).where(EmailCode.email == email)
-        )
+        await db_session.execute(select(EmailCode).where(EmailCode.email == email))
     ).scalar_one()
     assert code_row.consumed_at is not None
 
@@ -92,9 +90,7 @@ async def test_verify_expired_code_400(
     await _register(client, email, good_username(), good_password)
     code = smtp_spy.calls[0][1]
     # Force-expire the row.
-    row = (
-        await db_session.execute(select(EmailCode).where(EmailCode.email == email))
-    ).scalar_one()
+    row = (await db_session.execute(select(EmailCode).where(EmailCode.email == email))).scalar_one()
     row.expires_at = datetime.now(UTC) - timedelta(minutes=1)
     await db_session.commit()
 

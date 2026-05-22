@@ -1,7 +1,7 @@
 """Admin-only routes — log live tail + frontend log push (batch-2m).
 
-  GET  /api/admin/logs/stream    — SSE, replay last 1000 then live tail
-  POST /api/admin/logs/frontend  — admins push browser console events
+GET  /api/admin/logs/stream    — SSE, replay last 1000 then live tail
+POST /api/admin/logs/frontend  — admins push browser console events
 """
 
 from __future__ import annotations
@@ -22,7 +22,6 @@ from fastapi import (
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from plus_one.core.auth.admin import RequireAdmin, RequireAdminSse
 from plus_one.core.auth.rate_limit import TokenBucket
 from plus_one.core.logs.buffer import (
     LogEntry,
@@ -34,6 +33,8 @@ from plus_one.core.logs.buffer import (
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
+
+    from plus_one.core.auth.admin import RequireAdmin, RequireAdminSse
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
@@ -171,9 +172,7 @@ async def post_frontend_logs(
         ) from exc
 
     if not await limiter.allow(str(user.id)):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="rate_limited"
-        )
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="rate_limited")
 
     for entry in batch.entries:
         ts = entry.ts if entry.ts.tzinfo else entry.ts.replace(tzinfo=UTC)

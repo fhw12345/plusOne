@@ -17,7 +17,6 @@ import pytest
 from plus_one.core.tools import reddit as reddit_mod
 from plus_one.core.tools.reddit import RedditSearchInput, RedditSearchTool
 
-
 # === fixtures ===========================================================
 
 
@@ -65,9 +64,7 @@ def _make_reddit_body(items: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 @pytest.mark.unit
-async def test_happy_path_parses_posts(
-    monkeypatch: pytest.MonkeyPatch, real_mode: None
-) -> None:
+async def test_happy_path_parses_posts(monkeypatch: pytest.MonkeyPatch, real_mode: None) -> None:
     body = _make_reddit_body(
         [
             {
@@ -141,9 +138,7 @@ async def test_empty_children_returns_empty(
 
 
 @pytest.mark.unit
-async def test_http_429_returns_empty_ok(
-    monkeypatch: pytest.MonkeyPatch, real_mode: None
-) -> None:
+async def test_http_429_returns_empty_ok(monkeypatch: pytest.MonkeyPatch, real_mode: None) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(429, text="rate limited")
 
@@ -156,9 +151,7 @@ async def test_http_429_returns_empty_ok(
 
 
 @pytest.mark.unit
-async def test_http_503_returns_empty_ok(
-    monkeypatch: pytest.MonkeyPatch, real_mode: None
-) -> None:
+async def test_http_503_returns_empty_ok(monkeypatch: pytest.MonkeyPatch, real_mode: None) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(503, text="unavailable")
 
@@ -207,9 +200,7 @@ async def test_malformed_json_returns_empty_ok(
 
 
 @pytest.mark.unit
-async def test_cache_hit_skips_http(
-    monkeypatch: pytest.MonkeyPatch, real_mode: None
-) -> None:
+async def test_cache_hit_skips_http(monkeypatch: pytest.MonkeyPatch, real_mode: None) -> None:
     cached = [
         {
             "id": "cached1",
@@ -248,9 +239,7 @@ async def test_cache_hit_skips_http(
 
 
 @pytest.mark.unit
-async def test_fixture_mode_unchanged(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Any
-) -> None:
+async def test_fixture_mode_unchanged(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> None:
     """In fixture mode, execute() must NOT touch HTTP or the DB cache."""
     monkeypatch.delenv("PLUS_ONE_TOOLS_MODE", raising=False)
 

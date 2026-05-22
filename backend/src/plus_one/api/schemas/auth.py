@@ -27,7 +27,7 @@ def _normalize_email(value: str) -> str:
 
 def _validate_password_strength(value: str) -> str:
     """PRD §6 register rules: len >= 10, at least one letter + one digit."""
-    if len(value) < 10:
+    if len(value) < 10:  # noqa: PLR2004
         raise ValueError("password too short")
     if not re.search(r"[A-Za-z]", value):
         raise ValueError("password needs a letter")

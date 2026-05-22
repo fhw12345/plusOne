@@ -148,9 +148,7 @@ async def _seed_full_user(db_session: AsyncSession) -> tuple[User, Trip, Compani
 
 
 @pytest.mark.integration
-async def test_export_returns_owned_data(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_export_returns_owned_data(client: AsyncClient, db_session: AsyncSession) -> None:
     user, trip, companion = await _seed_full_user(db_session)
 
     resp = await client.get("/api/me/export", headers=_auth(user))
@@ -194,7 +192,7 @@ async def test_export_filename_header(client: AsyncClient, db_session: AsyncSess
     disposition = resp.headers["content-disposition"]
     pattern = (
         r'attachment; filename="plus-one-export-'
-        r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-'
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-"
         r'\d{4}-\d{2}-\d{2}\.json"'
     )
     assert re.fullmatch(pattern, disposition), disposition
@@ -203,9 +201,7 @@ async def test_export_filename_header(client: AsyncClient, db_session: AsyncSess
 
 
 @pytest.mark.integration
-async def test_export_excludes_password_hash(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_export_excludes_password_hash(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     await db_session.commit()
 

@@ -78,9 +78,7 @@ async def save_code(
     """
     now = datetime.now(UTC)
     expires_at = now + timedelta(
-        minutes=ttl_minutes
-        if ttl_minutes is not None
-        else settings.email_code_ttl_minutes
+        minutes=ttl_minutes if ttl_minutes is not None else settings.email_code_ttl_minutes
     )
     # Invalidate any prior active row for this (email, purpose).
     await session.execute(
@@ -136,7 +134,7 @@ async def verify_code(
         raise CodeExpiredError("code expired")
 
     # Argon2 verify — constant-time on success path; mismatch raises.
-    from argon2.exceptions import VerifyMismatchError
+    from argon2.exceptions import VerifyMismatchError  # noqa: PLC0415
 
     try:
         _HASHER.verify(row.code_hash, code)

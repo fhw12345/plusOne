@@ -327,9 +327,7 @@ async def test_joiner_v3_passes_through_match_scores(
             }
         ],
     }
-    mock_llm.queue_response(
-        role="joiner_agent", text="{}", parsed_data=output
-    )
+    mock_llm.queue_response(role="joiner_agent", text="{}", parsed_data=output)
     ctx = AgentContext(
         query="Tokyo",
         user_profile=UserProfileForContext(id=user_id, loves=("ramen",)),

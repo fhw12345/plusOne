@@ -205,12 +205,8 @@ class Trip(Base, TimestampMixin):
     # ``clarifier_answers`` mirrors the user's submitted answers — NULL
     # means "skipped" or "not yet collected"; we never write an empty
     # list. Both shapes are enforced at the Pydantic / service layer.
-    clarifier_questions: Mapped[list[dict[str, Any]] | None] = mapped_column(
-        JSONB, nullable=True
-    )
-    clarifier_answers: Mapped[list[dict[str, Any]] | None] = mapped_column(
-        JSONB, nullable=True
-    )
+    clarifier_questions: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
+    clarifier_answers: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
 
     # Status of the in-flight cycle. Stays "pending" -> "running" -> one of
     # "complete" | "aborted". Workers update; readers poll or subscribe via SSE.

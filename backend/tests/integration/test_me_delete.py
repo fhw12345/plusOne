@@ -188,9 +188,7 @@ async def test_delete_removes_user_and_cascades(
 
 
 @pytest.mark.integration
-async def test_delete_clears_email_codes(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_delete_clears_email_codes(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _persist_user(db_session)
     code = EmailCode(
         email=user.email,
@@ -207,15 +205,15 @@ async def test_delete_clears_email_codes(
 
     db_session.expire_all()
     remaining = (
-        await db_session.execute(select(EmailCode).where(EmailCode.email == user_email))
-    ).scalars().all()
+        (await db_session.execute(select(EmailCode).where(EmailCode.email == user_email)))
+        .scalars()
+        .all()
+    )
     assert remaining == []
 
 
 @pytest.mark.integration
-async def test_delete_admin_blocked(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_delete_admin_blocked(client: AsyncClient, db_session: AsyncSession) -> None:
     admin = await _persist_user(db_session, is_admin=True)
     await db_session.commit()
     admin_id = admin.id

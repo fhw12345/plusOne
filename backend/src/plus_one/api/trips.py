@@ -68,13 +68,8 @@ class CreateTripBody(BaseModel):
             and self.date_end < self.date_start
         ):
             raise ValueError("date_end must be on or after date_start")
-        if (
-            self.budget_currency is not None
-            and self.budget_currency not in _ALLOWED_CURRENCIES
-        ):
-            raise ValueError(
-                f"budget_currency must be one of {sorted(_ALLOWED_CURRENCIES)}"
-            )
+        if self.budget_currency is not None and self.budget_currency not in _ALLOWED_CURRENCIES:
+            raise ValueError(f"budget_currency must be one of {sorted(_ALLOWED_CURRENCIES)}")
         return self
 
 
@@ -345,13 +340,9 @@ async def clarify_trip(
 ) -> ClarifyTripResponse:
     trip = await session.get(Trip, trip_id, with_for_update=True)
     if trip is None or trip.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="trip_not_found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="trip_not_found")
     if trip.status != "clarifying":
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="trip_not_clarifying"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="trip_not_clarifying")
 
     questions: list[dict[str, str]] = list(trip.clarifier_questions or [])
     expected_ids = {str(q.get("id")) for q in questions}
@@ -383,9 +374,7 @@ async def clarify_trip(
     companion_ids = [c.id for c in trip.companions]
     await session.commit()
 
-    query = _build_query_with_clarifications(
-        destination, free_text, questions, answers_payload
-    )
+    query = _build_query_with_clarifications(destination, free_text, questions, answers_payload)
     register(trip_id)
     background.add_task(run_trip, trip_id, query, user.id, companion_ids)
     return ClarifyTripResponse(status="running")
@@ -405,13 +394,9 @@ async def skip_clarify_trip(
 ) -> ClarifyTripResponse:
     trip = await session.get(Trip, trip_id, with_for_update=True)
     if trip is None or trip.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="trip_not_found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="trip_not_found")
     if trip.status != "clarifying":
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="trip_not_clarifying"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="trip_not_clarifying")
 
     # clarifier_answers stays None on skip — the runner reads from
     # clarifier_questions+answers, NULL is the explicit "skipped" sentinel.
@@ -711,9 +696,7 @@ async def refine_trip(
     if trip.status in ("pending", "running"):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="trip_busy")
     if trip.status == "aborted":
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="trip_not_complete"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="trip_not_complete")
     # Defensive: status == "complete" but no Report row exists. Shouldn't
     # happen but the refiner has nothing to work from in that case.
     latest_q = (
@@ -721,16 +704,12 @@ async def refine_trip(
     )
     latest_report = (await session.execute(latest_q)).scalar_one_or_none()
     if latest_report is None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="trip_not_complete"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="trip_not_complete")
 
     # Strip the hint server-side — UI may pass leading/trailing whitespace.
     hint = body.hint.strip()
     if not hint:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="hint_empty"
-        )
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="hint_empty")
 
     # Pre-allocate the new report id so we can return it in the 202.
     # The runner writes the row at this exact id; the client uses it to
@@ -747,9 +726,7 @@ async def refine_trip(
     # client can race straight to /stream without losing events. Same
     # ordering pattern as ``create_trip``.
     register(trip_id)
-    background.add_task(
-        run_refine, trip_id, previous_report_id, hint, user.id, pre_report_id
-    )
+    background.add_task(run_refine, trip_id, previous_report_id, hint, user.id, pre_report_id)
 
     logger.info(
         "trip_refine_requested",
@@ -840,9 +817,7 @@ async def get_trip_report(
 
     report = await session.get(Report, report_id)
     if report is None or report.trip_id != trip_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="report_not_found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="report_not_found")
 
     content = report.content if isinstance(report.content, dict) else {}
     is_original = not (isinstance(content.get("refine"), dict))

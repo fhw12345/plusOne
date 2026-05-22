@@ -98,18 +98,10 @@ def _build_redact_patterns() -> list[re.Pattern[str]]:
     pats: list[re.Pattern[str]] = []
     for key in _SECRET_KEYS:
         # JSON shape:  "key": "value"
-        pats.append(
-            re.compile(
-                rf'(?i)("?{re.escape(key)}"?\s*[:=]\s*")([^"]*)(")'
-            )
-        )
+        pats.append(re.compile(rf'(?i)("?{re.escape(key)}"?\s*[:=]\s*")([^"]*)(")'))
         # Bare shape: key=value  (value is non-quoted, non-whitespace,
         # non-comma; stops at delimiter).
-        pats.append(
-            re.compile(
-                rf"(?i)(\b{re.escape(key)}\s*=\s*)([^\s,;'\"]+)"
-            )
-        )
+        pats.append(re.compile(rf"(?i)(\b{re.escape(key)}\s*=\s*)([^\s,;'\"]+)"))
     return pats
 
 
@@ -137,7 +129,7 @@ def redact(text: str) -> str:
         # The first capture group ends with the opening quote (for JSON
         # shape) or with "key=" (for bare shape). The replacement keeps
         # whatever the third group captured (closing quote) when present.
-        if pat.groups == 3:
+        if pat.groups == 3:  # noqa: PLR2004
             out = pat.sub(lambda m: f"{m.group(1)}{_REPLACEMENT}{m.group(3)}", out)
         else:
             out = pat.sub(lambda m: f"{m.group(1)}{_REPLACEMENT}", out)
@@ -199,7 +191,7 @@ def install_admin_tail() -> AdminTailHandler:
     Returns the installed handler instance — useful for tests that want
     to detach it again.
     """
-    global _INSTALLED
+    global _INSTALLED  # noqa: PLW0603
     handler = AdminTailHandler(level=logging.DEBUG)
     handler.addFilter(SecretRedactingFilter())
 

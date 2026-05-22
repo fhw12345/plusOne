@@ -2,7 +2,7 @@
 credentials in backend/.env. Prints PASS/FAIL with diagnostic info.
 Run: cd backend && uv run python smtp_smoke_test.py
 """
-import os
+
 import smtplib
 import ssl
 import sys
@@ -14,7 +14,7 @@ from pathlib import Path
 def load_env(env_path: Path) -> dict[str, str]:
     out: dict[str, str] = {}
     for line in env_path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
+        line = line.strip()  # noqa: PLW2901
         if not line or line.startswith("#"):
             continue
         if "=" not in line:
@@ -25,7 +25,7 @@ def load_env(env_path: Path) -> dict[str, str]:
 
 
 def redact(s: str) -> str:
-    if len(s) <= 4:
+    if len(s) <= 4:  # noqa: PLR2004
         return "*" * len(s)
     return s[:2] + "*" * (len(s) - 4) + s[-2:]
 
