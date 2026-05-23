@@ -309,8 +309,10 @@ async def _load_trip_dates(trip_id: UUID) -> tuple[date | None, date | None]:
         trip = await session.get(Trip, trip_id)
         if trip is None:
             return None, None
-        ds = trip.date_start.date() if trip.date_start is not None else None
-        de = trip.date_end.date() if trip.date_end is not None else None
+        ds_raw = getattr(trip, "date_start", None)
+        de_raw = getattr(trip, "date_end", None)
+        ds = ds_raw.date() if ds_raw is not None else None
+        de = de_raw.date() if de_raw is not None else None
         return ds, de
 
 
