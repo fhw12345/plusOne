@@ -6,7 +6,7 @@ flat / JSON-friendly so they round-trip cleanly through the Report
 ``content.day_plan`` JSONB column. See ``docs/prd/trip-detail-itinerary.md``.
 """
 
-from datetime import date
+from datetime import date as date_t
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -27,7 +27,7 @@ class DayPlan(BaseModel):
     """One calendar day's slate of items."""
 
     day_index: int = Field(ge=1)
-    date: date | None = None
+    date: date_t | None = None
     theme: str | None = None
     slots: list[DaySlot] = Field(default_factory=list)
 
