@@ -12,7 +12,7 @@ test.describe("companions page (/app/companions)", () => {
 
     // Create "Alex"
     await page
-      .getByRole("button", { name: /add someone|add the first one|add companion/i })
+      .getByRole("button", { name: /add the first one|add companion/i })
       .click();
     await page.getByLabel(/^Name$/i).fill("Alex");
     const loves = page.getByRole("textbox", { name: "Loves" });
@@ -43,7 +43,7 @@ test.describe("companions page (/app/companions)", () => {
 
     // Create another "Alex K" → 409 inline
     await page
-      .getByRole("button", { name: /add someone|add the first one|add companion/i })
+      .getByRole("button", { name: /add the first one|add companion/i })
       .click();
     await page.getByLabel(/^Name$/i).fill("Alex K");
     await page.getByRole("button", { name: /^Add$/ }).click();
