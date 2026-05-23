@@ -1,0 +1,44 @@
+[
+  {
+    "place_id": "ChIJplaceItto",
+    "name": "麺屋一燈 (Menya Itto)",
+    "formatted_address": "1-4-17 Shinkoiwa, Katsushika, Tokyo 124-0024",
+    "latitude": null,
+    "longitude": null,
+    "categories": ["Ramen", "Restaurant"],
+    "distance_m": null,
+    "rating": null,
+    "user_ratings_total": null,
+    "price_level": null,
+    "types": ["Ramen", "Restaurant"],
+    "external_url": "https://foursquare.com/v/ChIJplaceItto"
+  },
+  {
+    "place_id": "ChIJplaceAfuri",
+    "name": "AFURI 原宿",
+    "formatted_address": "3-63-1 Sendagaya, Shibuya, Tokyo",
+    "latitude": null,
+    "longitude": null,
+    "categories": ["Ramen", "Restaurant"],
+    "distance_m": null,
+    "rating": null,
+    "user_ratings_total": null,
+    "price_level": null,
+    "types": ["Ramen", "Restaurant"],
+    "external_url": "https://foursquare.com/v/ChIJplaceAfuri"
+  },
+  {
+    "place_id": "ChIJplaceIchiran",
+    "name": "Ichiran Shibuya",
+    "formatted_address": "1-22-7 Jinnan, Shibuya, Tokyo",
+    "latitude": null,
+    "longitude": null,
+    "categories": ["Ramen", "Restaurant"],
+    "distance_m": null,
+    "rating": null,
+    "user_ratings_total": null,
+    "price_level": null,
+    "types": ["Ramen", "Restaurant"],
+    "external_url": "https://foursquare.com/v/ChIJplaceIchiran"
+  }
+]

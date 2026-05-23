@@ -23,7 +23,7 @@ class Evidence(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    source: Literal["reddit", "xiaohongshu", "google_places"]
+    source: Literal["reddit", "xiaohongshu", "foursquare"]
     url: str = Field(description="Permalink back to the original")
     snippet: str = Field(description="Quoted ~1-line excerpt that justifies the classification")
     sentiment: float | None = Field(

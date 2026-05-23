@@ -30,7 +30,7 @@ logger = structlog.get_logger()
 _TTL_BY_SOURCE: dict[str, timedelta] = {
     "reddit": timedelta(hours=24),
     "xhs": timedelta(days=7),
-    "google_places": timedelta(days=30),
+    "foursquare": timedelta(days=30),
 }
 
 

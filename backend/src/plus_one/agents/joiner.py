@@ -1,7 +1,7 @@
 """Joiner agent — fetches multi-source evidence per candidate and classifies.
 
 Conforms to ``JoinerFn[Candidate, JoinedItem]``. For each Candidate, it
-fans out parallel tool calls (Reddit, XHS, Google Places), then asks
+fans out parallel tool calls (Reddit, XHS, Foursquare), then asks
 the LLM to roll the results into a Classification + Evidence list.
 
 Per ADR-005, ``joiner_agent`` is a heavy-reasoning role (Claude Opus
@@ -27,7 +27,7 @@ from plus_one.core.agents.framework.types import AgentContext, PhaseResult
 from plus_one.core.llm import Message
 from plus_one.core.llm import factory as llm_factory
 from plus_one.core.tools import (
-    GooglePlacesSearchTool,
+    FoursquarePlacesSearchTool,
     RedditSearchTool,
     XHSSearchTool,
 )
@@ -101,7 +101,7 @@ def _format_hit(source: str, hit: object) -> str:
     url = (
         getattr(hit, "permalink", None)
         or getattr(hit, "url", None)
-        or getattr(hit, "google_maps_url", None)
+        or getattr(hit, "external_url", None)
         or "(no url)"
     )
     title = getattr(hit, "title", None) or getattr(hit, "name", "") or ""
@@ -123,7 +123,7 @@ def _default_registry() -> ToolRegistry:
     # tests/unit/tools/test_tools.py) passes.
     reg.register(cast("Tool[Any, Any]", RedditSearchTool()))
     reg.register(cast("Tool[Any, Any]", XHSSearchTool()))
-    reg.register(cast("Tool[Any, Any]", GooglePlacesSearchTool()))
+    reg.register(cast("Tool[Any, Any]", FoursquarePlacesSearchTool()))
     return reg
 
 
@@ -144,7 +144,7 @@ def _build_tool_calls(candidate: Candidate, query: str) -> list[ToolCall]:
         ),
         ToolCall(tool="xhs_search", args={"query": f"{base} 推荐", "limit": 10}),
         ToolCall(
-            tool="google_places_search",
+            tool="places_search",
             args={"query": base, "location_hint": query, "limit": 5},
         ),
     ]

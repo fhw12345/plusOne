@@ -12,7 +12,7 @@ Layout:
     │   └── tokyo_ramen_tonkotsu.json
     ├── xhs/
     │   └── tokyo_ramen_tonkotsu.json
-    └── google_places/
+    └── foursquare/
         └── tokyo_ramen.json
 """
 

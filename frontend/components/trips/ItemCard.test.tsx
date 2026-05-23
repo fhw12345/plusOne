@@ -14,7 +14,7 @@ function mkItem(): JoinedItem {
     evidence: [
       { source: "reddit", url: "https://reddit.com/r/x/1", snippet: "rdt" },
       { source: "xiaohongshu", url: "https://xiaohongshu.com/2", snippet: "xhs" },
-      { source: "google_places", url: "https://maps.google.com/3", snippet: "gp" },
+      { source: "foursquare", url: "https://foursquare.com/v/3", snippet: "fsq" },
     ],
     summary: "summary",
   } as JoinedItem;
@@ -57,20 +57,20 @@ describe("ItemCard perspective wiring (PRD batch-2r §4.2d)", () => {
       const html = renderToString(<ItemCard item={mkItem()} perspective="fused" />);
       expect(html).toContain("reddit.com");
       expect(html).toContain("xiaohongshu.com");
-      expect(html).toContain("maps.google.com");
+      expect(html).toContain("foursquare.com");
     });
 
-    it("en: keeps reddit + google_places, hides xiaohongshu", () => {
+    it("en: keeps reddit + foursquare, hides xiaohongshu", () => {
       const html = renderToString(<ItemCard item={mkItem()} perspective="en" />);
       expect(html).toContain("reddit.com");
-      expect(html).toContain("maps.google.com");
+      expect(html).toContain("foursquare.com");
       expect(html).not.toContain("xiaohongshu.com");
     });
 
-    it("zh: keeps xiaohongshu + google_places, hides reddit", () => {
+    it("zh: keeps xiaohongshu + foursquare, hides reddit", () => {
       const html = renderToString(<ItemCard item={mkItem()} perspective="zh" />);
       expect(html).toContain("xiaohongshu.com");
-      expect(html).toContain("maps.google.com");
+      expect(html).toContain("foursquare.com");
       expect(html).not.toContain("reddit.com");
     });
 

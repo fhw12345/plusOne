@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # === Tool fixtures ===
-    # Tools (Reddit, XHS, Google Places) read pre-collected JSON from this
+    # Tools (Reddit, XHS, Foursquare Places) read pre-collected JSON from this
     # directory in v1. Live API wiring is a follow-up batch.
     fixtures_dir: Path = Path("fixtures")
 

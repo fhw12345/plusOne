@@ -10,7 +10,7 @@ Anthropic Skills convention:
     name: ramen_basics
     description: Tokyo ramen styles + landmark shops + how to read a menu
     when_to_use: User mentions ramen, noodles, or Tokyo food
-    allowed_tools: ["reddit_search", "google_places"]
+    allowed_tools: ["reddit_search", "places_search"]
     ---
 
     # Body of the skill (markdown)

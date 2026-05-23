@@ -1,7 +1,7 @@
 """Tool system — typed external operations agents can call.
 
 A *tool* is a typed async callable an agent can invoke (e.g. ``reddit_search``,
-``google_places_lookup``). Tools self-report their concurrency safety so the
+``places_search``). Tools self-report their concurrency safety so the
 scheduler can dispatch independent calls in parallel without a centralized
 table.
 

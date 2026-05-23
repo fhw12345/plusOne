@@ -5,7 +5,7 @@ when_to_use: User mentions ramen, ラーメン, noodles, tonkotsu, shoyu, miso, 
 allowed_tools:
   - reddit_search
   - xhs_search
-  - google_places_search
+  - places_search
 ---
 
 # Ramen basics — Tokyo
@@ -54,7 +54,7 @@ Use these signals when classifying a shop. None alone is decisive.
   "Tokyo ramen Tabelog" or "Tokyo ramen recommendation locals".
 - For Chinese-perspective Tokyo ramen: XHS query "东京 拉面 推荐"
   (Tokyo ramen recommendation) or "东京 隐藏 拉面" (Tokyo hidden ramen).
-- For factual data (address, hours, Google rating): Google Places with
+- For factual data (address, categories, location): Foursquare with
   the shop's romanized name + Tokyo as location_hint.
 
 ## Red flags

@@ -38,4 +38,4 @@ def test_bundled_ramen_skill_lists_real_tools() -> None:
     skill = registry.get("ramen_basics")
     assert "reddit_search" in skill.allowed_tools
     assert "xhs_search" in skill.allowed_tools
-    assert "google_places_search" in skill.allowed_tools
+    assert "places_search" in skill.allowed_tools

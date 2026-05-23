@@ -106,7 +106,7 @@ export type JoinedItemView = {
   classification?: "local_gem" | "tourist_trap" | "neutral" | "insufficient";
   confidence?: number;
   evidence?: Array<{
-    source?: "reddit" | "xiaohongshu" | "google_places";
+    source?: "reddit" | "xiaohongshu" | "foursquare";
     url?: string;
     snippet?: string;
     sentiment?: number | null;

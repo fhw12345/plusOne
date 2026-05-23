@@ -9,7 +9,7 @@ See ``docs/prds/batch2i-disagreement-perspective.md`` §4.3 for the
 truth-table and rationale.
 
 Caveat: v1 uses *source* as a language proxy (Reddit → English,
-Xiaohongshu → Chinese, Google Places → neutral). A Reddit thread written
+Xiaohongshu → Chinese, Foursquare → neutral). A Reddit thread written
 in Chinese — or a Xiaohongshu post written in English — will be
 mis-attributed. v2 will replace this with per-evidence language
 detection; see PRD §9.

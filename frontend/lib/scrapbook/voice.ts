@@ -19,7 +19,7 @@ const PRODUCER_GENERIC: Pool = [
   "pulled {n} candidates. reading through.",
   "{n} names so far. saving the ones that show up twice.",
   "now checking the next source. cross-referencing.",
-  "confirming addresses + hours with google places.",
+  "confirming addresses + hours with foursquare.",
 ];
 
 const JOINER: Pool = [

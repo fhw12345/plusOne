@@ -23,7 +23,7 @@ export interface ItemCardProps {
 }
 
 // PRD batch-2r §4.2(d): which evidence sources to keep per perspective.
-// `google_places` is the "neutral" source and stays in every view.
+// `foursquare` is the "neutral" source and stays in every view.
 // Unknown / future sources fall through and are kept (defensive — we
 // don't want to silently drop new providers).
 function filterEvidenceByPerspective(
@@ -34,7 +34,7 @@ function filterEvidenceByPerspective(
   return evidence.filter((ev) => {
     const source = ev?.source;
     if (source == null) return true;
-    if (source === "google_places") return true;
+    if (source === "foursquare") return true;
     if (perspective === "zh") return source === "xiaohongshu";
     if (perspective === "en") return source === "reddit";
     return true;

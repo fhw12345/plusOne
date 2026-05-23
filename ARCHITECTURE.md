@@ -36,7 +36,7 @@
 │   companions     │                │  Tools:                 │
 │   trips          │                │   - reddit_search       │
 │   reports        │                │   - xhs_search          │
-│   feedback       │                │   - google_places       │
+│   feedback       │                │   - foursquare          │
 │   skill_versions │                │   - llm (Maestro)       │
 │   prompt_runs    │                └────┬────────────────────┘
 │   eval_results   │                     │
@@ -51,7 +51,7 @@
                               │   via Copilot quota          │
                               │                              │
                               │  Reddit (PRAW)               │
-                              │  Google Places API           │
+                              │  Foursquare Places API       │
                               │  Xiaohongshu (Playwright)    │
                               │  Langfuse (optional, local)  │
                               └──────────────────────────────┘
@@ -84,7 +84,7 @@
 │  Joiner Agent                                               │
 │   Cross-validates candidates against multi-source data      │
 │   Skills: bullshit_filter, source_weighting, ...            │
-│   Tools: reddit_search, xhs_search, google_places           │
+│   Tools: reddit_search, xhs_search, foursquare              │
 │   Output: JoinedItem[] with classification + evidence       │
 └──────────────────────┬──────────────────────────────────────┘
                        │

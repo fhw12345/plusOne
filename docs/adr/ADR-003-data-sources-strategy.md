@@ -96,3 +96,21 @@ Used for: interview demos, CI integration tests, frontend dev without API costs.
 
 - ADR-001 (tech stack)
 - Reviewer feedback re: scraping risk
+
+## Addendum — 2026-05-23: Foursquare Places replaces Google Places
+
+The factual POI source has been swapped from Google Places to Foursquare
+Places. Google Places' paid-API requirement gated local development; Foursquare
+offers a 10k calls/month free tier on the basic Places API that covers MVP
+needs.
+
+- **New env var**: `FOURSQUARE_API_KEY` (replaces `GOOGLE_PLACES_API_KEY`).
+- **New endpoint**: `https://places-api.foursquare.com/places/search`, pinned
+  via `X-Places-Api-Version: 2025-06-17`.
+- **Known regression**: `rating`, `price_level`, and `user_ratings_total` are
+  no longer populated on the basic tier; tracked for a possible Premium-tier
+  follow-up if joiner quality degrades meaningfully.
+- The demo-mode fixture directory moves from `fixtures/google/` to
+  `fixtures/foursquare/`. The cache `source` namespace is `"foursquare"`.
+
+The original Google Places references above are retained as historical record.

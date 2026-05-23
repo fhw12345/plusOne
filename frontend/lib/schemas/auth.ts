@@ -71,7 +71,7 @@ export type LoginWithCodeBody = z.infer<typeof LoginWithCodeBody>;
 // Extended User shape: includes username + is_admin (added in batch-2m).
 export const UserSchema = z.object({
   id: z.string().min(1),
-  email: z.string().email(),
+  email: z.string().min(1),
   username: z.string(),
   is_admin: z.boolean(),
 });

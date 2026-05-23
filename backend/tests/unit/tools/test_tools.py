@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 
 from plus_one.core.agents.framework.tools import Tool
-from plus_one.core.tools.google_places import (
-    GooglePlacesSearchInput,
-    GooglePlacesSearchTool,
+from plus_one.core.tools.foursquare_places import (
+    FoursquarePlacesSearchTool,
     Place,
+    PlacesSearchInput,
 )
 from plus_one.core.tools.reddit import RedditPost, RedditSearchInput, RedditSearchTool
 from plus_one.core.tools.xiaohongshu import (
@@ -134,32 +134,34 @@ async def test_xhs_search_returns_cached_posts(tmp_path: Path) -> None:
     assert result.output[0].author == "a"
 
 
-# === Google Places =======================================================
+# === Foursquare Places ===================================================
 
 
 @pytest.mark.unit
-async def test_google_places_returns_cached_places(tmp_path: Path) -> None:
+async def test_places_returns_cached_places(tmp_path: Path) -> None:
     _write(
-        tmp_path / "google_places" / "ramen__tokyo_japan.json",
+        tmp_path / "foursquare" / "ramen__tokyo_japan.json",
         [
             {
-                "place_id": "ChIJ_x",
+                "place_id": "fsq_x",
                 "name": "Some Ramen",
                 "formatted_address": "1-2-3 Somewhere, Tokyo",
-                "rating": 4.3,
-                "user_ratings_total": 100,
-                "price_level": 1,
-                "types": ["restaurant"],
+                "rating": None,
+                "user_ratings_total": None,
+                "price_level": None,
+                "categories": ["Ramen"],
+                "types": ["Ramen"],
+                "external_url": "https://foursquare.com/v/fsq_x",
             }
         ],
     )
-    tool = GooglePlacesSearchTool(fixtures_dir=tmp_path)
+    tool = FoursquarePlacesSearchTool(fixtures_dir=tmp_path)
     result = await tool.execute(
-        GooglePlacesSearchInput(query="ramen", location_hint="Tokyo, Japan")
+        PlacesSearchInput(query="ramen", location_hint="Tokyo, Japan")
     )
     assert result.output is not None
     assert isinstance(result.output[0], Place)
-    assert result.output[0].rating == 4.3
+    assert result.output[0].external_url == "https://foursquare.com/v/fsq_x"
 
 
 # === Tool Protocol conformance ==========================================
@@ -170,7 +172,7 @@ def test_tools_conform_to_framework_protocol() -> None:
     for tool in (
         RedditSearchTool(),
         XHSSearchTool(),
-        GooglePlacesSearchTool(),
+        FoursquarePlacesSearchTool(),
     ):
         assert isinstance(tool, Tool)  # runtime_checkable Protocol
         assert tool.is_concurrency_safe is True

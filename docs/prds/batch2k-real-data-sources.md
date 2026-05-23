@@ -1,5 +1,7 @@
 # Batch 2k — Real-backed data sources + output language toggle
 
+> **Update (2026-05-23):** Google Places provider has been replaced by Foursquare Places. See ADR-003 addendum.
+
 > Status: PRD v2 (ship-quality, verified against code + ADR-003).
 > Depends on: Batch 2g + 2h + 2i merged (UI surfaces the language toggle and report view).
 > 3-PR split (locked): PR A = Reddit PRAW, PR B = XHS Playwright scraper, PR C = Google Places + output language.

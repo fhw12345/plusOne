@@ -28,8 +28,8 @@ function _kickoffRehydrate(): void {
 }
 
 function _subscribe(listener: () => void): () => void {
-  _kickoffRehydrate();
   _listeners.add(listener);
+  _kickoffRehydrate();
   return () => {
     _listeners.delete(listener);
   };

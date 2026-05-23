@@ -12,7 +12,7 @@ Current travel guides suffer from three problems:
 3. **No tool tells you when sources disagree** (the most informative signal is hidden)
 
 Plus One solves these by running a multi-source agent cycle that:
-- Pulls signal from Reddit + Xiaohongshu + Google Places in parallel
+- Pulls signal from Reddit + Xiaohongshu + Foursquare Places in parallel
 - Filters sponsored content via heuristics + LLM judgment
 - Cross-validates claims and surfaces disagreements as first-class output
 - Personalizes by user / companion preferences (per-card match scoring)
