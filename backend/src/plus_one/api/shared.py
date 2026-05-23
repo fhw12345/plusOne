@@ -33,6 +33,12 @@ class SharedTripResponse(BaseModel):
     destination: str
     status: str
     content: dict[str, object] | None = None
+    # Batch-3a: mirror the owner-side TripDetail.day_plan field. The
+    # itinerary itself lives inside ``content.day_plan`` (JSONB
+    # pass-through), but exposing the typed top-level alias keeps the
+    # shared schema symmetric with the owner endpoint and makes the
+    # field discoverable to typed clients.
+    day_plan: list[dict[str, object]] | None = None
     shared: bool = True
     expires_at: datetime
 

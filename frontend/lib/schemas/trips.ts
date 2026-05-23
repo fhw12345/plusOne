@@ -85,6 +85,25 @@ export type TripStatus = z.infer<typeof TripStatus>;
 export const JoinedItemSchema = z.object({}).passthrough();
 export type JoinedItem = z.infer<typeof JoinedItemSchema>;
 
+// PRD batch-3a — itinerary day plan. Backend stores ``day_plan`` as a
+// JSONB array under ``TripContent``; each ``DaySlot.item_index`` is a
+// 0-based pointer into ``content.items``. Periods are a closed set
+// (mirrors backend ``Literal["morning", ...]``).
+export const DaySlot = z.object({
+  period: z.enum(["morning", "afternoon", "evening", "late_night"]),
+  item_index: z.number().int().nonnegative(),
+  note: z.string().nullable().optional(),
+});
+export type DaySlot = z.infer<typeof DaySlot>;
+
+export const DayPlan = z.object({
+  day_index: z.number().int().positive(),
+  date: z.string().nullable().optional(),
+  theme: z.string().nullable().optional(),
+  slots: z.array(DaySlot),
+});
+export type DayPlan = z.infer<typeof DayPlan>;
+
 // View-only structural type matching the actual JoinedItem fields the
 // backend joiner emits today. Used by ReportView / ItemCard / categorize
 // to pull out known fields (candidate, classification, evidence, etc.)
@@ -115,6 +134,11 @@ export type JoinedItemView = {
   // Batch-2p — per-person match scores keyed by user.id / companion.id.
   // Float 0..1. Null on solo trips or pre-2p items.
   match_scores?: Record<string, number> | null;
+  // PRD batch-3a — Foursquare cover image (deterministic, no LLM) and
+  // joiner-v4 long-form description (2–4 sentences). Both optional:
+  // pre-3a items lack them and rendering surfaces fall back gracefully.
+  image_url?: string | null;
+  long_description?: string;
 };
 
 // Per-language sub-shape for `translations[lang]`. Batch-2q widens it
@@ -148,6 +172,10 @@ export const TripContent = z.object({
     })
     .partial()
     .optional(),
+  // PRD batch-3a — day-by-day itinerary, optional and nullable so old
+  // reports (no scheduler run) and trips where the scheduler failed
+  // validation fall back to ``<ReportView>``.
+  day_plan: z.array(DayPlan).nullable().optional(),
 });
 export type TripContent = z.infer<typeof TripContent>;
 

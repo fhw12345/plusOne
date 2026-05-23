@@ -59,6 +59,15 @@ class JoinedItem(BaseModel):
     # scoring did not apply, or no party identity available). The LLM
     # may emit string UUID keys; Pydantic coerces.
     match_scores: dict[UUID, float] | None = Field(default=None)
+    # Batch-3a: image URL for itinerary card rendering. Foursquare basic
+    # tier does not expose photo URLs (Place.external_url is the venue
+    # page, NOT an image), so this is `None` in prod for now. Wired
+    # end-to-end so a future Pro-tier / alternate provider just plugs in.
+    image_url: str | None = Field(default=None)
+    # Batch-3a: 2-4 sentence field-notes paragraph in the voice of a
+    # well-travelled friend. Authored by the joiner LLM (v4 prompt) from
+    # the evidence list; falls back to "" when the model omits it.
+    long_description: str = Field(default="", max_length=2400)
 
 
 class JoinerPayload(BaseModel):
@@ -150,13 +159,31 @@ def _build_tool_calls(candidate: Candidate, query: str) -> list[ToolCall]:
     ]
 
 
-async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[JoinerPayload]:
+async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[JoinerPayload]:  # noqa: PLR0912
     """Run the Joiner phase: fetch evidence + classify each candidate."""
     registry = _default_registry()
 
     # Fan out evidence-gathering across all candidates in parallel.
     fetch_tasks = [run_tool_calls(registry, _build_tool_calls(c, ctx.query)) for c in candidates]
     all_results = await asyncio.gather(*fetch_tasks)
+
+    # Batch-3a: build a name -> image URL map for itinerary card art. The
+    # current Foursquare basic-tier `Place` payload has no photo field
+    # (`external_url` is the venue page link, NOT an image), so this map
+    # is mostly `{name: None}` in prod today. We still wire propagation
+    # so a future Pro-tier or alternate-source upgrade only needs to set
+    # a real URL here.
+    _image_by_name: dict[str, str | None] = {}
+    for candidate, results in zip(candidates, all_results, strict=True):
+        for r in results:
+            if r.tool == "places_search" and r.ok and r.output:
+                first = r.output[0]
+                # Reserved hook for a future provider that does expose
+                # photo URLs. `Place.external_url` is the venue page,
+                # NOT an image — explicitly not used.
+                _image_by_name.setdefault(candidate.name.lower(), None)
+                _ = first
+                break
 
     # Hand the raw fetches + candidates to the LLM for classification.
     # Per-source, serialize the top hits with URL + title + snippet so the
@@ -169,7 +196,7 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
     # prompt would need every JSON brace re-doubled to switch, so we
     # keep the call simple and surgical (PRD §7).
     system = (
-        load_prompt("joiner", "v3")
+        load_prompt("joiner", "v4")
         .replace(
             "{preferences}",
             render_preferences_section(ctx.user_profile, ctx.selected_companions),
@@ -237,6 +264,11 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
             updates["divergence_score"] = score
         if sanitised_scores != item.match_scores:
             updates["match_scores"] = sanitised_scores
+        # Batch-3a: propagate the resolved image URL (currently always
+        # None on Foursquare basic tier — see _image_by_name comment).
+        img = _image_by_name.get(item.candidate.name.lower())
+        if img is not None and not item.image_url:
+            updates["image_url"] = img
         repaired_item = item.model_copy(update=updates) if updates else item
         repaired.append(repaired_item)
 

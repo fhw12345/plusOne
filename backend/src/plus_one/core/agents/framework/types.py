@@ -8,6 +8,7 @@ the framework, not here.
 
 from __future__ import annotations
 
+from datetime import date  # noqa: TC003 — runtime use as Pydantic field annotation
 from typing import Any
 from uuid import UUID  # noqa: TC003 — runtime use as Pydantic field annotation
 
@@ -130,6 +131,12 @@ class AgentContext(BaseModel):
             "companions; v2 will be user-selected per trip."
         ),
     )
+    # Batch-3a: trip date range projected from the Trip ORM row. Both
+    # default to ``None`` so unit tests + pre-3a callers that construct
+    # AgentContext without dates keep working. The itinerary scheduler
+    # uses these to size the day count.
+    date_start: date | None = Field(default=None)
+    date_end: date | None = Field(default=None)
 
     def at_depth_cap(self) -> bool:
         return self.depth >= self.max_depth

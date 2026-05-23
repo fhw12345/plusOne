@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { ItineraryView } from "@/components/trips/ItineraryView";
 import { ReportView } from "@/components/trips/ReportView";
 import { getSharedTrip } from "@/lib/api/trips";
 import type { TripDetail } from "@/lib/schemas/trips";
@@ -53,7 +54,11 @@ export default async function SharedTripPage({ params }: SharePageProps) {
           </span>
         </p>
       </header>
-      <ReportView trip={tripForView} readonly />
+      {tripForView.content?.day_plan && tripForView.content.day_plan.length > 0 ? (
+        <ItineraryView trip={tripForView} />
+      ) : (
+        <ReportView trip={tripForView} readonly />
+      )}
     </main>
   );
 }

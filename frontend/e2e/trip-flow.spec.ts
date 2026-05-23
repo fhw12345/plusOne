@@ -24,9 +24,12 @@ test.describe("trip flow (happy path)", () => {
 
     await expect(page).toHaveURL(/\/app\/trips\/[0-9a-f-]{36}/i, { timeout: 10_000 });
 
-    // At least one progress event surfaces in the live feed
+    // At least one progress event surfaces in the live feed. The voice.ts
+    // bucketing maps backend reasons into scrapbook-voice text; we accept
+    // both the literal event names (older renderings) and the human-voice
+    // variants the current UI emits (snapped / hit a wall / stuck / etc.).
     await expect(page.getByTestId("progress-feed")).toContainText(
-      /started|producer|joiner|controller|cycle aborted|trip complete/i,
+      /started|producer|joiner|controller|cycle aborted|trip complete|snapped|hit a wall|stuck|done|notes app/i,
       { timeout: 20_000 },
     );
 

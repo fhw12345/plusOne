@@ -9,6 +9,7 @@ import { ProgressFeed } from "@/components/trips/ProgressFeed";
 import { RefinePanel } from "@/components/trips/RefinePanel";
 import { RefinementHistory } from "@/components/trips/RefinementHistory";
 import { ReportView } from "@/components/trips/ReportView";
+import { ItineraryView } from "@/components/trips/ItineraryView";
 import { DeleteTripDialog } from "@/components/trips/DeleteTripDialog";
 import { ShareDialog } from "@/components/trips/ShareDialog";
 import { AdminWireLink } from "@/components/AdminWireLink";
@@ -223,7 +224,13 @@ export default function TripDetailPage() {
         <ProgressFeed events={feedEvents} destination={trip?.destination} />
       </section>
 
-      {terminal && trip ? <ReportView trip={trip} /> : null}
+      {terminal && trip ? (
+        trip.content?.day_plan && trip.content.day_plan.length > 0 ? (
+          <ItineraryView trip={trip} />
+        ) : (
+          <ReportView trip={trip} />
+        )
+      ) : null}
       {derived === "complete" && trip ? (
         <>
           <RefinePanel tripId={trip.trip_id} disabled={derived !== "complete"} />

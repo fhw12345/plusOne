@@ -33,19 +33,24 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 import os
+from datetime import date
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import structlog
-from sqlalchemy import select
+from pydantic import ValidationError
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 from plus_one.agents.controller import controller as controller_phase
+from plus_one.agents.itinerary import ItineraryPlan
 from plus_one.agents.joiner import JoinedItem, JoinerPayload
 from plus_one.agents.joiner import joiner as joiner_phase
 from plus_one.agents.producer import Candidate
 from plus_one.agents.producer import producer as producer_phase
+from plus_one.agents.prompts import load_prompt
 from plus_one.agents.refiner import refine as refine_phase
 from plus_one.agents.translator import translate_items, translate_tl_dr
 from plus_one.core.agents.framework.cycle import run_cycle
@@ -59,6 +64,8 @@ from plus_one.core.agents.framework.types import (
 )
 from plus_one.core.db.models import Companion, Profile, Report, Trip
 from plus_one.core.db.session import session_scope
+from plus_one.core.llm import Message
+from plus_one.core.llm import factory as llm_factory
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -285,6 +292,152 @@ async def _run_translations_and_update(
         report.content = new_content
 
 
+# ---------------------------------------------------------------------------
+# Itinerary scheduler (batch-3a)
+# ---------------------------------------------------------------------------
+
+
+async def _load_trip_dates(trip_id: UUID) -> tuple[date | None, date | None]:
+    """Read the Trip row's date_start / date_end and project to ``date``.
+
+    The ORM column type is ``datetime`` (timezone-aware). The agent-side
+    context + scheduler model use ``date``, so we drop the time portion
+    here. Returns ``(None, None)`` on a missing trip row — the caller's
+    scheduler then falls back to the default 3-day plan.
+    """
+    async with session_scope() as session:
+        trip = await session.get(Trip, trip_id)
+        if trip is None:
+            return None, None
+        ds = trip.date_start.date() if trip.date_start is not None else None
+        de = trip.date_end.date() if trip.date_end is not None else None
+        return ds, de
+
+
+_ITINERARY_ELIGIBLE: frozenset[str] = frozenset({"local_gem", "neutral"})
+_ITINERARY_MAX_DAYS = 7
+_ITINERARY_DEFAULT_DAYS = 3
+
+
+async def _run_itinerary_scheduler(
+    items: list[JoinedItem],
+    date_start: date | None,
+    date_end: date | None,
+) -> list[dict[str, Any]] | None:
+    """Ask the scheduler LLM to arrange eligible items into days x periods.
+
+    Returns the JSON-serialisable list of ``DayPlan`` dicts on success,
+    or ``None`` on any failure (no eligible items, LLM error, validation
+    error). The caller treats ``None`` as "skip day_plan patching" so the
+    frontend falls back to the flat report view (PRD AC-9 / AC-12).
+
+    Best-effort by design: this MUST NOT crash the surrounding cycle.
+    """
+    try:
+        eligible_indices: list[int] = [
+            idx for idx, item in enumerate(items) if item.classification in _ITINERARY_ELIGIBLE
+        ]
+        if not eligible_indices:
+            return None
+
+        if date_start is not None and date_end is not None:
+            day_count = min(_ITINERARY_MAX_DAYS, max(1, (date_end - date_start).days + 1))
+        else:
+            day_count = _ITINERARY_DEFAULT_DAYS
+
+        # Build items_json with the ORIGINAL index (not the filtered
+        # position) so the LLM's `item_index` lines up with `items[i]`
+        # downstream. Critical for slot resolution on the frontend.
+        items_payload = [
+            {
+                "index": idx,
+                "name": items[idx].candidate.name,
+                "area": items[idx].candidate.area or "",
+                "classification": items[idx].classification,
+            }
+            for idx in eligible_indices
+        ]
+        items_json = json.dumps(items_payload, ensure_ascii=False)
+
+        # Destination is implicit in the items; reuse the first eligible
+        # item's `area` if available, else empty.
+        destination = ""
+        for idx in eligible_indices:
+            if items[idx].candidate.area:
+                destination = items[idx].candidate.area or ""
+                break
+
+        prompt = (
+            load_prompt("itinerary", "v1")
+            .replace("{destination}", destination)
+            .replace(
+                "{date_start_iso_or_none}",
+                date_start.isoformat() if date_start else "none",
+            )
+            .replace(
+                "{date_end_iso_or_none}",
+                date_end.isoformat() if date_end else "none",
+            )
+            .replace("{day_count}", str(day_count))
+            .replace("{items_json}", items_json)
+        )
+
+        llm = llm_factory.get_llm_provider("itinerary_agent")
+        response = await llm.complete(
+            system=prompt,
+            messages=[Message(role="user", content=items_json)],
+            response_model=ItineraryPlan,
+        )
+        plan = response.parsed
+        if plan is None:
+            logger.warning("itinerary_scheduler_no_parse")
+            return None
+
+        # Defense in depth: ensure every emitted item_index is in range
+        # (Pydantic validates >= 0 + dedup, but does not know N items).
+        n_items = len(items)
+        for day in plan.days:
+            for slot in day.slots:
+                if slot.item_index >= n_items:
+                    logger.warning(
+                        "itinerary_scheduler_oor_index",
+                        item_index=slot.item_index,
+                        n_items=n_items,
+                    )
+                    return None
+
+        return [day.model_dump(mode="json") for day in plan.days]
+    except ValidationError as exc:
+        logger.warning("itinerary_scheduler_validation_failed", error=str(exc))
+        return None
+    except Exception:
+        logger.exception("itinerary_scheduler_failed")
+        return None
+
+
+async def _update_report_day_plan(report_id: UUID, day_plan: list[dict[str, Any]]) -> None:
+    """Patch ``content.day_plan`` on an existing Report row.
+
+    Uses ``jsonb_set`` so the surrounding content (items, translations,
+    tl_dr, refine) is untouched. Best-effort: any failure is logged and
+    swallowed so a scheduler-side hiccup never flips a successful trip
+    to aborted.
+    """
+    try:
+        payload = json.dumps(day_plan, ensure_ascii=False)
+        async with session_scope() as session:
+            await session.execute(
+                text(
+                    "UPDATE reports SET content = jsonb_set("
+                    "COALESCE(content, '{}'::jsonb), '{day_plan}', "
+                    "CAST(:dp AS jsonb), true) WHERE id = :rid"
+                ),
+                {"dp": payload, "rid": report_id},
+            )
+    except Exception:
+        logger.exception("itinerary_day_plan_patch_failed", report_id=str(report_id))
+
+
 async def _load_profile_context(
     user_id: UUID,
     companion_ids: list[UUID] | None = None,
@@ -375,12 +528,17 @@ async def run_trip(
         await _publish(trip_id, {"name": "started", "trip_id": str(trip_id)})
 
         user_profile, selected_companions = await _load_profile_context(user_id, companion_ids)
+        # Batch-3a: project Trip.date_start / date_end into AgentContext so
+        # the itinerary scheduler can size the day count.
+        trip_date_start, trip_date_end = await _load_trip_dates(trip_id)
         ctx = AgentContext(
             query=query,
             max_depth=4,
             phase_timeout=120.0,
             user_profile=user_profile,
             selected_companions=selected_companions,
+            date_start=trip_date_start,
+            date_end=trip_date_end,
         )
         trace: list[dict[str, object]] = []
 
@@ -502,6 +660,15 @@ async def run_trip(
             final_status = "aborted"
         else:
             final_status = "complete"
+
+        # Batch-3a: best-effort itinerary scheduler. Runs only when the
+        # report saved successfully and we have items to schedule. Failures
+        # are swallowed inside _run_itinerary_scheduler so a scheduler
+        # hiccup never flips the trip to aborted.
+        if report_id is not None and not report_save_failed and aborted_reason is None and items:
+            day_plan = await _run_itinerary_scheduler(items, ctx.date_start, ctx.date_end)
+            if day_plan is not None:
+                await _update_report_day_plan(report_id, day_plan)
 
         # Best-effort post-cycle translations (PRD batch 2k §6.4). Runs
         # only on a successful report write, gated by
@@ -728,6 +895,14 @@ async def run_refine(
             final_status = "aborted"
         else:
             final_status = "complete"
+
+        # Batch-3a: regenerate the itinerary day_plan against the new
+        # items set. Same best-effort contract as run_trip.
+        if final_status == "complete" and new_items:
+            refine_date_start, refine_date_end = await _load_trip_dates(trip_id)
+            day_plan = await _run_itinerary_scheduler(new_items, refine_date_start, refine_date_end)
+            if day_plan is not None:
+                await _update_report_day_plan(report_id, day_plan)
 
         if final_status == "complete" and new_items and _translate_enabled():
             with contextlib.suppress(Exception):

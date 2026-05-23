@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — Tokyo · reading no. 047 · day-by-day</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+<style>
+  /* ───── Day-strip nav (anchor jumps) ─────
+     Small typewriter chip row; the active day looks like a torn yellow
+     highlighter pass. Reuses .type, .tape-yellow tokens. */
+  .day-strip {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 10px 14px;
+    margin: 28px 0 36px;
+    padding: 12px 14px;
+    background: hsl(var(--paper-2));
+    border: 1px dashed hsl(var(--kraft));
+    transform: rotate(-.25deg);
+    position: relative;
+  }
+  .day-strip .lbl {
+    font-family: var(--font-type);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--ink-3));
+    margin-right: 4px;
+  }
+  .day-strip a {
+    font-family: var(--font-hand);
+    font-size: 22px;
+    color: hsl(var(--ink));
+    text-decoration: none;
+    padding: 2px 8px 0;
+    position: relative;
+    line-height: 1;
+    transform: rotate(var(--tilt, -1deg));
+    display: inline-block;
+  }
+  .day-strip a + a { margin-left: 6px; }
+  .day-strip a:hover { color: hsl(var(--red)); }
+  .day-strip a .meta {
+    display: block;
+    font-family: var(--font-type);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: hsl(var(--ink-3));
+    margin-top: 2px;
+    text-transform: uppercase;
+    transform: rotate(.5deg);
+  }
+  .day-strip a.is-on::before {
+    content: '';
+    position: absolute;
+    left: -2px; right: -2px; top: 50%; height: 12px;
+    transform: translateY(-40%) rotate(-.5deg);
+    background: hsl(var(--tape-yellow) / .75);
+    z-index: -1;
+  }
+  .day-strip .sep {
+    width: 4px; height: 4px;
+    background: hsl(var(--ink-3));
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* ───── Day section header ───── */
+  .day-head {
+    position: relative;
+    margin: 72px 0 8px;
+    padding: 10px 0 12px;
+    border-bottom: 1px dotted hsl(var(--kraft));
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap;
+  }
+  .day-head .day-no {
+    font-family: var(--font-hand);
+    font-weight: 600;
+    font-size: 64px;
+    line-height: .9;
+    color: hsl(var(--ink));
+    transform: rotate(-1.2deg);
+    margin-right: 4px;
+  }
+  .day-head .day-no em {
+    font-style: normal;
+    color: hsl(var(--red));
+  }
+  .day-head .day-meta {
+    font-family: var(--font-type);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--ink-3));
+    margin-left: 14px;
+    align-self: center;
+  }
+  .day-head .day-theme {
+    font-family: var(--font-hand-alt);
+    font-size: 17px;
+    color: hsl(var(--ink-2));
+    transform: rotate(-.4deg);
+    max-width: 540px;
+  }
+
+  /* ───── Period heading inside a day ─────
+     "morning · afternoon · evening · late-night" — small kraft label
+     pinned to the top-left of the items row, lightly tilted. */
+  .period {
+    display: inline-flex; align-items: baseline; gap: 10px;
+    margin: 28px 0 14px;
+    padding: 4px 12px 3px;
+    background: hsl(var(--paper-3));
+    border: 1px solid hsl(var(--kraft));
+    transform: rotate(var(--tilt, -1.5deg));
+    font-family: var(--font-type);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--ink-2));
+  }
+  .period .clock {
+    font-family: var(--font-hand-alt);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: hsl(var(--ink-3));
+  }
+
+  /* ───── Day item grid (collaged 2-up on desktop) ───── */
+  .day-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 32px;
+    align-items: start;
+    padding-bottom: 8px;
+  }
+  .day-grid > article.span-full { grid-column: 1 / -1; }
+  @media (max-width: 760px) {
+    .day-grid { grid-template-columns: 1fr; gap: 22px; }
+  }
+
+  /* Tighten the photo-card bottom space when we have a verdict but no
+     trailing scrawl line. */
+  .photo-card .meta-line {
+    font-family: var(--font-type);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--ink-3));
+    margin-top: 10px;
+  }
+
+  /* Day section wrapper for anchor offset */
+  .day-section { scroll-margin-top: 24px; }
+
+  /* TLDR position tweak under header */
+  .tldr.tldr--top { margin-top: 24px; max-width: 760px; }
+</style>
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">switch to printed</button>
+
+<div class="shell">
+
+  <nav class="nav-strip" style="margin-bottom: 22px;">
+    <p class="crest" style="margin-right: auto;">
+      <span class="crest-dot"></span>PLUS &middot; ONE
+    </p>
+    <a href="index.html">your readings</a>
+    <span class="sep"></span>
+    <a href="trip-new.html">new reading</a>
+    <span class="sep"></span>
+    <a href="companions.html">who you bring</a>
+    <span class="sep"></span>
+    <a href="profile.html">about you</a>
+  </nav>
+
+  <header style="position: relative; padding: 20px 0 18px;">
+    <span class="tape tape--mint" style="top: -6px; left: 60px; width: 110px; height: 26px; transform: rotate(-6deg);"></span>
+    <span class="tape tape--yellow" style="top: 6px; right: 220px; width: 110px; height: 22px; transform: rotate(4deg);"></span>
+
+    <p class="crest" style="margin-bottom: 6px;">
+      <span class="crest-dot" style="background: hsl(var(--signal-done)); animation: none;"></span>reading no. 047 &middot; pinned 12 May 2026
+    </p>
+    <h1 class="hand-xxl">Tokyo<span class="jp" style="font-size: .4em; color: hsl(var(--red)); margin-left: 22px; vertical-align: 18px; letter-spacing: 0;">東京</span></h1>
+    <p class="scrawl" style="font-size: 19px; margin-top: 14px; transform: rotate(-.5deg);">
+      three days for <span class="highlight">Yuna &amp; Wei</span> &mdash; tonkotsu, no tourist traps, kissaten yes
+    </p>
+
+    <div style="position: absolute; right: 24px; top: 24px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+      <span class="stamp stamp--green">Pinned<span class="ymd">12 MAY 2026</span></span>
+      <span class="annot" style="font-size: 14px;">3 days &middot; 11 stops</span>
+    </div>
+  </header>
+
+  <!-- TL;DR at the top — keeps the existing pattern -->
+  <div class="tldr tldr--top" style="--tilt: -.5deg;">
+    <small>tl;dr</small>
+    Lean into <em>Sugamo</em> for ramen, <em>Jimbocho</em> for kissaten, <em>Yanaka</em> for the slow afternoon.
+    Skip Shibuya for food, do it after dark only.
+  </div>
+
+  <!-- Day-strip nav -->
+  <nav class="day-strip" aria-label="jump to day">
+    <span class="lbl">jump &rarr;</span>
+    <a href="#day-1" class="is-on" style="--tilt:-1.5deg;">Day 1 <span class="meta">12 May &middot; mon</span></a>
+    <span class="sep"></span>
+    <a href="#day-2" style="--tilt:.6deg;">Day 2 <span class="meta">13 May &middot; tue</span></a>
+    <span class="sep"></span>
+    <a href="#day-3" style="--tilt:-1deg;">Day 3 <span class="meta">14 May &middot; wed</span></a>
+  </nav>
+
+  <!-- ───────────────────────── DAY 1 ───────────────────────── -->
+  <section id="day-1" class="day-section">
+    <div class="day-head">
+      <div style="display: flex; align-items: flex-end; gap: 6px;">
+        <span class="day-no">Day <em>1</em></span>
+        <span class="day-meta">12 May &middot; mon</span>
+      </div>
+      <p class="day-theme">arrive late from haneda, drop bags in sugamo, eat the ramen you came for, sleep.</p>
+    </div>
+
+    <!-- afternoon -->
+    <span class="period" style="--tilt:-1.5deg;">afternoon <span class="clock">~3pm</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.8deg;">
+        <span class="tape tape--blue cnr"></span>
+        <img src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=900&q=80" alt="Sugamo street" />
+        <p class="cap">Sugamo Jizo-dori <span class="jp">巣鴨地蔵通り</span></p>
+        <p class="meta-line">Sugamo &middot; Toshima &middot; 6 sources</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          The arcade locals call "old-lady Harajuku." Mostly grannies in soft cardigans browsing crackers and red-pant shops. Good for a 40-minute stroll after you drop the bags — buy a senbei, peek into the temple at the end, do not buy the red underwear unless you're committing to the bit.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:74%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:58%"></i></span></span>
+        </p>
+        <span class="verdict verdict--soft">soft yes</span>
+      </article>
+    </div>
+
+    <!-- evening -->
+    <span class="period" style="--tilt:.8deg;">evening <span class="clock">7pm sharp, get there 6:40</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.2deg;">
+        <span class="tape tape--yellow cnr"></span>
+        <span class="heart">&hearts;</span>
+        <img src="https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=900&q=80" alt="shio ramen bowl" />
+        <p class="cap">Menya Saimi <span class="jp">麺屋彩未</span></p>
+        <p class="meta-line">Sugamo &middot; 12 sources agree</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          The one you actually came to Tokyo for. Eight-seat shio counter, no English menu, owner's wife slicing scallions the whole time. Locals on r/<span style="font-family:var(--font-type);font-size:.9em;letter-spacing:.05em;">ramen</span> call the broth "almost transparent." Order the regular shio + ajitama and shut up about it.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:78%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:91%"></i></span></span>
+        </p>
+        <span class="verdict">YES. this one.</span>
+      </article>
+
+      <article class="photo-card" style="--tilt: 1.6deg; margin-top: 22px;">
+        <span class="tape tape--mint cnr"></span>
+        <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=900&q=80" alt="izakaya counter at night" />
+        <p class="cap">Sanpei Sakaba <span class="jp">三平酒場</span></p>
+        <p class="meta-line">Sugamo &middot; 8 sources</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          Walk five minutes from the ramen place. Late-shift salaryman territory — yakitori, simmered things, one-sho bottles of cheap sake. Feels like Midnight Diner without the camera. Wei: skip the shelled stuff (turban shell + bai-gai), the rest is yours.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:72%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:85%"></i></span></span>
+        </p>
+        <span class="verdict">go.</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── DAY 2 ───────────────────────── -->
+  <section id="day-2" class="day-section">
+    <div class="day-head">
+      <div style="display: flex; align-items: flex-end; gap: 6px;">
+        <span class="day-no">Day <em>2</em></span>
+        <span class="day-meta">13 May &middot; tue</span>
+      </div>
+      <p class="day-theme">books, coffee, second-hand cameras, and a curry that's loud about being cheap.</p>
+    </div>
+
+    <!-- morning -->
+    <span class="period" style="--tilt:-1.2deg;">morning <span class="clock">open 10:00, go 10:05</span></span>
+    <div class="day-grid">
+      <article class="photo-card is-typed" style="--tilt: -1deg;">
+        <span class="tape tape--blue cnr"></span>
+        <div class="photo" data-label="Kissaten Nostalgia &middot; Jimbocho"></div>
+        <p class="cap">Kissaten Nostalgia <span class="jp">純喫茶</span></p>
+        <p class="meta-line">Jimbocho &middot; 5 sources</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          Mahogany the color of decades of cigarettes, a hand-drip pour-over that takes nine minutes on purpose, no wi-fi. The middle-aged owner talks to you in the language of his grinder. Yuna will sit here for an hour without checking her phone. Order the blend + the thick-cut toast.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:88%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:64%"></i></span></span>
+        </p>
+        <span class="verdict">for Yuna.</span>
+      </article>
+
+      <article class="photo-card" style="--tilt: 1.4deg;">
+        <span class="tape tape--yellow cnr"></span>
+        <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=900&q=80" alt="used bookstore alley" />
+        <p class="cap">Jimbocho Book Town <span class="jp">神保町古書店街</span></p>
+        <p class="meta-line">Jimbocho &middot; Chiyoda &middot; 14 sources</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          ~180 used-book stores in a 10-minute walking radius. Most stalls face north on purpose so the sun won't bleach the spines. Komiyama-shoten for photo books; Issei-do for cartography; the side alleys for the weird stuff. Bring cash, the older shops don't take cards.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:92%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:71%"></i></span></span>
+        </p>
+        <span class="verdict">essential.</span>
+      </article>
+    </div>
+
+    <!-- afternoon -->
+    <span class="period" style="--tilt:.6deg;">afternoon <span class="clock">lunch ~1pm, walk after</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.4deg;">
+        <span class="tape tape--red cnr"></span>
+        <img src="https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f?w=900&q=80" alt="soup curry plate" />
+        <p class="cap">A-un <span class="jp">阿吽</span></p>
+        <p class="meta-line">Takadanobaba &middot; 9 sources</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          Hokkaido-style soup curry in a student district. Cheap, generous, and five different Chinese reviewers landed independently on 4.5/5. Pick the chicken-and-veg + spice level 5 (out of 10) — anything higher is for show. One subway hop from Jimbocho.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:60%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:88%"></i></span></span>
+        </p>
+        <span class="verdict">worth the detour.</span>
+      </article>
+
+      <article class="photo-card" style="--tilt: 1.2deg; margin-top: 28px;">
+        <span class="tape tape--mint cnr"></span>
+        <img src="https://images.unsplash.com/photo-1542931287-023b922fa89b?w=900&q=80" alt="Yanaka cemetery cherry trees" />
+        <p class="cap">Yanaka Ginza <span class="jp">谷中銀座</span></p>
+        <p class="meta-line">Yanaka &middot; Taito &middot; 7 sources</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          A low-slung shopping street that survived the war. Croquette stall on the left as you come down the stairs ("yuyake dandan" — the "sunset stairs"). Cats everywhere, mostly indifferent. End at the cemetery, walk through, exit toward Nippori. The whole loop is about 90 quiet minutes.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:84%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:69%"></i></span></span>
+        </p>
+        <span class="verdict">yes, slowly.</span>
+      </article>
+    </div>
+
+    <!-- evening -->
+    <span class="period" style="--tilt:-.8deg;">evening <span class="clock">after dark, ~8pm</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.6deg;">
+        <span class="tape tape--blue cnr"></span>
+        <img src="https://images.unsplash.com/photo-1480796927426-f609979314bd?w=900&q=80" alt="shibuya at night" />
+        <p class="cap">Shibuya, after dark only <span class="jp">渋谷</span></p>
+        <p class="meta-line">Shibuya &middot; 22 sources &middot; food: skip</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          The crossing is worth fifteen minutes, no more. Go up to the Hikarie 11F bridge for the view without the crowd. Do not eat here — the ramen is a tourist racket (see Ichiran note in disagreements). Walk over to Nonbei Yokocho for one beer, then leave.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:48%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:66%"></i></span></span>
+        </p>
+        <span class="verdict verdict--soft">15 min &amp; out.</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── DAY 3 ───────────────────────── -->
+  <section id="day-3" class="day-section">
+    <div class="day-head">
+      <div style="display: flex; align-items: flex-end; gap: 6px;">
+        <span class="day-no">Day <em>3</em></span>
+        <span class="day-meta">14 May &middot; wed</span>
+      </div>
+      <p class="day-theme">slow market, museum nobody talks about, last bowl before the train.</p>
+    </div>
+
+    <!-- morning -->
+    <span class="period" style="--tilt:-1.4deg;">morning <span class="clock">6:30am if you can</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.2deg;">
+        <span class="tape tape--yellow cnr"></span>
+        <img src="https://images.unsplash.com/photo-1535399831218-d4db9e88d9e6?w=900&q=80" alt="market stalls" />
+        <p class="cap">Tsukiji Outer Market <span class="jp">築地場外市場</span></p>
+        <p class="meta-line">Chuo &middot; 18 sources &middot; contested (see ticket)</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          Both EN and ZH sources agree on exactly one stand: the tamagoyaki place on the corner (Yamacho). Otherwise: it's a stage set now. Go at 6:30, eat one egg roll on a stick, photograph the tuna guy, leave before 8 when the bus tours arrive.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:55%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:61%"></i></span></span>
+        </p>
+        <span class="verdict verdict--soft">only the egg roll.</span>
+      </article>
+    </div>
+
+    <!-- afternoon -->
+    <span class="period" style="--tilt:.5deg;">afternoon <span class="clock">~2pm</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1deg;">
+        <span class="tape tape--mint cnr"></span>
+        <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=900&q=80" alt="museum interior" />
+        <p class="cap">Nezu Museum <span class="jp">根津美術館</span></p>
+        <p class="meta-line">Minami-Aoyama &middot; 6 sources</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          A Kengo Kuma building wrapped around a private collection of Japanese and Chinese antiquities. The garden out the back is the actual reason to go — koi pond, moss, four tea houses you can't enter but can peer at. Quiet enough to hear the bamboo. ¥1,500.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:90%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:74%"></i></span></span>
+        </p>
+        <span class="verdict">go.</span>
+      </article>
+
+      <article class="photo-card is-typed" style="--tilt: 1.4deg;">
+        <span class="tape tape--blue cnr"></span>
+        <div class="photo" data-label="Aoyama backstreets &middot; walk it"></div>
+        <p class="cap">Aoyama backstreets <span class="jp">青山裏通り</span></p>
+        <p class="meta-line">Minato &middot; 4 sources</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          From the Nezu, wander west — past Prada Aoyama (the Herzog &amp; de Meuron crystal block), into the side streets of small concept shops, end at Commune for an outdoor coffee. No plan, low stakes, good light around 4pm.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:82%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:60%"></i></span></span>
+        </p>
+        <span class="verdict verdict--soft">drift.</span>
+      </article>
+    </div>
+
+    <!-- evening (last bowl) -->
+    <span class="period" style="--tilt:-1deg;">evening <span class="clock">last meal, ~7pm</span></span>
+    <div class="day-grid">
+      <article class="photo-card span-full" style="--tilt: -.5deg;">
+        <span class="tape tape--red cnr"></span>
+        <span class="heart">&hearts;</span>
+        <img src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1400&q=80" alt="tonkotsu ramen close-up" />
+        <p class="cap">Ichiran &mdash; Ueno branch (not Shibuya) <span class="jp">一蘭 上野</span></p>
+        <p class="meta-line">Ueno &middot; Taito &middot; 11 sources &middot; the resolved disagreement</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          ZH sources flag the Shibuya branch as a tourist racket; the Ueno one runs the same kitchen with about half the line and twice the locals. Order the classic tonkotsu, 1× kaedama, hardness "kata," richness "futsuu." If the queue's over 20 minutes anyway, just walk to Afuri at the Atre and call it.
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match">Yuna<span class="bar"><i style="--v:70%"></i></span></span>
+          <span class="match">Wei<span class="bar"><i style="--v:86%"></i></span></span>
+        </p>
+        <span class="verdict">end on this.</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- The contested-entries strip from the original page, kept after the days -->
+  <h2 class="hand-xl" style="margin-top: 72px; margin-bottom: 16px;">the ones that disagreed</h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 22px;">
+    <article class="ticket" style="--tilt: -.4deg;">
+      <div class="stamp-row">
+        <span class="type">two sides &mdash; read it</span>
+        <span class="type-sm">Tsukiji Outer &middot; Chuo</span>
+      </div>
+      <div class="perforation"></div>
+      <p class="body">EN says <em>essential</em>. ZH says <em>set-piece</em>. Both agree on the egg-roll stand. Skip the rest unless you came for the sights.</p>
+    </article>
+    <article class="ticket" style="--tilt: .8deg;">
+      <div class="stamp-row">
+        <span class="type">resolved &mdash; use Ueno</span>
+        <span class="type-sm">Ichiran &middot; branch matters</span>
+      </div>
+      <div class="perforation"></div>
+      <p class="body">41 sources. 8 of 10 ZH reviewers flag Shibuya as a tourist branch. <em>Ueno</em> runs the same kitchen with half the line.</p>
+    </article>
+  </div>
+
+  <!-- Sources at the bottom -->
+  <section style="margin-top: 80px;">
+    <h2 class="hand-xl" style="margin-bottom: 14px;">what I read</h2>
+    <p class="scrawl" style="margin-bottom: 22px;">
+      14 sources in total &mdash; 9 reddit threads, 4 xiaohongshu notes, 1 google maps review pile
+    </p>
+    <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px;">
+      <li class="scrawl" style="font-size: 16px;">&middot; r/JapanTravel &mdash; "underrated tokyo ramen 2025"</li>
+      <li class="scrawl" style="font-size: 16px;">&middot; xhs &mdash; "东京拉面不踩雷指南"</li>
+      <li class="scrawl" style="font-size: 16px;">&middot; r/ramen &mdash; "shio in tokyo — menya saimi sleeper"</li>
+      <li class="scrawl" style="font-size: 16px;">&middot; xhs &mdash; "神保町，去十次也不腻"</li>
+      <li class="scrawl" style="font-size: 16px;">&middot; r/Tokyo &mdash; "tsukiji is now a tourist setpiece"</li>
+      <li class="scrawl" style="font-size: 16px;">&middot; google places &mdash; A-un Takadanobaba (137 cn reviews)</li>
+      <li class="scrawl" style="font-size: 16px;">&middot; r/JapanTravel &mdash; "ichiran shibuya vs ueno, settled"</li>
+      <li class="scrawl" style="font-size: 16px;">&middot; xhs &mdash; "谷中半日散步路线"</li>
+    </ul>
+  </section>
+
+  <footer style="margin-top: 100px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft)); display: flex; justify-content: space-between; align-items: center; gap: 14px;">
+    <p class="type">PLUS &middot; ONE &middot; v0.1 &middot; reading no. 047 &middot; pinned</p>
+    <a href="index.html" class="link-hand" style="font-size: 18px;">&larr; back to all readings</a>
+  </footer>
+</div>
+
+</body>
+</html>

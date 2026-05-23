@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>Plus One — 东京 · 第 47 次 · 三天的安排</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../scrapbook.css">
+<link rel="stylesheet" href="../scrapbook-zh.css">
+<style>
+  /* ───── Day-strip nav ─────
+     Reused tokens: --paper-2, --kraft, --tape-yellow, --ink, --ink-3.
+     Inline-only primitives: .day-strip, .day-head, .day-no, .period, .day-grid. */
+  .day-strip {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 10px 14px;
+    margin: 28px 0 36px;
+    padding: 12px 14px;
+    background: hsl(var(--paper-2));
+    border: 1px dashed hsl(var(--kraft));
+    transform: rotate(-.25deg);
+    position: relative;
+  }
+  .day-strip .lbl {
+    font-family: var(--font-cjk-type);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: hsl(var(--ink-3));
+    margin-right: 4px;
+  }
+  .day-strip a {
+    font-family: var(--font-cjk-serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: hsl(var(--ink));
+    text-decoration: none;
+    padding: 2px 8px 0;
+    position: relative;
+    line-height: 1;
+    transform: rotate(var(--tilt, -1deg));
+    display: inline-block;
+  }
+  .day-strip a:hover { color: hsl(var(--red)); }
+  .day-strip a .meta {
+    display: block;
+    font-family: var(--font-cjk-type);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: hsl(var(--ink-3));
+    margin-top: 3px;
+    transform: rotate(.5deg);
+  }
+  .day-strip a.is-on::before {
+    content: '';
+    position: absolute;
+    left: -2px; right: -2px; top: 50%; height: 14px;
+    transform: translateY(-40%) rotate(-.5deg);
+    background: hsl(var(--tape-yellow) / .75);
+    z-index: -1;
+  }
+  .day-strip .sep {
+    width: 4px; height: 4px;
+    background: hsl(var(--ink-3));
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* ───── Day section header ───── */
+  .day-head {
+    position: relative;
+    margin: 72px 0 8px;
+    padding: 10px 0 14px;
+    border-bottom: 1px dotted hsl(var(--kraft));
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap;
+  }
+  .day-head .day-no {
+    font-family: var(--font-cjk-serif);
+    font-weight: 700;
+    font-size: 58px;
+    line-height: .92;
+    color: hsl(var(--ink));
+    transform: rotate(-1.2deg);
+  }
+  .day-head .day-no em {
+    font-style: normal;
+    color: hsl(var(--red));
+    font-size: 1.1em;
+  }
+  .day-head .day-meta {
+    font-family: var(--font-cjk-type);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: hsl(var(--ink-3));
+    margin-left: 14px;
+    align-self: center;
+  }
+  .day-head .day-theme {
+    font-family: var(--font-cjk-serif);
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.5;
+    color: hsl(var(--ink-2));
+    transform: rotate(-.4deg);
+    max-width: 580px;
+  }
+
+  /* ───── Period label ───── */
+  .period {
+    display: inline-flex; align-items: baseline; gap: 10px;
+    margin: 28px 0 14px;
+    padding: 5px 14px 4px;
+    background: hsl(var(--paper-3));
+    border: 1px solid hsl(var(--kraft));
+    transform: rotate(var(--tilt, -1.5deg));
+    font-family: var(--font-cjk-serif);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    color: hsl(var(--ink-2));
+  }
+  .period .clock {
+    font-family: var(--font-cjk-type);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: hsl(var(--ink-3));
+  }
+
+  /* ───── Day item grid ───── */
+  .day-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 32px;
+    align-items: start;
+    padding-bottom: 8px;
+  }
+  .day-grid > article.span-full { grid-column: 1 / -1; }
+  @media (max-width: 760px) {
+    .day-grid { grid-template-columns: 1fr; gap: 22px; }
+  }
+
+  .photo-card .meta-line {
+    font-family: var(--font-cjk-type);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: hsl(var(--ink-3));
+    margin-top: 10px;
+  }
+
+  .day-section { scroll-margin-top: 24px; }
+  .tldr.tldr--top { margin-top: 24px; max-width: 760px; }
+</style>
+</head>
+<body>
+
+<button class="view-toggle" onclick="document.documentElement.classList.toggle('printed-view')">换成打印体</button>
+
+<div class="shell">
+
+  <nav class="nav-strip" style="margin-bottom: 22px;">
+    <p class="crest" style="margin-right: auto;">
+      <span class="crest-dot"></span><span class="lat-type">PLUS · ONE</span>
+    </p>
+    <a href="#">你的记录</a>
+    <span class="sep"></span>
+    <a href="trip-new.html">新的一次</a>
+    <span class="sep"></span>
+    <a href="#">一起去的人</a>
+    <span class="sep"></span>
+    <a href="profile.html">关于你</a>
+  </nav>
+
+  <header style="position: relative; padding: 20px 0 18px;">
+    <span class="tape tape--mint" style="top: -6px; left: 60px; width: 110px; height: 26px; transform: rotate(-6deg);"></span>
+    <span class="tape tape--yellow" style="top: 6px; right: 240px; width: 110px; height: 22px; transform: rotate(4deg);"></span>
+
+    <p class="crest" style="margin-bottom: 6px;">
+      <span class="crest-dot" style="background: hsl(var(--signal-done)); animation: none;"></span>第 47 次记录 · 12 May 2026 钉好
+    </p>
+    <h1 class="hand-xxl">东京<span class="jp" style="font-size: .4em; color: hsl(var(--red)); margin-left: 22px; vertical-align: 18px; letter-spacing: 0;">Tokyo</span></h1>
+    <p class="lede" style="margin-top: 14px; transform: rotate(-.5deg);">
+      三天，给 <span class="highlight">雯雯 &amp; 小威</span> &mdash; tonkotsu，不要游客陷阱，喫茶店要去
+    </p>
+
+    <div style="position: absolute; right: 24px; top: 24px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+      <span class="stamp stamp--green">已钉好<span class="ymd">12 MAY 2026</span></span>
+      <span class="annot" style="font-size: 14px;">3 天 · 11 个停点</span>
+    </div>
+  </header>
+
+  <!-- TL;DR -->
+  <div class="tldr tldr--top" style="--tilt: -.5deg;">
+    <small>tl;dr</small>
+    拉面在 <em>巣鸭</em>，喫茶在 <em>神保町</em>，慢的下午在 <em>谷中</em>。
+    涉谷吃的全跳过，只看一眼路口就走。
+  </div>
+
+  <!-- Day-strip nav -->
+  <nav class="day-strip" aria-label="跳到哪一天">
+    <span class="lbl">跳到 &rarr;</span>
+    <a href="#day-1" class="is-on" style="--tilt:-1.5deg;">Day 1 <span class="meta">12 May · 周一</span></a>
+    <span class="sep"></span>
+    <a href="#day-2" style="--tilt:.6deg;">Day 2 <span class="meta">13 May · 周二</span></a>
+    <span class="sep"></span>
+    <a href="#day-3" style="--tilt:-1deg;">Day 3 <span class="meta">14 May · 周三</span></a>
+  </nav>
+
+  <!-- ───────────────────────── DAY 1 ───────────────────────── -->
+  <section id="day-1" class="day-section">
+    <div class="day-head">
+      <div style="display: flex; align-items: flex-end; gap: 8px;">
+        <span class="day-no">第 <em>1</em> 天</span>
+        <span class="day-meta">12 MAY · 周一</span>
+      </div>
+      <p class="day-theme">羽田机场下来已经下午，把箱子扔在巣鸭，吃你专程为它来的那碗拉面，回去睡。</p>
+    </div>
+
+    <!-- afternoon -->
+    <span class="period" style="--tilt:-1.5deg;">下午 <span class="clock">~ 3pm</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.8deg;">
+        <span class="tape tape--blue cnr"></span>
+        <img src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=900&q=80" alt="巣鸭" />
+        <p class="cap">巣鸭地藏通 <span class="jp">巣鴨地蔵通り</span></p>
+        <p class="meta-line">巣鸭 · 丰岛 · 6 个来源</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          本地人叫它「老奶奶版原宿」，整条商店街全是穿软毛衫的婆婆挑仙贝、看红裤子店的奶奶团。放完箱子来散 40 分钟刚好 &mdash; 买块煎饼，进尽头那个寺庙瞄一眼。<span class="annot">红裤子别真买</span>，除非你想认真演这个梗。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:74%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:58%"></i></span></span>
+        </p>
+        <span class="verdict verdict--soft">可以去。</span>
+      </article>
+    </div>
+
+    <!-- evening -->
+    <span class="period" style="--tilt:.8deg;">傍晚 <span class="clock">7pm 准点，6:40 到</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.2deg;">
+        <span class="tape tape--yellow cnr"></span>
+        <span class="heart">&hearts;</span>
+        <img src="https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=900&q=80" alt="盐味拉面" />
+        <p class="cap">面屋彩未 <span class="jp">麺屋彩未</span></p>
+        <p class="meta-line">巣鸭 · 12 个来源一致</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          你这次专程为它来的那碗。8 个吧台座，没有英文菜单，老板娘从头到尾在切葱花。<span class="lat">r/ramen</span> 上的人形容汤底「<span class="annot">几乎是透明的</span>」。点最普通的盐味 + 溏心蛋，吃的时候别说话。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:78%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:91%"></i></span></span>
+        </p>
+        <span class="verdict">就这家。</span>
+      </article>
+
+      <article class="photo-card" style="--tilt: 1.6deg; margin-top: 22px;">
+        <span class="tape tape--mint cnr"></span>
+        <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=900&q=80" alt="居酒屋" />
+        <p class="cap">三平酒場 <span class="jp">三平酒場</span></p>
+        <p class="meta-line">巣鸭 · 8 个来源</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          从拉面店走 5 分钟。下班 salaryman 的地盘 &mdash; 烤鸡肉串、煮物、清酒一升瓶。气氛像《深夜食堂》的现实版，没有摄像机。小威：带壳的（海螺、贝）跳过，剩下随便点。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:72%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:85%"></i></span></span>
+        </p>
+        <span class="verdict">去。</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── DAY 2 ───────────────────────── -->
+  <section id="day-2" class="day-section">
+    <div class="day-head">
+      <div style="display: flex; align-items: flex-end; gap: 8px;">
+        <span class="day-no">第 <em>2</em> 天</span>
+        <span class="day-meta">13 MAY · 周二</span>
+      </div>
+      <p class="day-theme">旧书、咖啡、二手相机，再来一份大声宣布自己便宜的咖喱。</p>
+    </div>
+
+    <!-- morning -->
+    <span class="period" style="--tilt:-1.2deg;">上午 <span class="clock">10:00 开门，10:05 进</span></span>
+    <div class="day-grid">
+      <article class="photo-card is-typed" style="--tilt: -1deg;">
+        <span class="tape tape--blue cnr"></span>
+        <div class="photo" data-label="怀旧喫茶 · 神保町"></div>
+        <p class="cap">怀旧喫茶 <span class="jp">純喫茶</span></p>
+        <p class="meta-line">神保町 · 5 个来源</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          被几十年烟熏成深色的红木墙，故意冲 9 分钟的手冲，没有 wifi。中年老板用磨豆机的声音和你对话。雯雯会在这里坐一个小时不看手机。点综合 + 厚切吐司。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:88%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:64%"></i></span></span>
+        </p>
+        <span class="verdict">给雯雯。</span>
+      </article>
+
+      <article class="photo-card" style="--tilt: 1.4deg;">
+        <span class="tape tape--yellow cnr"></span>
+        <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=900&q=80" alt="古书店街" />
+        <p class="cap">神保町古书街 <span class="jp">神保町古書店街</span></p>
+        <p class="meta-line">神保町 · 千代田 · 14 个来源</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          10 分钟步行半径里有 ~180 间二手书店。绝大部分店面朝北 &mdash; 故意的，不让阳光晒到书脊褪色。小宫山书店看摄影集，一誠堂看地图集，巷子深处看奇奇怪怪的。<span class="annot">带现金</span>，老店不收卡。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:92%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:71%"></i></span></span>
+        </p>
+        <span class="verdict">必去。</span>
+      </article>
+    </div>
+
+    <!-- afternoon -->
+    <span class="period" style="--tilt:.6deg;">下午 <span class="clock">1pm 午饭，之后慢慢走</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.4deg;">
+        <span class="tape tape--red cnr"></span>
+        <img src="https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f?w=900&q=80" alt="汤咖喱" />
+        <p class="cap">阿吽 <span class="jp">阿吽</span></p>
+        <p class="meta-line">高田马场 · 9 个来源</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          北海道风格汤咖喱，学生区，便宜量大。<span class="lat">5</span> 个独立的中文长评全打到 4.5/5。点鸡肉时蔬 + 辣度 5（满 10），再高就是逞强。从神保町坐一站地铁就到。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:60%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:88%"></i></span></span>
+        </p>
+        <span class="verdict">值得绕路。</span>
+      </article>
+
+      <article class="photo-card" style="--tilt: 1.2deg; margin-top: 28px;">
+        <span class="tape tape--mint cnr"></span>
+        <img src="https://images.unsplash.com/photo-1542931287-023b922fa89b?w=900&q=80" alt="谷中" />
+        <p class="cap">谷中银座 <span class="jp">谷中銀座</span></p>
+        <p class="meta-line">谷中 · 台东 · 7 个来源</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          一条战火没烧到的矮屋商店街。下楼梯（「夕焼けだんだん」夕阳台阶）左手第一家炸肉饼买一个，吃着走。猫到处都是，对你不太感兴趣。最后穿过谷中墓园走到日暮里，整圈大约 90 分钟，安静。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:84%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:69%"></i></span></span>
+        </p>
+        <span class="verdict">慢慢走。</span>
+      </article>
+    </div>
+
+    <!-- evening -->
+    <span class="period" style="--tilt:-.8deg;">晚上 <span class="clock">天黑后，~ 8pm</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.6deg;">
+        <span class="tape tape--blue cnr"></span>
+        <img src="https://images.unsplash.com/photo-1480796927426-f609979314bd?w=900&q=80" alt="涩谷夜景" />
+        <p class="cap">涩谷，只在天黑后 <span class="jp">渋谷</span></p>
+        <p class="meta-line">涩谷 · 22 个来源 · 吃的：跳</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          路口看 15 分钟够了，多了没意思。上 Hikarie 11 楼天桥拍照不用挤人群。这边千万别吃东西 &mdash; 拉面是游客生意（看下面争议清单里的一兰）。走两步去呑兵衛横丁喝一杯啤酒就走。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:48%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:66%"></i></span></span>
+        </p>
+        <span class="verdict verdict--soft">看 15 分钟就撤。</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── DAY 3 ───────────────────────── -->
+  <section id="day-3" class="day-section">
+    <div class="day-head">
+      <div style="display: flex; align-items: flex-end; gap: 8px;">
+        <span class="day-no">第 <em>3</em> 天</span>
+        <span class="day-meta">14 MAY · 周三</span>
+      </div>
+      <p class="day-theme">早市去得早，没人讲的美术馆，再吃最后一碗，坐车走。</p>
+    </div>
+
+    <!-- morning -->
+    <span class="period" style="--tilt:-1.4deg;">早上 <span class="clock">能的话 6:30</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1.2deg;">
+        <span class="tape tape--yellow cnr"></span>
+        <img src="https://images.unsplash.com/photo-1535399831218-d4db9e88d9e6?w=900&q=80" alt="筑地" />
+        <p class="cap">筑地场外市场 <span class="jp">築地場外市場</span></p>
+        <p class="meta-line">中央区 · 18 个来源 · 有争议（看下面单据）</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          中英两边一致认可的只有一摊：拐角的山长玉子烧。除此之外 &mdash; 现在就是个布景了。6:30 到，吃一串玉子烧，拍一下切金枪鱼的大哥，8 点之前撤，避开旅游大巴。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:55%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:61%"></i></span></span>
+        </p>
+        <span class="verdict verdict--soft">只为玉子烧。</span>
+      </article>
+    </div>
+
+    <!-- afternoon -->
+    <span class="period" style="--tilt:.5deg;">下午 <span class="clock">~ 2pm</span></span>
+    <div class="day-grid">
+      <article class="photo-card" style="--tilt: -1deg;">
+        <span class="tape tape--mint cnr"></span>
+        <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=900&q=80" alt="美术馆" />
+        <p class="cap">根津美术馆 <span class="jp">根津美術館</span></p>
+        <p class="meta-line">南青山 · 6 个来源</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          隈研吾设计的建筑包着一座私人中日古董收藏。后院的庭园才是去的真正理由 &mdash; 锦鲤、苔藓、四间你进不去但能远远看的茶室。安静到能听见竹子。门票 ¥1,500。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:90%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:74%"></i></span></span>
+        </p>
+        <span class="verdict">去。</span>
+      </article>
+
+      <article class="photo-card is-typed" style="--tilt: 1.4deg;">
+        <span class="tape tape--blue cnr"></span>
+        <div class="photo" data-label="青山里通 · 慢走"></div>
+        <p class="cap">青山里通 <span class="jp">青山裏通り</span></p>
+        <p class="meta-line">港区 · 4 个来源</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          从根津出来往西走 &mdash; 经过 Prada 青山店（赫尔佐格&amp;德梅隆的水晶块），拐进巷子里看小品牌的概念店，最后到 <span class="lat">Commune</span> 露天喝咖啡。不用规划，下午 4 点光线最好。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:82%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:60%"></i></span></span>
+        </p>
+        <span class="verdict verdict--soft">随便逛。</span>
+      </article>
+    </div>
+
+    <!-- evening (last bowl) -->
+    <span class="period" style="--tilt:-1deg;">晚上 <span class="clock">最后一餐 ~ 7pm</span></span>
+    <div class="day-grid">
+      <article class="photo-card span-full" style="--tilt: -.5deg;">
+        <span class="tape tape--red cnr"></span>
+        <span class="heart">&hearts;</span>
+        <img src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1400&q=80" alt="豚骨拉面" />
+        <p class="cap">一兰 &mdash; 上野店（不是涩谷店）<span class="jp">一蘭 上野</span></p>
+        <p class="meta-line">上野 · 台东 · 11 个来源 · 争议解决</p>
+        <p class="scrawl" style="margin-top: 8px;">
+          小红书的人把涩谷店标成「专做游客生意」，上野店同一套厨房但队伍少一半、本地人翻一倍。点经典豚骨，<span class="lat">1</span> 份加面，硬度选「<span class="jp">かた</span>」，浓度选「<span class="jp">普通</span>」。队伍超过 20 分钟就直接去 Atre 里的阿夫利，一样收工。
+        </p>
+        <p class="match-row" style="margin-top: 10px;">
+          <span class="match"><span class="lat-type">YUNA</span><span class="bar"><i style="--v:70%"></i></span></span>
+          <span class="match"><span class="lat-type">WEI</span><span class="bar"><i style="--v:86%"></i></span></span>
+        </p>
+        <span class="verdict">就以这碗收尾。</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- Disagreements -->
+  <h2 class="hand-xl" style="margin-top: 72px; margin-bottom: 16px;">有争议的几个</h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 22px;">
+    <article class="ticket" style="--tilt: -.4deg;">
+      <div class="stamp-row">
+        <span class="type">两面之词 &mdash; 自己看</span>
+        <span class="type-sm">筑地外市场 · 中央区</span>
+      </div>
+      <div class="perforation"></div>
+      <p class="body"><span class="lat">EN</span> 说<em>必去</em>。<span class="lat">ZH</span> 说<em>布景</em>。两边都说鸡蛋卷那家好。其它的，除非你就是想拍照，不然跳过。</p>
+    </article>
+    <article class="ticket" style="--tilt: .8deg;">
+      <div class="stamp-row">
+        <span class="type">已解决 &mdash; 走上野</span>
+        <span class="type-sm">一兰 · 分店决定一切</span>
+      </div>
+      <div class="perforation"></div>
+      <p class="body">41 个来源。<span class="lat">ZH</span> 那边 10 个里 8 个把涩谷店标成游客店。<em>上野店</em>同一套厨房，队伍少一半。</p>
+    </article>
+  </div>
+
+  <!-- Sources -->
+  <section style="margin-top: 80px;">
+    <h2 class="hand-xl" style="margin-bottom: 14px;">我看过的</h2>
+    <p class="scrawl" style="margin-bottom: 22px;">
+      共 14 个来源 &mdash; 9 个 reddit 帖子，4 个 小红书 笔记，1 个 google maps 评论合集
+    </p>
+    <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px;">
+      <li class="scrawl" style="font-size: 16px;">· r/<span class="lat">JapanTravel</span> &mdash; 「<span class="lat">underrated tokyo ramen 2025</span>」</li>
+      <li class="scrawl" style="font-size: 16px;">· 小红书 &mdash; 「东京拉面不踩雷指南」</li>
+      <li class="scrawl" style="font-size: 16px;">· r/<span class="lat">ramen</span> &mdash; 「<span class="lat">shio in tokyo - menya saimi sleeper</span>」</li>
+      <li class="scrawl" style="font-size: 16px;">· 小红书 &mdash; 「神保町，去十次也不腻」</li>
+      <li class="scrawl" style="font-size: 16px;">· r/<span class="lat">Tokyo</span> &mdash; 「<span class="lat">tsukiji is now a tourist setpiece</span>」</li>
+      <li class="scrawl" style="font-size: 16px;">· <span class="lat">google places</span> &mdash; 阿吽 高田马场（137 条中文评论）</li>
+      <li class="scrawl" style="font-size: 16px;">· r/<span class="lat">JapanTravel</span> &mdash; 「<span class="lat">ichiran shibuya vs ueno, settled</span>」</li>
+      <li class="scrawl" style="font-size: 16px;">· 小红书 &mdash; 「谷中半日散步路线」</li>
+    </ul>
+  </section>
+
+  <footer style="margin-top: 100px; padding-top: 18px; border-top: 1px dotted hsl(var(--kraft)); display: flex; justify-content: space-between; align-items: center; gap: 14px;">
+    <p class="type"><span class="lat-type">PLUS · ONE · v0.1</span> · 第 47 次 · 已钉好</p>
+    <a href="#" class="link-hand" style="font-size: 18px;">&larr; 回到所有记录</a>
+  </footer>
+</div>
+
+</body>
+</html>

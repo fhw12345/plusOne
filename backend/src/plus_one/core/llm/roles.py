@@ -49,6 +49,9 @@ from typing import Final
 #   reliable adherence to a JSON schema, so Claude Sonnet 4.5 is the
 #   sweet spot: cheaper than Opus but better at strict-schema output
 #   than Haiku. Cost budget: <$0.15 per ≤30-item report (PRD §6.7 ac8).
+# - **itinerary_agent** — schedules approved items into days x periods.
+#   Lower-stakes than joiner (no reasoning over evidence — just grouping
+#   + period assignment), so Claude Sonnet 4.6 per batch-3a frozen decision.
 # - **fallback**        — when role is unknown. Maps to conversational.
 
 ROLES: Final[dict[str, str]] = {
@@ -62,6 +65,7 @@ ROLES: Final[dict[str, str]] = {
     "conversational": os.getenv("MODEL_CONVERSATIONAL", "claude-haiku-4.5"),
     "summarizer": os.getenv("MODEL_SUMMARIZER", "gemini-3-flash-preview"),
     "translator_agent": os.getenv("MODEL_TRANSLATOR_AGENT", "claude-sonnet-4.5"),
+    "itinerary_agent": os.getenv("MODEL_ITINERARY_AGENT", "claude-sonnet-4.6"),
 }
 
 FALLBACK_ROLE: Final[str] = "conversational"

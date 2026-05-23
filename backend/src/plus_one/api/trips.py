@@ -125,6 +125,11 @@ class TripDetail(BaseModel):
     date_end: datetime | None = None
     budget_amount: int | None = None
     budget_currency: str | None = None
+    # Batch-3a: day-by-day itinerary plan, when the scheduler successfully
+    # produced one. Shape mirrors ``ItineraryPlan.days[*].model_dump()``;
+    # passed through from JSONB so old reports without ``day_plan`` simply
+    # surface ``None`` and the frontend falls back to the flat view.
+    day_plan: list[dict[str, object]] | None = None
 
 
 class TripListItem(BaseModel):
