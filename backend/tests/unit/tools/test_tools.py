@@ -156,9 +156,7 @@ async def test_places_returns_cached_places(tmp_path: Path) -> None:
         ],
     )
     tool = FoursquarePlacesSearchTool(fixtures_dir=tmp_path)
-    result = await tool.execute(
-        PlacesSearchInput(query="ramen", location_hint="Tokyo, Japan")
-    )
+    result = await tool.execute(PlacesSearchInput(query="ramen", location_hint="Tokyo, Japan"))
     assert result.output is not None
     assert isinstance(result.output[0], Place)
     assert result.output[0].external_url == "https://foursquare.com/v/fsq_x"

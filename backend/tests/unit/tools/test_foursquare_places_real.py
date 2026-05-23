@@ -84,9 +84,7 @@ def test_init_in_fixture_mode_does_not_require_creds(monkeypatch: pytest.MonkeyP
 
 
 @pytest.mark.unit
-async def test_cache_hit_skips_http(
-    monkeypatch: pytest.MonkeyPatch, real_mode: None
-) -> None:
+async def test_cache_hit_skips_http(monkeypatch: pytest.MonkeyPatch, real_mode: None) -> None:
     cached_payload = [
         {
             "place_id": "pid-cached",
@@ -175,9 +173,7 @@ async def test_cache_miss_calls_api_and_writes_cache(
 
 
 @pytest.mark.unit
-async def test_api_failure_returns_not_ok(
-    monkeypatch: pytest.MonkeyPatch, real_mode: None
-) -> None:
+async def test_api_failure_returns_not_ok(monkeypatch: pytest.MonkeyPatch, real_mode: None) -> None:
     async def fake_get_cached(source: str, key: str) -> None:
         return None
 
@@ -234,9 +230,7 @@ async def test_fixture_mode_unchanged(monkeypatch: pytest.MonkeyPatch, tmp_path)
 
 
 @pytest.mark.unit
-async def test_fetch_normalizes_response(
-    monkeypatch: pytest.MonkeyPatch, real_mode: None
-) -> None:
+async def test_fetch_normalizes_response(monkeypatch: pytest.MonkeyPatch, real_mode: None) -> None:
     """Verify ``_fetch_from_api`` reads the Foursquare shape and converts
     it to the cache payload schema (external_url synthesis, categories
     from short_name, rating None, slices to limit)."""

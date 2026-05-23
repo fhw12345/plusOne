@@ -143,9 +143,7 @@ class FoursquarePlacesSearchTool:
             location = r.get("location") or {}
             categories_raw = r.get("categories") or []
             categories = tuple(
-                str(c.get("short_name", ""))
-                for c in categories_raw
-                if c.get("short_name")
+                str(c.get("short_name", "")) for c in categories_raw if c.get("short_name")
             )
             external_url = f"https://foursquare.com/v/{fsq_id}" if fsq_id else None
             out.append(
@@ -153,16 +151,12 @@ class FoursquarePlacesSearchTool:
                     "place_id": str(fsq_id or ""),
                     "name": str(r.get("name", "")),
                     "formatted_address": str(location.get("formatted_address", "")),
-                    "latitude": (
-                        float(r["latitude"]) if r.get("latitude") is not None else None
-                    ),
+                    "latitude": (float(r["latitude"]) if r.get("latitude") is not None else None),
                     "longitude": (
                         float(r["longitude"]) if r.get("longitude") is not None else None
                     ),
                     "categories": categories,
-                    "distance_m": (
-                        int(r["distance"]) if r.get("distance") is not None else None
-                    ),
+                    "distance_m": (int(r["distance"]) if r.get("distance") is not None else None),
                     "rating": None,
                     "user_ratings_total": None,
                     "price_level": None,
