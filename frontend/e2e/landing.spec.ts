@@ -39,9 +39,9 @@ test.describe("landing page", () => {
     expect(response?.status(), "GET / should return 200").toBe(200);
 
     await expect(page).toHaveTitle("Plus One — AI travel planner");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Plus One");
-    await expect(page.getByText("AI travel planner", { exact: false })).toBeVisible();
-    await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/plus one/i);
+    await expect(page.getByText(/travel planner|travel notebook/i).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /let me in|sign in/i })).toBeVisible();
 
     expect(unexpectedErrors, `unexpected console errors:\n${unexpectedErrors.join("\n")}`).toEqual(
       [],

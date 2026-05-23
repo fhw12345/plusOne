@@ -17,8 +17,8 @@ test.describe("share link", () => {
 
     // Create a trip and wait for it to land on a terminal status.
     await page.goto("/app/trips/new");
-    await page.getByLabel(/destination/i).fill("Tokyo");
-    await page.getByRole("button", { name: /plan|start|create/i }).click();
+    await page.getByLabel(/the place|destination/i).fill("Tokyo");
+    await page.getByRole("button", { name: /go look|plan|start|create/i }).click();
     await expect(page).toHaveURL(/\/app\/trips\/[0-9a-f-]{36}/i, { timeout: 10_000 });
     await expect(
       page.locator("[data-trip-status='complete'], [data-trip-status='aborted']"),
@@ -39,7 +39,7 @@ test.describe("share link", () => {
     await guest.goto(shareUrl);
 
     await expect(guest.getByText(/Tokyo/i).first()).toBeVisible();
-    await expect(guest.getByText(/Read-only share/i)).toBeVisible();
+    await expect(guest.getByText(/read-only/i).first()).toBeVisible();
     // Owner-only affordances must be absent on the public view.
     await expect(guest.getByTestId("share-button")).toHaveCount(0);
     await expect(guest.getByTestId("delete-trip-button")).toHaveCount(0);

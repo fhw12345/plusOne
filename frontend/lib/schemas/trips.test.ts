@@ -105,9 +105,9 @@ describe("CreateTripBody", () => {
   });
 
   it("rejects unknown currency", () => {
-    expect(
-      CreateTripBody.safeParse({ destination: "tokyo", budget_currency: "ZZZ" }).success,
-    ).toBe(false);
+    expect(CreateTripBody.safeParse({ destination: "tokyo", budget_currency: "ZZZ" }).success).toBe(
+      false,
+    );
   });
 
   it("rejects negative budget with voice copy", () => {
@@ -254,7 +254,6 @@ describe("TripListResponse", () => {
     expect(parsed.trips).toHaveLength(1);
   });
 });
-
 
 describe("TripContent backwards compatibility (batch-2p + batch-2q)", () => {
   it("accepts the legacy bare-array translations shape and normalises to object form", async () => {

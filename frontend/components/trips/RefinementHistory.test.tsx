@@ -118,10 +118,7 @@ describe("RefinementHistory (SSR markup)", () => {
     const longHint = "a".repeat(120);
     useTripReportsMock.mockReturnValue({
       data: {
-        reports: [
-          ORIGINAL,
-          { ...REFINE_V2, hint: longHint },
-        ],
+        reports: [ORIGINAL, { ...REFINE_V2, hint: longHint }],
       },
     });
     const html = withClient(<RefinementHistory tripId={TRIP_ID} currentReportId="r2" />);

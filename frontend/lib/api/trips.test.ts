@@ -18,7 +18,10 @@ const originalFetch = globalThis.fetch;
 
 describe("createTrip", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
   });
 
   afterEach(() => {
@@ -62,7 +65,10 @@ describe("createTrip", () => {
 
 describe("getTrip", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
   });
 
   afterEach(() => {
@@ -100,7 +106,10 @@ describe("getTrip", () => {
 
 describe("listTrips", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
   });
 
   afterEach(() => {
@@ -184,7 +193,10 @@ describe("listTrips", () => {
 
 describe("createShare", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
   });
   afterEach(() => {
     globalThis.fetch = originalFetch;
@@ -222,7 +234,10 @@ describe("createShare", () => {
 
 describe("revokeShare", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
   });
   afterEach(() => {
     globalThis.fetch = originalFetch;
@@ -250,7 +265,10 @@ describe("revokeShare", () => {
 
 describe("deleteTrip", () => {
   beforeEach(() => {
-    useAuthStore.setState({ token: "jwt", user: { id: "u1", email: "a@b.test", username: "u", is_admin: false } });
+    useAuthStore.setState({
+      token: "jwt",
+      user: { id: "u1", email: "a@b.test", username: "u", is_admin: false },
+    });
   });
   afterEach(() => {
     globalThis.fetch = originalFetch;
@@ -366,18 +384,14 @@ describe("clarifyTrip", () => {
     globalThis.fetch = spy as unknown as typeof fetch;
 
     const tripId = "11111111-2222-4333-8444-555555555555";
-    const res = await clarifyTrip(tripId, [
-      { id: "q1", text: "fixed: may 4–7" },
-    ]);
+    const res = await clarifyTrip(tripId, [{ id: "q1", text: "fixed: may 4–7" }]);
     expect(res.status).toBe("running");
     const call = spy.mock.calls[0];
     const url = String(call?.[0]);
     const init = (call?.[1] ?? {}) as RequestInit;
     expect(url).toContain(`/api/trips/${tripId}/clarify`);
     expect(init.method).toBe("POST");
-    expect(init.body).toBe(
-      JSON.stringify({ answers: [{ id: "q1", text: "fixed: may 4–7" }] }),
-    );
+    expect(init.body).toBe(JSON.stringify({ answers: [{ id: "q1", text: "fixed: may 4–7" }] }));
   });
 
   it("surfaces 409 as ApiError so the UI can navigate anyway", async () => {
@@ -389,9 +403,7 @@ describe("clarifyTrip", () => {
         }),
     ) as unknown as typeof fetch;
     await expect(
-      clarifyTrip("11111111-2222-4333-8444-555555555555", [
-        { id: "q1", text: "yes" },
-      ]),
+      clarifyTrip("11111111-2222-4333-8444-555555555555", [{ id: "q1", text: "yes" }]),
     ).rejects.toBeInstanceOf(ApiError);
   });
 });

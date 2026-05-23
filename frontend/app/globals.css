@@ -3,44 +3,44 @@
 
 @theme {
   /* substrate */
-  --color-paper:    hsl(36 36% 87%);
-  --color-paper-2:  hsl(42 44% 92%);
-  --color-paper-3:  hsl(38 32% 80%);
-  --color-kraft:    hsl(36 30% 67%);
+  --color-paper: hsl(36 36% 87%);
+  --color-paper-2: hsl(42 44% 92%);
+  --color-paper-3: hsl(38 32% 80%);
+  --color-kraft: hsl(36 30% 67%);
 
   /* inks */
-  --color-ink:      hsl(32 20% 14%);
-  --color-ink-2:    hsl(34 17% 27%);
-  --color-ink-3:    hsl(36 18% 42%);
-  --color-pencil:   hsl(36 20% 46%);
+  --color-ink: hsl(32 20% 14%);
+  --color-ink-2: hsl(34 17% 27%);
+  --color-ink-3: hsl(36 18% 42%);
+  --color-pencil: hsl(36 20% 46%);
 
   /* signal */
-  --color-red:        hsl(6 54% 47%);
-  --color-red-tape:   hsl(8 47% 73%);
-  --color-sepia:      hsl(28 56% 30%);
+  --color-red: hsl(6 54% 47%);
+  --color-red-tape: hsl(8 47% 73%);
+  --color-sepia: hsl(28 56% 30%);
   --color-signal-snag: hsl(16 60% 38%);
   --color-signal-done: hsl(96 22% 36%);
 
   /* tape */
-  --color-tape-mint:   hsl(135 24% 79%);
-  --color-tape-blue:   hsl(210 21% 72%);
+  --color-tape-mint: hsl(135 24% 79%);
+  --color-tape-blue: hsl(210 21% 72%);
   --color-tape-yellow: hsl(48 65% 70%);
 
   /* type */
-  --font-hand:     'Caveat', cursive;
-  --font-hand-alt: 'Kalam', cursive;
-  --font-type:     'Special Elite', monospace;
-  --font-cjk:      'Shippori Mincho', 'Noto Serif JP', serif;
-  --font-print:    'Plus Jakarta Sans', sans-serif;
+  --font-hand: "Caveat", cursive;
+  --font-hand-alt: "Kalam", cursive;
+  --font-type: "Special Elite", monospace;
+  --font-cjk: "Shippori Mincho", "Noto Serif JP", serif;
+  --font-print: "Plus Jakarta Sans", sans-serif;
 
   /* radius - only one */
   --radius-punch: 50%;
 
   /* motion */
-  --ease-paper:    cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-paper: cubic-bezier(0.22, 0.61, 0.36, 1);
   --duration-quick: 140ms;
-  --duration-base:  260ms;
-  --duration-slow:  520ms;
+  --duration-base: 260ms;
+  --duration-slow: 520ms;
 }
 
 /* === Print stylesheet (Batch 2j) =========================================

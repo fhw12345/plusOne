@@ -14,7 +14,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "bg-[hsl(var(--paper-3))] text-[hsl(var(--ink-3))] inline-flex h-auto items-center justify-start gap-1 rounded-md p-1",
+      "inline-flex h-auto items-center justify-start gap-1 rounded-md bg-[hsl(var(--paper-3))] p-1 text-[hsl(var(--ink-3))]",
       "flex-wrap",
       className,
     )}

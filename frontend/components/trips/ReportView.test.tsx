@@ -12,9 +12,7 @@ function renderWithProviders(node: React.ReactElement): string {
   // tests must hand in a QueryClient even though both queries are
   // ``enabled: false`` (no auth token in test).
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return renderToString(
-    <QueryClientProvider client={client}>{node}</QueryClientProvider>,
-  );
+  return renderToString(<QueryClientProvider client={client}>{node}</QueryClientProvider>);
 }
 
 function trip(items: Array<Record<string, unknown>>): TripDetail {

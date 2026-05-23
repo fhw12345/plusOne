@@ -212,10 +212,7 @@ describe("categorize", () => {
     });
 
     it("partner_only fires when EVERY companion clears 0.6", () => {
-      const allCompanions = scoredItem(
-        { [USER]: 0.2, [ALICE]: 0.8, [BOB]: 0.75 },
-        "AllCompanions",
-      );
+      const allCompanions = scoredItem({ [USER]: 0.2, [ALICE]: 0.8, [BOB]: 0.75 }, "AllCompanions");
       const buckets = categorize([allCompanions], "fused", partyTrio);
       expect(buckets.partner_only).toEqual([allCompanions]);
     });

@@ -7,7 +7,7 @@ test.describe("profile page (/app/profile)", () => {
     await signInE2E(page, request);
     await page.goto("/app/profile");
 
-    await expect(page.getByRole("heading", { name: /profile/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /about you|profile/i }).first()).toBeVisible();
     await expect(page.getByLabel(/age range/i)).toBeVisible();
     // Empty-state defaults — no chips rendered yet.
     await expect(page.getByLabel(/Remove ramen/i)).toHaveCount(0);
@@ -27,11 +27,11 @@ test.describe("profile page (/app/profile)", () => {
     await hates.press("Enter");
 
     // Add a visited city.
-    await page.getByRole("button", { name: /^Add city$/i }).click();
+    await page.getByRole("button", { name: /^\+?\s*add (a )?city$/i }).click();
     await page.getByLabel(/^City$/i).fill("Tokyo");
 
-    await page.getByRole("button", { name: /save profile/i }).click();
-    await expect(page.getByRole("status")).toHaveText(/saved/i, { timeout: 10_000 });
+    await page.getByRole("button", { name: /pin it|save profile/i }).click();
+    await expect(page.getByRole("status")).toHaveText(/pinned|saved/i, { timeout: 10_000 });
 
     await page.reload();
     await expect(page.getByLabel(/age range/i)).toHaveValue("30-39");

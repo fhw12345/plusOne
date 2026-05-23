@@ -29,14 +29,12 @@ describe("apiFetch", () => {
   });
 
   it("injects Authorization header when a token is in the store", async () => {
-    useAuthStore
-      .getState()
-      .setSession("jwt-token", {
-        id: "u1",
-        email: "a@b.test",
-        username: "u1",
-        is_admin: false,
-      });
+    useAuthStore.getState().setSession("jwt-token", {
+      id: "u1",
+      email: "a@b.test",
+      username: "u1",
+      is_admin: false,
+    });
     const spy = vi.fn(
       async (_input: Parameters<typeof fetch>[0], _init?: Parameters<typeof fetch>[1]) =>
         new Response(JSON.stringify({ ok: true }), { status: 200 }),

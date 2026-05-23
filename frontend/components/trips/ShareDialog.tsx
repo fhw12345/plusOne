@@ -100,8 +100,8 @@ export function ShareDialog({ tripId }: ShareDialogProps) {
           </DialogTitle>
           <DialogDescription asChild>
             <p className="scrawl" style={{ fontSize: 15 }}>
-              anyone with the link can read it &mdash; nothing else. it stops working after 30
-              days, or whenever you pull it back.
+              anyone with the link can read it &mdash; nothing else. it stops working after 30 days,
+              or whenever you pull it back.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -114,11 +114,7 @@ export function ShareDialog({ tripId }: ShareDialogProps) {
 
         {share ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <label
-              htmlFor="share-url"
-              className="type"
-              style={{ color: "hsl(var(--ink-2))" }}
-            >
+            <label htmlFor="share-url" className="type" style={{ color: "hsl(var(--ink-2))" }}>
               link
             </label>
             <div style={{ display: "flex", gap: 10 }}>
@@ -137,12 +133,7 @@ export function ShareDialog({ tripId }: ShareDialogProps) {
                   fontSize: 14,
                 }}
               />
-              <button
-                type="button"
-                onClick={handleCopy}
-                data-testid="share-copy"
-                className="btn"
-              >
+              <button type="button" onClick={handleCopy} data-testid="share-copy" className="btn">
                 {copied ? "copied!" : "copy"}
               </button>
             </div>

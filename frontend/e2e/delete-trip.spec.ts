@@ -13,8 +13,8 @@ test.describe("delete trip", () => {
     await signInE2E(page, request);
 
     await page.goto("/app/trips/new");
-    await page.getByLabel(/destination/i).fill("Osaka");
-    await page.getByRole("button", { name: /plan|start|create/i }).click();
+    await page.getByLabel(/the place|destination/i).fill("Osaka");
+    await page.getByRole("button", { name: /go look|plan|start|create/i }).click();
     await expect(page).toHaveURL(/\/app\/trips\/[0-9a-f-]{36}/i, { timeout: 10_000 });
     await expect(
       page.locator("[data-trip-status='complete'], [data-trip-status='aborted']"),

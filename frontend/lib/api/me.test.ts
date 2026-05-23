@@ -60,7 +60,9 @@ describe("exportMe", () => {
   });
 
   it("throws ApiError on a non-2xx response", async () => {
-    globalThis.fetch = vi.fn(async () => new Response("nope", { status: 500 })) as unknown as typeof fetch;
+    globalThis.fetch = vi.fn(
+      async () => new Response("nope", { status: 500 }),
+    ) as unknown as typeof fetch;
     await expect(exportMe()).rejects.toBeInstanceOf(ApiError);
   });
 });
@@ -79,7 +81,9 @@ describe("deleteMe", () => {
   });
 
   it("resolves on 204", async () => {
-    globalThis.fetch = vi.fn(async () => new Response(null, { status: 204 })) as unknown as typeof fetch;
+    globalThis.fetch = vi.fn(
+      async () => new Response(null, { status: 204 }),
+    ) as unknown as typeof fetch;
     await expect(deleteMe()).resolves.toBeUndefined();
   });
 
@@ -103,7 +107,9 @@ describe("deleteMe", () => {
   });
 
   it("throws ApiError on other non-2xx", async () => {
-    globalThis.fetch = vi.fn(async () => new Response("x", { status: 500 })) as unknown as typeof fetch;
+    globalThis.fetch = vi.fn(
+      async () => new Response("x", { status: 500 }),
+    ) as unknown as typeof fetch;
     await expect(deleteMe()).rejects.toBeInstanceOf(ApiError);
   });
 });

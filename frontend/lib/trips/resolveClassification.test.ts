@@ -15,7 +15,11 @@ describe("resolveClassification", () => {
     it("returns fused classification when present", () => {
       expect(
         resolveClassification(
-          item({ classification: "local_gem", classification_en: "neutral", classification_zh: "tourist_trap" }),
+          item({
+            classification: "local_gem",
+            classification_en: "neutral",
+            classification_zh: "tourist_trap",
+          }),
           "fused",
         ),
       ).toBe("local_gem");
@@ -43,17 +47,14 @@ describe("resolveClassification", () => {
 
     it("falls back to fused when classification_zh is null", () => {
       expect(
-        resolveClassification(
-          item({ classification: "local_gem", classification_zh: null }),
-          "zh",
-        ),
+        resolveClassification(item({ classification: "local_gem", classification_zh: null }), "zh"),
       ).toBe("local_gem");
     });
 
     it("falls back to fused when classification_zh is missing (old reports)", () => {
-      expect(
-        resolveClassification(item({ classification: "tourist_trap" }), "zh"),
-      ).toBe("tourist_trap");
+      expect(resolveClassification(item({ classification: "tourist_trap" }), "zh")).toBe(
+        "tourist_trap",
+      );
     });
 
     it("returns undefined when both per-side and fused absent", () => {
@@ -81,9 +82,7 @@ describe("resolveClassification", () => {
     });
 
     it("falls back to fused when classification_en is missing (old reports)", () => {
-      expect(
-        resolveClassification(item({ classification: "local_gem" }), "en"),
-      ).toBe("local_gem");
+      expect(resolveClassification(item({ classification: "local_gem" }), "en")).toBe("local_gem");
     });
 
     it("returns undefined when both per-side and fused absent", () => {

@@ -49,10 +49,7 @@ export function DestinationCombobox({
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   const suggestions = React.useMemo<readonly City[]>(
-    () =>
-      cityIndex.status === "ready"
-        ? searchCities(value, cityIndex.cities, LIMIT)
-        : [],
+    () => (cityIndex.status === "ready" ? searchCities(value, cityIndex.cities, LIMIT) : []),
     [cityIndex, value],
   );
 
@@ -60,8 +57,7 @@ export function DestinationCombobox({
   // user types and the list shrinks, the old index might point past the end
   // (or to a stale entry). Doing this here instead of in an effect avoids
   // the cascading-render lint and a flash of mis-highlighted row.
-  const safeHighlight =
-    highlight >= 0 && highlight < suggestions.length ? highlight : -1;
+  const safeHighlight = highlight >= 0 && highlight < suggestions.length ? highlight : -1;
 
   // Click outside closes the dropdown.
   React.useEffect(() => {
@@ -135,9 +131,7 @@ export function DestinationCombobox({
   };
 
   const activeOptionId =
-    open && safeHighlight >= 0
-      ? `${OPTION_ID_PREFIX}${safeHighlight}`
-      : undefined;
+    open && safeHighlight >= 0 ? `${OPTION_ID_PREFIX}${safeHighlight}` : undefined;
 
   const showNoMatch = open && ready && value.trim().length > 0 && suggestions.length === 0;
 

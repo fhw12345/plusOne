@@ -31,9 +31,10 @@ export function TripForm() {
   // batch-2t: when the backend returns ``status="clarifying"`` with 1–3
   // questions, we swap the form body for ``<ClarifierStep>`` instead of
   // navigating. Null = render the form; non-null = render the clarifier.
-  const [clarifierState, setClarifierState] = useState<
-    { tripId: string; questions: Array<{ id: string; text: string }> } | null
-  >(null);
+  const [clarifierState, setClarifierState] = useState<{
+    tripId: string;
+    questions: Array<{ id: string; text: string }>;
+  } | null>(null);
 
   const {
     control,
@@ -65,9 +66,7 @@ export function TripForm() {
       // them and the cross-field check sees comparable strings.
       const body: CreateTripBodyT = {
         destination: values.destination,
-        ...(values.free_text && values.free_text.length > 0
-          ? { free_text: values.free_text }
-          : {}),
+        ...(values.free_text && values.free_text.length > 0 ? { free_text: values.free_text } : {}),
         ...(values.companion_ids && values.companion_ids.length > 0
           ? { companion_ids: values.companion_ids }
           : {}),
@@ -105,12 +104,7 @@ export function TripForm() {
   };
 
   if (clarifierState !== null) {
-    return (
-      <ClarifierStep
-        tripId={clarifierState.tripId}
-        questions={clarifierState.questions}
-      />
-    );
+    return <ClarifierStep tripId={clarifierState.tripId} questions={clarifierState.questions} />;
   }
 
   return (
@@ -290,9 +284,7 @@ export function TripForm() {
           {...register("free_text")}
           aria-invalid={errors.free_text ? "true" : "false"}
         />
-        <span className="hint">
-          say it like you&rsquo;d tell a friend. dealbreakers go up top.
-        </span>
+        <span className="hint">say it like you&rsquo;d tell a friend. dealbreakers go up top.</span>
         {errors.free_text ? (
           <span role="alert" className="annot" style={{ display: "block", marginTop: 6 }}>
             {errors.free_text.message}

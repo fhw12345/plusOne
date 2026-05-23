@@ -121,173 +121,162 @@ export function ProfileForm() {
         noValidate
         style={{ display: "flex", flexDirection: "column", gap: 30 }}
       >
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <SectionHeader
-          caption="about you"
-          hint="age + language. helps pace + voice."
-        />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 18,
-          }}
-        >
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label htmlFor="age_range">age range</label>
-            <input
-              id="age_range"
-              maxLength={20}
-              placeholder="e.g. 30-39"
-              {...register("demographics.age_range", {
-                setValueAs: (v) => (v === "" ? null : v),
-              })}
-            />
-          </div>
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label htmlFor="language">first language</label>
-            <input
-              id="language"
-              maxLength={10}
-              placeholder="e.g. en"
-              {...register("demographics.language", {
-                setValueAs: (v) => (v === "" ? null : v),
-              })}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <SectionHeader
-          caption="how you travel"
-          hint="rough strokes &mdash; budget, pace, comfort."
-        />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 18,
-          }}
-        >
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label htmlFor="budget_sensitivity">budget</label>
-            <input
-              id="budget_sensitivity"
-              maxLength={20}
-              placeholder="e.g. moderate"
-              {...register("travel_style.budget_sensitivity", {
-                setValueAs: (v) => (v === "" ? null : v),
-              })}
-            />
-          </div>
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label htmlFor="pace">pace</label>
-            <input
-              id="pace"
-              maxLength={20}
-              placeholder="e.g. relaxed"
-              {...register("travel_style.pace", {
-                setValueAs: (v) => (v === "" ? null : v),
-              })}
-            />
-          </div>
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label htmlFor="comfort">comfort</label>
-            <input
-              id="comfort"
-              maxLength={20}
-              placeholder="e.g. mid-range"
-              {...register("travel_style.comfort", {
-                setValueAs: (v) => (v === "" ? null : v),
-              })}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <SectionHeader
-          caption="loves &amp; dealbreakers"
-          hint="hit enter after each one. the dealbreakers go further than the loves."
-        />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label>loves</label>
-            <Controller
-              control={control}
-              name="explicit_preferences.loves"
-              render={({ field }) => (
-                <ChipInput
-                  value={field.value}
-                  onChange={field.onChange}
-                  ariaLabel="Loves"
-                  placeholder="e.g. ramen"
-                />
-              )}
-            />
-          </div>
-          <div className="field" style={{ marginBottom: 0 }}>
-            <label>dealbreakers</label>
-            <Controller
-              control={control}
-              name="explicit_preferences.hates"
-              render={({ field }) => (
-                <ChipInput
-                  value={field.value}
-                  onChange={field.onChange}
-                  ariaLabel="Hates"
-                  placeholder="e.g. crowds"
-                />
-              )}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <SectionHeader
-          caption="been there"
-          hint="cities you've already done. i'll soften repeats."
-        />
-        <Controller
-          control={control}
-          name="visited_cities"
-          render={({ field }) => (
-            <VisitedCitiesField value={field.value} onChange={field.onChange} />
-          )}
-        />
-      </section>
-
-      <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
-        <button
-          type="submit"
-          disabled={isSubmitting || mutation.isPending}
-          className="btn btn--red"
-          style={{ opacity: isSubmitting || mutation.isPending ? 0.55 : 1 }}
-        >
-          {isSubmitting || mutation.isPending ? "pinning…" : "pin it"}
-        </button>
-        {saved ? (
-          <span
-            role="status"
-            className="annot"
-            style={{ display: "inline-block", fontSize: 16 }}
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionHeader caption="about you" hint="age + language. helps pace + voice." />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 18,
+            }}
           >
-            pinned ★
-          </span>
-        ) : null}
-        {serverError ? (
-          <span
-            role="alert"
-            className="annot"
-            style={{ display: "inline-block" }}
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label htmlFor="age_range">age range</label>
+              <input
+                id="age_range"
+                maxLength={20}
+                placeholder="e.g. 30-39"
+                {...register("demographics.age_range", {
+                  setValueAs: (v) => (v === "" ? null : v),
+                })}
+              />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label htmlFor="language">first language</label>
+              <input
+                id="language"
+                maxLength={10}
+                placeholder="e.g. en"
+                {...register("demographics.language", {
+                  setValueAs: (v) => (v === "" ? null : v),
+                })}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionHeader
+            caption="how you travel"
+            hint="rough strokes &mdash; budget, pace, comfort."
+          />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: 18,
+            }}
           >
-            {serverError}
-          </span>
-        ) : null}
-      </div>
-    </form>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label htmlFor="budget_sensitivity">budget</label>
+              <input
+                id="budget_sensitivity"
+                maxLength={20}
+                placeholder="e.g. moderate"
+                {...register("travel_style.budget_sensitivity", {
+                  setValueAs: (v) => (v === "" ? null : v),
+                })}
+              />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label htmlFor="pace">pace</label>
+              <input
+                id="pace"
+                maxLength={20}
+                placeholder="e.g. relaxed"
+                {...register("travel_style.pace", {
+                  setValueAs: (v) => (v === "" ? null : v),
+                })}
+              />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label htmlFor="comfort">comfort</label>
+              <input
+                id="comfort"
+                maxLength={20}
+                placeholder="e.g. mid-range"
+                {...register("travel_style.comfort", {
+                  setValueAs: (v) => (v === "" ? null : v),
+                })}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionHeader
+            caption="loves &amp; dealbreakers"
+            hint="hit enter after each one. the dealbreakers go further than the loves."
+          />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>loves</label>
+              <Controller
+                control={control}
+                name="explicit_preferences.loves"
+                render={({ field }) => (
+                  <ChipInput
+                    value={field.value}
+                    onChange={field.onChange}
+                    ariaLabel="Loves"
+                    placeholder="e.g. ramen"
+                  />
+                )}
+              />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>dealbreakers</label>
+              <Controller
+                control={control}
+                name="explicit_preferences.hates"
+                render={({ field }) => (
+                  <ChipInput
+                    value={field.value}
+                    onChange={field.onChange}
+                    ariaLabel="Hates"
+                    placeholder="e.g. crowds"
+                  />
+                )}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionHeader
+            caption="been there"
+            hint="cities you've already done. i'll soften repeats."
+          />
+          <Controller
+            control={control}
+            name="visited_cities"
+            render={({ field }) => (
+              <VisitedCitiesField value={field.value} onChange={field.onChange} />
+            )}
+          />
+        </section>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
+          <button
+            type="submit"
+            disabled={isSubmitting || mutation.isPending}
+            className="btn btn--red"
+            style={{ opacity: isSubmitting || mutation.isPending ? 0.55 : 1 }}
+          >
+            {isSubmitting || mutation.isPending ? "pinning…" : "pin it"}
+          </button>
+          {saved ? (
+            <span role="status" className="annot" style={{ display: "inline-block", fontSize: 16 }}>
+              pinned ★
+            </span>
+          ) : null}
+          {serverError ? (
+            <span role="alert" className="annot" style={{ display: "inline-block" }}>
+              {serverError}
+            </span>
+          ) : null}
+        </div>
+      </form>
 
       <ExportDataSection />
       <DangerZoneSection />

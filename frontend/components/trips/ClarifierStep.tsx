@@ -134,19 +134,13 @@ export function ClarifierStep({ tripId, questions }: ClarifierStepProps) {
             data-testid={`clarifier-input-${q.id}`}
             rows={2}
             value={values[q.id] ?? ""}
-            onChange={(e) =>
-              setValues((prev) => ({ ...prev, [q.id]: e.target.value }))
-            }
+            onChange={(e) => setValues((prev) => ({ ...prev, [q.id]: e.target.value }))}
             aria-invalid={fieldErrors[q.id] ? "true" : "false"}
             disabled={submitting}
             style={{ width: "100%" }}
           />
           {fieldErrors[q.id] ? (
-            <span
-              role="alert"
-              className="annot"
-              style={{ display: "block", marginTop: 6 }}
-            >
+            <span role="alert" className="annot" style={{ display: "block", marginTop: 6 }}>
               {fieldErrors[q.id]}
             </span>
           ) : null}

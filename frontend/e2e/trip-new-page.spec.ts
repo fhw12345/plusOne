@@ -17,9 +17,11 @@ test.describe("trip new page", () => {
     await signInE2E(page, request);
     await page.goto("/app/trips/new");
 
-    await expect(page.getByRole("heading", { level: 1 })).toContainText(/plan a trip|new trip/i);
-    await expect(page.getByLabel(/destination/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: /plan|start|create/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      /where are you headed|plan a trip|new trip/i,
+    );
+    await expect(page.getByLabel(/the place|destination/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /go look|plan|start|create/i })).toBeVisible();
   });
 
   test("blocks submission when destination is empty", async ({ page, request }) => {
@@ -27,18 +29,21 @@ test.describe("trip new page", () => {
     await page.goto("/app/trips/new");
 
     // leave both fields untouched, just click submit
-    await page.getByRole("button", { name: /plan|start|create/i }).click();
+    await page.getByRole("button", { name: /go look|plan|start|create/i }).click();
 
-    // zod resolver should surface a validation message before any network call
-    await expect(page.getByText(/required|destination/i)).toBeVisible();
+    // zod resolver surfaces a validation message before any network call.
+    // Accept any of the scrapbook-voice required messages or generic copy.
+    await expect(
+      page.getByText(/where to|required|destination|pick a place|need a place/i).first(),
+    ).toBeVisible();
   });
 
   test("submitting a valid trip navigates to /app/trips/<id>", async ({ page, request }) => {
     await signInE2E(page, request);
     await page.goto("/app/trips/new");
 
-    await page.getByLabel(/destination/i).fill("Tokyo");
-    await page.getByRole("button", { name: /plan|start|create/i }).click();
+    await page.getByLabel(/the place|destination/i).fill("Tokyo");
+    await page.getByRole("button", { name: /go look|plan|start|create/i }).click();
 
     await expect(page).toHaveURL(/\/app\/trips\/[0-9a-f-]{36}/i);
   });

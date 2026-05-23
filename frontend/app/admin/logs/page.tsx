@@ -151,9 +151,7 @@ function Pane({ title, rows, paused, onTogglePaused, onClear, tilt }: PaneProps)
             >
               <span style={{ color: "hsl(var(--ink-3))" }}>{formatTs(row.ts)}</span>
               <span style={{ textTransform: "lowercase" }}>{row.level.toLowerCase()}</span>
-              <span style={{ wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
-                {row.message}
-              </span>
+              <span style={{ wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{row.message}</span>
             </div>
           ))
         )}
@@ -293,7 +291,9 @@ export default function AdminLogsPage() {
         </p>
         <Link href="/app">your readings</Link>
         <span className="sep" />
-        <Link href="/app/trips/new" title="plan a new trip">new reading</Link>
+        <Link href="/app/trips/new" title="plan a new trip">
+          new reading
+        </Link>
         <span className="sep" />
         <Link href="/app/companions">who you bring</Link>
         <span className="sep" />
@@ -341,9 +341,7 @@ export default function AdminLogsPage() {
         />
       </section>
 
-      <footer
-        style={{ marginTop: 80, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}
-      >
+      <footer style={{ marginTop: 80, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}>
         <p className="type">PLUS &middot; ONE &middot; the wire &middot; v0.1</p>
       </footer>
     </div>

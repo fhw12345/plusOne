@@ -120,8 +120,8 @@ export default function NewTripPage() {
           >
             <strong>a tip ↓</strong>
             the more specific your &ldquo;avoid&rdquo; list, the better. &ldquo;no tourist
-            traps&rdquo; is fine. &ldquo;no chains, no places with english menus on the
-            front&rdquo; is better.
+            traps&rdquo; is fine. &ldquo;no chains, no places with english menus on the front&rdquo;
+            is better.
           </div>
         </aside>
       </section>

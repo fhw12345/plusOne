@@ -70,9 +70,7 @@ export function TripCard({ trip, index = 0 }: TripCardProps) {
             verticalAlign: 1,
             marginRight: 6,
             background: `hsl(var(--signal-${signal}))`,
-            ...(signal === "live"
-              ? { animation: "pulse 1.4s var(--ease-soft) infinite" }
-              : {}),
+            ...(signal === "live" ? { animation: "pulse 1.4s var(--ease-soft) infinite" } : {}),
           }}
         />
         {verdict.text}

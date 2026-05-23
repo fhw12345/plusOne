@@ -39,7 +39,9 @@ export default function ProfilePage() {
         </p>
         <Link href="/app">your readings</Link>
         <span className="sep" />
-        <Link href="/app/trips/new" title="plan a new trip">new reading</Link>
+        <Link href="/app/trips/new" title="plan a new trip">
+          new reading
+        </Link>
         <span className="sep" />
         <Link href="/app/companions">who you bring</Link>
         <span className="sep" />
@@ -78,9 +80,7 @@ export default function ProfilePage() {
         <ProfileForm />
       </section>
 
-      <footer
-        style={{ marginTop: 100, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}
-      >
+      <footer style={{ marginTop: 100, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}>
         <p className="type">PLUS &middot; ONE &middot; about you &middot; v0.1</p>
       </footer>
     </div>

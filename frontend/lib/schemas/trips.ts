@@ -76,13 +76,7 @@ export const ClarifyResponse = z.object({
 });
 export type ClarifyResponse = z.infer<typeof ClarifyResponse>;
 
-export const TripStatus = z.enum([
-  "pending",
-  "clarifying",
-  "running",
-  "complete",
-  "aborted",
-]);
+export const TripStatus = z.enum(["pending", "clarifying", "running", "complete", "aborted"]);
 export type TripStatus = z.infer<typeof TripStatus>;
 
 // JoinedItem shape is intentionally loose for v1 — the backend's

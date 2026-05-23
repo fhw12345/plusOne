@@ -44,6 +44,6 @@ test.describe("auth flow (credential, happy path)", () => {
     // Step 5: sign out
     await page.getByRole("button", { name: /sign out|log out/i }).click();
     await expect(page).toHaveURL("/");
-    await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /let me in|sign in/i })).toBeVisible();
   });
 });

@@ -74,11 +74,7 @@ export function CompanionSelector({ value, onChange }: CompanionSelectorProps) {
           </button>
         );
       })}
-      <a
-        href="/app/companions"
-        className="link-hand"
-        style={{ fontSize: 16, alignSelf: "center" }}
-      >
+      <a href="/app/companions" className="link-hand" style={{ fontSize: 16, alignSelf: "center" }}>
         + add someone
       </a>
     </div>

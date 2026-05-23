@@ -71,11 +71,7 @@ export function DeleteAccountDialog({ mutate }: DeleteAccountDialogProps = {}) {
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
-        <button
-          type="button"
-          className="btn btn--red"
-          data-testid="delete-account-button"
-        >
+        <button type="button" className="btn btn--red" data-testid="delete-account-button">
           tear it all out
         </button>
       </AlertDialogTrigger>
@@ -100,11 +96,7 @@ export function DeleteAccountDialog({ mutate }: DeleteAccountDialogProps = {}) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
-          <label
-            htmlFor="delete-account-confirm-input"
-            className="annot"
-            style={{ fontSize: 14 }}
-          >
+          <label htmlFor="delete-account-confirm-input" className="annot" style={{ fontSize: 14 }}>
             type DELETE to confirm
           </label>
           <input
@@ -127,11 +119,7 @@ export function DeleteAccountDialog({ mutate }: DeleteAccountDialogProps = {}) {
           />
         </div>
         {error ? (
-          <p
-            role="alert"
-            className="annot"
-            style={{ display: "block", marginTop: 10 }}
-          >
+          <p role="alert" className="annot" style={{ display: "block", marginTop: 10 }}>
             {error}
           </p>
         ) : null}

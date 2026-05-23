@@ -7,11 +7,13 @@ test.describe("companions page (/app/companions)", () => {
     await signInE2E(page, request);
     await page.goto("/app/companions");
 
-    await expect(page.getByRole("heading", { name: /companions/i })).toBeVisible();
-    await expect(page.getByText(/no companions yet/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /who you bring|companions/i })).toBeVisible();
+    await expect(page.getByText(/no one in the book|no companions yet/i)).toBeVisible();
 
     // Create "Alex"
-    await page.getByRole("button", { name: /add companion/i }).click();
+    await page
+      .getByRole("button", { name: /add someone|add the first one|add companion/i })
+      .click();
     await page.getByLabel(/^Name$/i).fill("Alex");
     const loves = page.getByRole("textbox", { name: "Loves" });
     await loves.fill("matcha");
@@ -40,7 +42,9 @@ test.describe("companions page (/app/companions)", () => {
     await expect(page.getByText("crowds").first()).toBeVisible();
 
     // Create another "Alex K" → 409 inline
-    await page.getByRole("button", { name: /add companion/i }).click();
+    await page
+      .getByRole("button", { name: /add someone|add the first one|add companion/i })
+      .click();
     await page.getByLabel(/^Name$/i).fill("Alex K");
     await page.getByRole("button", { name: /^Add$/ }).click();
     await expect(page.getByText(/name already taken/i)).toBeVisible({ timeout: 5_000 });

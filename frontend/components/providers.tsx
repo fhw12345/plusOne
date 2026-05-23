@@ -4,10 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import {
-  installAdminConsoleTap,
-  uninstallAdminConsoleTap,
-} from "@/lib/admin/console-tap";
+import { installAdminConsoleTap, uninstallAdminConsoleTap } from "@/lib/admin/console-tap";
 
 function AdminConsoleTapMount() {
   // Reading useCurrentUser here is safe — the query is gated by `enabled`

@@ -112,13 +112,10 @@ export async function clarifyTrip(
   answers: ClarifierAnswerT[],
 ): Promise<ClarifyResponseT> {
   const validBody = ClarifyBody.parse({ answers });
-  const raw = await apiFetch<unknown>(
-    `/api/trips/${tripId}/clarify`,
-    {
-      method: "POST",
-      body: JSON.stringify(validBody),
-    },
-  );
+  const raw = await apiFetch<unknown>(`/api/trips/${tripId}/clarify`, {
+    method: "POST",
+    body: JSON.stringify(validBody),
+  });
   return ClarifyResponse.parse(raw);
 }
 

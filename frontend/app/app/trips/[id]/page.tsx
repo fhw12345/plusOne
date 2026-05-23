@@ -98,10 +98,7 @@ export default function TripDetailPage() {
   // selector back to "follow latest" without using setState-in-effect.
   // The render-time setState pattern is what React 19's `react-hooks/
   // set-state-in-effect` lint rule asks us to use here.
-  const completeCount = stream.events.reduce(
-    (n, e) => (e.name === "trip_complete" ? n + 1 : n),
-    0,
-  );
+  const completeCount = stream.events.reduce((n, e) => (e.name === "trip_complete" ? n + 1 : n), 0);
   const [lastSeenCompleteCount, setLastSeenCompleteCount] = useState(completeCount);
   if (completeCount !== lastSeenCompleteCount) {
     setLastSeenCompleteCount(completeCount);
@@ -119,9 +116,7 @@ export default function TripDetailPage() {
 
   useEffect(() => {
     if (typeof document !== "undefined") {
-      document.title = trip?.destination
-        ? `Plus One — ${trip.destination}`
-        : "Plus One — reading";
+      document.title = trip?.destination ? `Plus One — ${trip.destination}` : "Plus One — reading";
     }
   }, [trip?.destination]);
 
@@ -146,7 +141,9 @@ export default function TripDetailPage() {
         </p>
         <Link href="/app">your readings</Link>
         <span className="sep" />
-        <Link href="/app/trips/new" title="plan a new trip">new reading</Link>
+        <Link href="/app/trips/new" title="plan a new trip">
+          new reading
+        </Link>
         <span className="sep" />
         <Link href="/app/companions">who you bring</Link>
         <span className="sep" />
@@ -238,9 +235,7 @@ export default function TripDetailPage() {
         </>
       ) : null}
 
-      <footer
-        style={{ marginTop: 80, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}
-      >
+      <footer style={{ marginTop: 80, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}>
         <p className="type">
           PLUS &middot; ONE &middot; {trip?.destination ?? "reading"} &middot; v0.1
         </p>

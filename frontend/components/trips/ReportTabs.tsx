@@ -5,7 +5,14 @@ import { useMemo, useState } from "react";
 import { ItemCard } from "@/components/trips/ItemCard";
 import { useReportPrefsHasHydrated } from "@/hooks/useReportPrefsHasHydrated";
 import type { JoinedItem } from "@/lib/schemas/trips";
-import { categorize, TAB_EMPTY_COPY, TAB_LABELS, TAB_ORDER, type Party, type TabKey } from "@/lib/trips/categorize";
+import {
+  categorize,
+  TAB_EMPTY_COPY,
+  TAB_LABELS,
+  TAB_ORDER,
+  type Party,
+  type TabKey,
+} from "@/lib/trips/categorize";
 import { useReportPrefsStore, type Perspective } from "@/store/reportPrefs";
 
 export interface ReportTabsProps {
@@ -29,13 +36,14 @@ export function ReportTabs({ items, party = null, partyNames }: ReportTabsProps)
   // inside `categorize`. `disagreement` is perspective-independent by
   // construction (computed from the raw zh/en pair). Batch-2p threads
   // ``party`` into the score-gated tabs.
-  const buckets = useMemo(
-    () => categorize(items, perspective, party),
-    [items, perspective, party],
-  );
+  const buckets = useMemo(() => categorize(items, perspective, party), [items, perspective, party]);
 
   return (
-    <div role="tablist" aria-label="Report sections" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+    <div
+      role="tablist"
+      aria-label="Report sections"
+      style={{ display: "flex", flexDirection: "column", gap: 18 }}
+    >
       <div
         style={{
           display: "flex",
@@ -86,12 +94,7 @@ export function ReportTabs({ items, party = null, partyNames }: ReportTabsProps)
         if (key !== active) return null;
         const bucket = buckets[key];
         return (
-          <div
-            key={key}
-            role="tabpanel"
-            id={`panel-${key}`}
-            aria-label={TAB_LABELS[key]}
-          >
+          <div key={key} role="tabpanel" id={`panel-${key}`} aria-label={TAB_LABELS[key]}>
             {bucket.length === 0 ? (
               <p
                 className="scrawl"

@@ -44,14 +44,19 @@ export const CYCLE_COMPLETE: Pool = [
   "okay, that's everything. writing it up.",
 ];
 
-const TRIP_COMPLETE_OK: Pool = ["done — pinned at the top.", "all in. check the cards on the left."];
+const TRIP_COMPLETE_OK: Pool = [
+  "done — pinned at the top.",
+  "all in. check the cards on the left.",
+];
 
 const ABORTED: Record<string, Pool> = {
   maestro: ["hit a wall — couldn't get through to my notes app. give me a sec and try again?"],
   empty: [
     "couldn't find anything good there. either too quiet a corner, or i need a different angle. want to try again with more detail?",
   ],
-  validation: ["something looked off in what i pulled — not going to write it up half-baked. one more try?"],
+  validation: [
+    "something looked off in what i pulled — not going to write it up half-baked. one more try?",
+  ],
   unknown: ["something snapped mid-thought. not your fault. try again?"],
 };
 
@@ -66,7 +71,10 @@ function pick(pool: Pool, index: number): string {
   return pool[index % pool.length] ?? "";
 }
 
-function substitute(line: string, replacements: Record<string, string | number | undefined>): string {
+function substitute(
+  line: string,
+  replacements: Record<string, string | number | undefined>,
+): string {
   return line.replace(/\{(\w+)\}/g, (_, key) => {
     const v = replacements[key];
     if (v === undefined || v === null) return "";
@@ -105,7 +113,9 @@ export function voiceFor(
       return { line: substitute(pick(STARTED, index), { destination: context.destination }) };
 
     case "iteration_start": {
-      const pool = ITERATION_BY_DEPTH[Math.min(event.depth, ITERATION_BY_DEPTH.length - 1)] ?? ITERATION_BY_DEPTH[0];
+      const pool =
+        ITERATION_BY_DEPTH[Math.min(event.depth, ITERATION_BY_DEPTH.length - 1)] ??
+        ITERATION_BY_DEPTH[0];
       return { line: pick(pool ?? [], index) };
     }
 

@@ -39,7 +39,7 @@ def try_request(url: str, headers: dict[str, str], label: str) -> tuple[int, str
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
         return e.code, body
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return -1, f"{type(e).__name__}: {e}"
 
 

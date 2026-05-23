@@ -1,9 +1,5 @@
 import { apiFetch } from "@/lib/api/client";
-import {
-  MeResponse,
-  RegisterResponse,
-  TokenResponse,
-} from "@/lib/schemas/auth";
+import { MeResponse, RegisterResponse, TokenResponse } from "@/lib/schemas/auth";
 import type {
   MeResponse as MeResponseT,
   RegisterResponse as RegisterResponseT,
@@ -32,10 +28,7 @@ export async function register(body: {
  * users.email_verified_at, and mint a JWT in one shot. Returns the same
  * token shape as /login.
  */
-export async function verify(body: {
-  email: string;
-  code: string;
-}): Promise<TokenResponseT> {
+export async function verify(body: { email: string; code: string }): Promise<TokenResponseT> {
   const raw = await apiFetch<unknown>("/api/auth/verify", {
     method: "POST",
     body: JSON.stringify(body),

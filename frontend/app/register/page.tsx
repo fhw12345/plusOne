@@ -98,8 +98,7 @@ export default function RegisterPage() {
               position: "relative",
               padding: "36px 38px 42px",
               background: "hsl(var(--paper-2))",
-              boxShadow:
-                "0 16px 30px -16px hsl(0 0% 0% / .22), 0 2px 4px hsl(0 0% 0% / .08)",
+              boxShadow: "0 16px 30px -16px hsl(0 0% 0% / .22), 0 2px 4px hsl(0 0% 0% / .08)",
               transform: "rotate(-1deg)",
             }}
           >
@@ -160,7 +159,9 @@ export default function RegisterPage() {
                 {...register("password")}
                 aria-invalid={errors.password ? "true" : "false"}
               />
-              <span className="hint">at least 10. one letter, one number. that&rsquo;s the floor.</span>
+              <span className="hint">
+                at least 10. one letter, one number. that&rsquo;s the floor.
+              </span>
               {errors.password ? (
                 <span role="alert" className="annot" style={{ display: "block", marginTop: 6 }}>
                   {errors.password.message}

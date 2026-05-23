@@ -41,7 +41,10 @@ function filterEvidenceByPerspective(
   });
 }
 
-const VERDICT_BY_CLASS: Record<string, { text: string; signal: "live" | "done" | "wait" | "snag" }> = {
+const VERDICT_BY_CLASS: Record<
+  string,
+  { text: string; signal: "live" | "done" | "wait" | "snag" }
+> = {
   local_gem: { text: "this one ★", signal: "done" },
   tourist_trap: { text: "skip", signal: "snag" },
   neutral: { text: "okay-ish", signal: "wait" },
@@ -84,7 +87,9 @@ export function ItemCard({
   const evidence = filterEvidenceByPerspective(allEvidence, perspective);
   const evidenceCount = evidence.length;
   const effectiveClassification = resolveClassification(item, perspective);
-  const verdict = effectiveClassification ? VERDICT_BY_CLASS[effectiveClassification] ?? null : null;
+  const verdict = effectiveClassification
+    ? (VERDICT_BY_CLASS[effectiveClassification] ?? null)
+    : null;
   const confidence =
     typeof view.confidence === "number" && !Number.isNaN(view.confidence)
       ? Math.round(view.confidence * 100)
@@ -121,10 +126,7 @@ export function ItemCard({
       matchEntries.push({ label, score: val });
     }
   }
-  const showMatchLine =
-    matchEntries.length > 0 &&
-    party != null &&
-    party.companion_ids.length > 0;
+  const showMatchLine = matchEntries.length > 0 && party != null && party.companion_ids.length > 0;
 
   return (
     <article
@@ -163,10 +165,7 @@ export function ItemCard({
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
           {verdict ? (
-            <span
-              className="verdict"
-              style={{ position: "static", fontSize: 16, lineHeight: 1 }}
-            >
+            <span className="verdict" style={{ position: "static", fontSize: 16, lineHeight: 1 }}>
               <span
                 aria-hidden="true"
                 style={{
@@ -265,11 +264,10 @@ export function ItemCard({
               className="scrawl"
               style={{ fontSize: 14, color: "hsl(var(--ink-3))" }}
             >
-              <span className="type" style={{ marginRight: 4 }}>match</span>
-              {" "}
-              {matchEntries
-                .map((entry) => `${entry.label}: ${entry.score.toFixed(1)}`)
-                .join(" · ")}
+              <span className="type" style={{ marginRight: 4 }}>
+                match
+              </span>{" "}
+              {matchEntries.map((entry) => `${entry.label}: ${entry.score.toFixed(1)}`).join(" · ")}
             </p>
           ) : null}
           {summary ? (

@@ -11,9 +11,7 @@ function renderWithProviders(node: React.ReactElement): string {
   // even though both are auth-gated (and disabled here). A QueryClient
   // must be in scope or the hooks throw on first render.
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return renderToString(
-    <QueryClientProvider client={client}>{node}</QueryClientProvider>,
-  );
+  return renderToString(<QueryClientProvider client={client}>{node}</QueryClientProvider>);
 }
 
 function trip(

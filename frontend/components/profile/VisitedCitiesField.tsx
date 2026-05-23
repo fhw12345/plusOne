@@ -40,7 +40,14 @@ export function VisitedCitiesField({ value, onChange }: VisitedCitiesFieldProps)
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <ul
-        style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}
+        style={{
+          listStyle: "none",
+          padding: 0,
+          margin: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 14,
+        }}
         aria-label="Visited cities list"
       >
         {value.map((row, index) => (

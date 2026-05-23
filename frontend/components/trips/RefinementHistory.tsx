@@ -97,7 +97,16 @@ export function RefinementHistory({
           {EMPTY}
         </p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
           {reports.map((report, idx) => {
             const isCurrent = report.report_id === effectiveCurrent;
             const label = entryLabel(report, idx, reports.length);

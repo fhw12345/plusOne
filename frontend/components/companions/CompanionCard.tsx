@@ -35,11 +35,7 @@ export function CompanionCard({ companion, onEdit, onDelete }: CompanionCardProp
     >
       <span className={`tape ${tape} cnr`} />
 
-      <div
-        className="photo"
-        data-label={companion.name}
-        style={{ minHeight: 96 }}
-      />
+      <div className="photo" data-label={companion.name} style={{ minHeight: 96 }} />
       <p className="cap">{companion.name}</p>
 
       <div style={{ display: "grid", gap: 8, marginTop: 6 }}>

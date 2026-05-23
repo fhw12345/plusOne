@@ -20,11 +20,7 @@ export type City = {
  * Whitespace is trimmed from `query`. Matching is leading-substring on the
  * city `name` only — does NOT match on country.
  */
-export function searchCities(
-  query: string,
-  cities: readonly City[],
-  limit = 8,
-): City[] {
+export function searchCities(query: string, cities: readonly City[], limit = 8): City[] {
   const q = query.trim().toLowerCase();
   if (q === "") {
     return cities.slice(0, limit);

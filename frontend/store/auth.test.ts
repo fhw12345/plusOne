@@ -14,14 +14,12 @@ describe("useAuthStore", () => {
   });
 
   it("setSession populates token and user", () => {
-    useAuthStore
-      .getState()
-      .setSession("jwt-abc", {
-        id: "u1",
-        email: "a@b.test",
-        username: "u1",
-        is_admin: false,
-      });
+    useAuthStore.getState().setSession("jwt-abc", {
+      id: "u1",
+      email: "a@b.test",
+      username: "u1",
+      is_admin: false,
+    });
     const state = useAuthStore.getState();
     expect(state.token).toBe("jwt-abc");
     expect(state.user).toEqual({
@@ -33,14 +31,12 @@ describe("useAuthStore", () => {
   });
 
   it("clear resets token and user", () => {
-    useAuthStore
-      .getState()
-      .setSession("jwt-abc", {
-        id: "u1",
-        email: "a@b.test",
-        username: "u1",
-        is_admin: false,
-      });
+    useAuthStore.getState().setSession("jwt-abc", {
+      id: "u1",
+      email: "a@b.test",
+      username: "u1",
+      is_admin: false,
+    });
     useAuthStore.getState().clear();
     const state = useAuthStore.getState();
     expect(state.token).toBeNull();

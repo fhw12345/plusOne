@@ -1,33 +1,23 @@
 import { z } from "zod";
 
 // Reusable email schema — voice copy lives in the inline error rules.
-export const EmailSchema = z
-  .string()
-  .email("that email doesn't look right. typo?");
+export const EmailSchema = z.string().email("that email doesn't look right. typo?");
 
 // Username: lowercase letters, digits, and underscores. 3 to 32 chars.
 // Backend enforces the same shape on POST /api/auth/register.
 export const UsernameSchema = z
   .string()
-  .regex(
-    /^[a-z0-9_]{3,32}$/,
-    "username's lowercase, letters and numbers, three to thirty-two.",
-  );
+  .regex(/^[a-z0-9_]{3,32}$/, "username's lowercase, letters and numbers, three to thirty-two.");
 
 // Password: min 10, at least one letter + one digit.
 export const PasswordSchema = z
   .string()
   .min(10, "password needs ten characters and a number. one more pass?")
-  .regex(
-    /[A-Za-z]/,
-    "password needs ten characters and a number. one more pass?",
-  )
+  .regex(/[A-Za-z]/, "password needs ten characters and a number. one more pass?")
   .regex(/\d/, "password needs ten characters and a number. one more pass?");
 
 // Six-digit verification / login code.
-export const CodeSchema = z
-  .string()
-  .regex(/^\d{6}$/, "just the numbers. all six of them.");
+export const CodeSchema = z.string().regex(/^\d{6}$/, "just the numbers. all six of them.");
 
 export const RegisterBody = z
   .object({
@@ -49,10 +39,7 @@ export const VerifyBody = z.object({
 export type VerifyBody = z.infer<typeof VerifyBody>;
 
 export const LoginBody = z.object({
-  identifier: z
-    .string()
-    .min(1, "tell me who you are first.")
-    .max(254),
+  identifier: z.string().min(1, "tell me who you are first.").max(254),
   password: z.string().min(1, "password too. then we go."),
 });
 export type LoginBody = z.infer<typeof LoginBody>;

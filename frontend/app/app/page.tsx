@@ -16,12 +16,7 @@ import { useAuthStore } from "@/store/auth";
 
 function SkeletonGallery() {
   return (
-    <section
-      className="gallery"
-      style={{ marginTop: 28 }}
-      aria-hidden="true"
-      aria-busy="true"
-    >
+    <section className="gallery" style={{ marginTop: 28 }} aria-hidden="true" aria-busy="true">
       {[0, 1, 2].map((i) => (
         <article
           key={i}
@@ -103,7 +98,9 @@ export default function AppPage() {
           your readings
         </Link>
         <span className="sep" />
-        <Link href="/app/trips/new" title="plan a new trip">new reading</Link>
+        <Link href="/app/trips/new" title="plan a new trip">
+          new reading
+        </Link>
         <span className="sep" />
         <Link href="/app/companions">who you bring</Link>
         <span className="sep" />
@@ -149,7 +146,11 @@ export default function AppPage() {
       {trips.isLoading ? <SkeletonGallery /> : null}
 
       {trips.isError ? (
-        <div role="alert" className="ticket" style={{ marginTop: 32, ["--tilt" as never]: "-.5deg" }}>
+        <div
+          role="alert"
+          className="ticket"
+          style={{ marginTop: 32, ["--tilt" as never]: "-.5deg" }}
+        >
           <div className="stamp-row">
             <span className="type" style={{ color: "hsl(var(--signal-snag))" }}>
               hit a wall
@@ -201,9 +202,7 @@ export default function AppPage() {
         &uarr; tap any card to flip it open.
       </p>
 
-      <footer
-        style={{ marginTop: 100, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}
-      >
+      <footer style={{ marginTop: 100, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}>
         <p className="type">
           PLUS &middot; ONE &middot; reading no. {flatTrips.length || "—"} &middot; v0.1
         </p>

@@ -7,11 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ApiError } from "@/lib/api/client";
-import {
-  login,
-  loginWithCode,
-  requestCode,
-} from "@/lib/api/auth";
+import { login, loginWithCode, requestCode } from "@/lib/api/auth";
 import {
   CodeSchema,
   EmailSchema,
@@ -73,11 +69,7 @@ function PasswordTab() {
       setSession(res.access_token, res.user);
       router.push("/app");
     } catch (err) {
-      if (
-        err instanceof ApiError &&
-        err.status === 401 &&
-        err.message === "email_not_verified"
-      ) {
+      if (err instanceof ApiError && err.status === 401 && err.message === "email_not_verified") {
         router.push(`/verify?email=${encodeURIComponent(values.identifier)}`);
         return;
       }
@@ -243,7 +235,11 @@ function CodeTab() {
         </div>
 
         {serverError ? (
-          <p role="alert" className="annot" style={{ marginTop: 18, fontSize: 15, display: "block" }}>
+          <p
+            role="alert"
+            className="annot"
+            style={{ marginTop: 18, fontSize: 15, display: "block" }}
+          >
             {serverError}
           </p>
         ) : null}
@@ -346,8 +342,7 @@ export default function LoginPage() {
               position: "relative",
               padding: "36px 38px 42px",
               background: "hsl(var(--paper-2))",
-              boxShadow:
-                "0 16px 30px -16px hsl(0 0% 0% / .22), 0 2px 4px hsl(0 0% 0% / .08)",
+              boxShadow: "0 16px 30px -16px hsl(0 0% 0% / .22), 0 2px 4px hsl(0 0% 0% / .08)",
               transform: "rotate(-1deg)",
             }}
           >

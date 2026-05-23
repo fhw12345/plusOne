@@ -54,9 +54,7 @@ describe("DestinationCombobox (SSR markup)", () => {
 
   it("renders value attribute reflecting controlled value", () => {
     cityIndexMock.mockReturnValue({ status: "loading" });
-    const html = renderToString(
-      <DestinationCombobox value="Hakone, Japan" onChange={() => {}} />,
-    );
+    const html = renderToString(<DestinationCombobox value="Hakone, Japan" onChange={() => {}} />);
     expect(html).toContain('value="Hakone, Japan"');
   });
 

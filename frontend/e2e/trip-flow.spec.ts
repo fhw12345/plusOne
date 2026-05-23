@@ -19,8 +19,8 @@ test.describe("trip flow (happy path)", () => {
     await signInE2E(page, request);
 
     await page.goto("/app/trips/new");
-    await page.getByLabel(/destination/i).fill("Tokyo");
-    await page.getByRole("button", { name: /plan|start|create/i }).click();
+    await page.getByLabel(/the place|destination/i).fill("Tokyo");
+    await page.getByRole("button", { name: /go look|plan|start|create/i }).click();
 
     await expect(page).toHaveURL(/\/app\/trips\/[0-9a-f-]{36}/i, { timeout: 10_000 });
 
@@ -46,7 +46,7 @@ test.describe("trip flow (happy path)", () => {
     // crashing even when the report is empty (the disagreement bucket is
     // empty too — that's fine; we're just asserting non-crash rendering).
     await expect(page.getByTestId("perspective-toggle")).toBeVisible();
-    await expect(page.getByRole("tab", { name: /disagreement/i })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /two minds|disagreement/i })).toBeVisible();
 
     // Batch 2k — output language toggle is present alongside the
     // perspective toggle. PLUS_ONE_TRANSLATE_ENABLED=0 in e2e so the

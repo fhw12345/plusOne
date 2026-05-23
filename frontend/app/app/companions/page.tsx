@@ -67,7 +67,9 @@ export default function CompanionsPage() {
         </p>
         <Link href="/app">your readings</Link>
         <span className="sep" />
-        <Link href="/app/trips/new" title="plan a new trip">new reading</Link>
+        <Link href="/app/trips/new" title="plan a new trip">
+          new reading
+        </Link>
         <span className="sep" />
         <Link className="is-on" href="/app/companions">
           who you bring
@@ -125,9 +127,7 @@ export default function CompanionsPage() {
             </span>
             <span className="type-sm">{_COMPANION_CAP} max</span>
           </div>
-          <p className="body">
-            the book&rsquo;s full. delete someone to make room.
-          </p>
+          <p className="body">the book&rsquo;s full. delete someone to make room.</p>
         </div>
       ) : null}
 
@@ -160,7 +160,8 @@ export default function CompanionsPage() {
             no one in the book yet.
           </p>
           <p className="scrawl">
-            companions ride along on a reading &mdash; i&rsquo;ll match the picks to who&rsquo;s with you.
+            companions ride along on a reading &mdash; i&rsquo;ll match the picks to who&rsquo;s
+            with you.
           </p>
           <p className="scrawl">
             add the people you usually travel with &mdash; i&rsquo;ll plan around their tastes.
@@ -174,12 +175,7 @@ export default function CompanionsPage() {
       {companions.length > 0 ? (
         <section className="gallery" style={{ marginTop: 12 }}>
           {companions.map((c) => (
-            <CompanionCard
-              key={c.id}
-              companion={c}
-              onEdit={openEdit}
-              onDelete={openDelete}
-            />
+            <CompanionCard key={c.id} companion={c} onEdit={openEdit} onDelete={openDelete} />
           ))}
         </section>
       ) : null}
@@ -191,9 +187,7 @@ export default function CompanionsPage() {
         companion={deleteTarget}
       />
 
-      <footer
-        style={{ marginTop: 100, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}
-      >
+      <footer style={{ marginTop: 100, paddingTop: 18, borderTop: "1px dotted hsl(var(--kraft))" }}>
         <p className="type">PLUS &middot; ONE &middot; who you bring &middot; v0.1</p>
       </footer>
     </div>

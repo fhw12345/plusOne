@@ -55,9 +55,7 @@ function _serialize(arg: unknown): string {
 
 function _formatMessage(args: unknown[]): string {
   const joined = args.map(_serialize).join(" ");
-  return joined.length > MSG_TRUNCATE
-    ? joined.slice(0, MSG_TRUNCATE) + "…[truncated]"
-    : joined;
+  return joined.length > MSG_TRUNCATE ? joined.slice(0, MSG_TRUNCATE) + "…[truncated]" : joined;
 }
 
 async function _postBatch(entries: RingEntry[], signal: AbortSignal): Promise<void> {

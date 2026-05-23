@@ -35,11 +35,7 @@ export default async function SharedTripPage({ params }: SharePageProps) {
   };
 
   return (
-    <main
-      className="shell"
-      data-shared-trip-page="true"
-      style={{ maxWidth: 920 }}
-    >
+    <main className="shell" data-shared-trip-page="true" style={{ maxWidth: 920 }}>
       <header style={{ position: "relative", padding: "12px 0 28px" }}>
         <span
           className="tape tape--mint"

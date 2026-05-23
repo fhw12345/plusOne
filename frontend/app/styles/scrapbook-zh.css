@@ -23,7 +23,7 @@
    See BILINGUAL-NOTES.md §0.1.
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;600&display=swap");
 
 /* ────────────────────────────────────────────────────────────
    FONT TOKENS — CJK additions
@@ -32,14 +32,14 @@
   /* Printed CJK — DEFAULT body + headline voice for ZH.
      Noto Serif SC carries everything that has to be read at glance:
      body paragraphs, card titles, nav, buttons, list items, inputs. */
-  --font-cjk-serif-sc:   'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
-  --font-cjk-serif-tc:   'Noto Serif TC', 'Source Han Serif TC', 'Songti TC', serif;
+  --font-cjk-serif-sc: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+  --font-cjk-serif-tc: "Noto Serif TC", "Source Han Serif TC", "Songti TC", serif;
 
   /* Printed CJK secondary — ZCOOL XiaoWei is a literary slab.
      Used for the typewriter slot (nav-strip caps, crest, type labels,
      stamps, small caps). Printed-feel, so OK at small sizes. */
-  --font-cjk-type:       'ZCOOL XiaoWei', 'Noto Serif SC', serif;
-  --font-cjk-sans:       'Noto Sans SC', 'PingFang SC', system-ui, sans-serif;
+  --font-cjk-type: "ZCOOL XiaoWei", "Noto Serif SC", serif;
+  --font-cjk-sans: "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
 
   /* Handwritten CJK — ACCENT ONLY. v3 narrows the allowlist:
        .signature    short footer flourish, ≤6 chars, single line
@@ -49,19 +49,19 @@
      Forbidden on: body, headlines, nav, buttons, card titles, lists,
      inputs, placeholders, annotations, marginalia. If a string needs
      to be read at all, it must not be in a handwriting font. */
-  --font-hand-cjk:       'Ma Shan Zheng', 'Long Cang', 'Caveat', cursive;
-  --font-hand-cjk-alt:   'Liu Jian Mao Cao', 'Long Cang', 'Kalam', cursive;
-  --font-hand-cjk-disp:  'Long Cang', 'Ma Shan Zheng', cursive;
+  --font-hand-cjk: "Ma Shan Zheng", "Long Cang", "Caveat", cursive;
+  --font-hand-cjk-alt: "Liu Jian Mao Cao", "Long Cang", "Kalam", cursive;
+  --font-hand-cjk-disp: "Long Cang", "Ma Shan Zheng", cursive;
 
   /* CJK ink — near-black so dark serif body stands off the paper. */
-  --ink-cjk:        #1a1814;
-  --ink-cjk-soft:   #3a342b;
-  --ink-cjk-meta:   #6a5f4a;
+  --ink-cjk: #1a1814;
+  --ink-cjk-soft: #3a342b;
+  --ink-cjk-meta: #6a5f4a;
 
   /* CJK line-height — serif body at 1.75, headlines tight at 1.18. */
   --lh-cjk-tight: 1.55;
-  --lh-cjk-body:  1.75;
-  --lh-cjk-disp:  1.18;
+  --lh-cjk-body: 1.75;
+  --lh-cjk-disp: 1.18;
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -76,15 +76,14 @@ html:lang(zh-Hant) {
 :lang(zh) body {
   color: var(--ink-cjk);
   background:
-    radial-gradient(ellipse at 18% 8%,  hsl(0 0% 100% / .35) 0%, transparent 55%),
-    radial-gradient(ellipse at 82% 70%, hsl(0 0% 0% / .025)  0%, transparent 60%),
-    #fbfaf5;
+    radial-gradient(ellipse at 18% 8%, hsl(0 0% 100% / 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse at 82% 70%, hsl(0 0% 0% / 0.025) 0%, transparent 60%), #fbfaf5;
 }
 :lang(zh) body::before {
-  opacity: .04;     /* was .32 — grain killed body legibility */
+  opacity: 0.04; /* was .32 — grain killed body legibility */
 }
 :lang(zh) body::after {
-  background: radial-gradient(ellipse at 50% 50%, transparent 64%, hsl(0 0% 0% / .10) 100%);
+  background: radial-gradient(ellipse at 50% 50%, transparent 64%, hsl(0 0% 0% / 0.1) 100%);
 }
 
 /* Tape elements — cap opacity so a tilted strip is felt, not shouted */
@@ -331,7 +330,7 @@ html:lang(zh-Hant) {
 :lang(zh) .doodle {
   font-family: var(--font-hand-cjk);
   font-weight: 400;
-  color: hsl(var(--red) / .8);
+  color: hsl(var(--red) / 0.8);
 }
 
 /* SSE row annot — printed serif now, was handwriting in v2. */
@@ -404,14 +403,14 @@ html:lang(zh-Hant) {
    LATIN INSIDE CJK
    ──────────────────────────────────────────────────────────── */
 @font-face {
-  font-family: 'Caveat-Latin';
-  src: local('Caveat'), local('Caveat-Regular');
+  font-family: "Caveat-Latin";
+  src: local("Caveat"), local("Caveat-Regular");
   unicode-range: U+0020-024F, U+2000-206F, U+20A0-20CF, U+2120-217F;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Kalam-Latin';
-  src: local('Kalam'), local('Kalam-Regular');
+  font-family: "Kalam-Latin";
+  src: local("Kalam"), local("Kalam-Regular");
   unicode-range: U+0020-024F, U+2000-206F;
   font-display: swap;
 }
@@ -423,18 +422,24 @@ html:lang(zh-Hant) {
 :lang(zh) .signature,
 :lang(zh) .doodle {
   /* Latin inside signature/doodle inherits Caveat/Kalam via unicode-range. */
-  font-family: 'Kalam-Latin', var(--font-hand-cjk-alt);
+  font-family: "Kalam-Latin", var(--font-hand-cjk-alt);
 }
 
 /* Inline Latin runs — wrap with .lat in markup to force Latin
    handwriting face even inside a printed-serif paragraph. Use
    sparingly: place names, brand tokens (reddit, tl;dr). */
 .lat {
-  font-family: var(--font-hand);    /* Caveat */
+  font-family: var(--font-hand); /* Caveat */
   letter-spacing: -0.005em;
 }
-.lat-alt { font-family: var(--font-hand-alt); }
-.lat-type { font-family: var(--font-type); letter-spacing: 0.18em; text-transform: uppercase; }
+.lat-alt {
+  font-family: var(--font-hand-alt);
+}
+.lat-type {
+  font-family: var(--font-type);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
 
 /* ────────────────────────────────────────────────────────────
    PUNCTUATION
@@ -464,7 +469,7 @@ html:lang(zh-Hant) {
   font-size: 17px;
   text-decoration: underline;
   text-decoration-style: solid;
-  text-decoration-color: hsl(var(--red) / .55);
+  text-decoration-color: hsl(var(--red) / 0.55);
   text-underline-offset: 5px;
   color: var(--ink-cjk);
 }
@@ -490,7 +495,9 @@ html:lang(zh-Hant) {
 }
 :lang(zh) .field > textarea {
   background-image: repeating-linear-gradient(
-    transparent 0 34px, hsl(var(--ink-3) / .18) 34px 35px);
+    transparent 0 34px,
+    hsl(var(--ink-3) / 0.18) 34px 35px
+  );
   line-height: 34px;
 }
 :lang(zh) .field .hint {
@@ -579,10 +586,24 @@ html:lang(zh-Hant) {
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   :lang(zh) .hand-xxl,
-  :lang(zh) .h-display { font-size: 2.1rem; line-height: 1.2; }
+  :lang(zh) .h-display {
+    font-size: 2.1rem;
+    line-height: 1.2;
+  }
   :lang(zh) .hand,
-  :lang(zh) .body { font-size: 17px; line-height: 1.75; }
-  :lang(zh) .scrawl { font-size: 16px; line-height: 1.7; }
-  :lang(zh) .msg { font-size: 17px; line-height: 1.7; }
-  :lang(zh) .photo-card .cap { font-size: 18px; }
+  :lang(zh) .body {
+    font-size: 17px;
+    line-height: 1.75;
+  }
+  :lang(zh) .scrawl {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  :lang(zh) .msg {
+    font-size: 17px;
+    line-height: 1.7;
+  }
+  :lang(zh) .photo-card .cap {
+    font-size: 18px;
+  }
 }
