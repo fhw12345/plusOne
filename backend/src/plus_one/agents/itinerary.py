@@ -6,9 +6,7 @@ flat / JSON-friendly so they round-trip cleanly through the Report
 ``content.day_plan`` JSONB column. See ``docs/prd/trip-detail-itinerary.md``.
 """
 
-from __future__ import annotations
-
-from datetime import date  # noqa: TC003 — runtime use as Pydantic field annotation
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -40,7 +38,7 @@ class ItineraryPlan(BaseModel):
     days: list[DayPlan] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _no_duplicate_item_indices(self) -> ItineraryPlan:
+    def _no_duplicate_item_indices(self) -> "ItineraryPlan":
         """Reject plans where the same ``item_index`` appears twice.
 
         The scheduler prompt instructs the LLM that every eligible item
