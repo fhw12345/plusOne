@@ -43,7 +43,7 @@ test.describe("trip flow (happy path)", () => {
     // abort with an empty report (see playwright.config.ts). So the most
     // meaningful destination check is that the page header still reflects
     // the trip we created — the report region itself is empty by design.
-    await expect(page.getByText(/Tokyo/i)).toBeVisible();
+    await expect(page.getByText(/Tokyo/i).first()).toBeVisible();
 
     // Batch 2i — perspective toggle and disagreement tab render without
     // crashing even when the report is empty (the disagreement bucket is
