@@ -61,6 +61,13 @@ async def send_email(
       * True  -> implicit TLS (port 465 typical, ``use_tls=True``)
       * False -> STARTTLS (port 587 typical, ``start_tls=True``)
     """
+    if settings.allow_console_email_sender and not settings.smtp_host:
+        # Dev/CI fallback: write a redacted line to logs instead of sending.
+        # Code retrieval for e2e goes through /api/auth/dev/last-code, which
+        # reads from the DB, so the body content is intentionally NOT logged.
+        logger.info("console_email_sent to=%s subject=%s", to, subject)
+        return
+
     if not settings.smtp_host:
         raise EmailSendError("smtp_host not configured")
 

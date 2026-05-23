@@ -31,7 +31,7 @@ def redact(s: str) -> str:
 
 
 def try_request(url: str, headers: dict[str, str], label: str) -> tuple[int, str]:
-    req = urllib.request.Request(url, headers=headers)
+    req = urllib.request.Request(url, headers=headers)  # noqa: S310
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:  # noqa: S310
             body = resp.read().decode("utf-8", errors="replace")

@@ -64,6 +64,12 @@ logger = logging.getLogger(__name__)
 _REQUEST_CODE_LIMITER = MinIntervalLimiter(min_interval_seconds=60.0)
 
 
+# Dev-only cache of (email -> latest plaintext code), populated only when
+# settings.allow_console_email_sender is True. DB stores Argon2id hashes,
+# so e2e cannot recover the code without this side channel.
+_DEV_LAST_CODE: dict[str, str] = {}
+
+
 def get_request_code_limiter() -> MinIntervalLimiter:
     """Indirection so tests can swap the limiter via dependency override
     (or import + .reset() this one directly)."""
@@ -72,6 +78,8 @@ def get_request_code_limiter() -> MinIntervalLimiter:
 
 async def _send_code_or_503(email: str, code: str) -> None:
     """Send the code email; translate SMTP errors to HTTP 503."""
+    if settings.allow_console_email_sender:
+        _DEV_LAST_CODE[email] = code
     try:
         await send_code_email(to=email, code=code)
     except EmailSendError as exc:
@@ -324,3 +332,25 @@ async def me(user: CurrentUser) -> UserMeResponse:
         username=user.username,
         is_admin=user.is_admin,
     )
+
+
+# === dev-only =============================================================
+#
+# Returns the most recent plaintext code issued for an email, when console
+# email sender is on. DB stores Argon2id hashes, so e2e cannot recover the
+# code from the DB; this side channel is populated in _send_code_or_503
+# only when settings.allow_console_email_sender is True. In any other
+# environment the endpoint returns 404 so the surface area stays zero.
+
+
+@router.get(
+    "/dev/last-code",
+    summary="(dev/CI only) Read the most recent plaintext verify/login code",
+)
+async def dev_last_code(email: str) -> dict[str, str]:
+    if not settings.allow_console_email_sender:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    code = _DEV_LAST_CODE.get(email)
+    if not code:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no_code_for_email")
+    return {"code": code}
