@@ -1,4 +1,5 @@
 name: CI
+# Re-verified 2026-05-24: console-email-sender path + /api/auth/dev/last-code
 
 on:
   push:
