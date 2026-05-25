@@ -15,12 +15,25 @@ import { signInE2E } from "./_helpers/auth";
 // dominates, and CI is slow.
 
 test.describe("trip flow (happy path)", () => {
+  test.setTimeout(420_000);
+
   test("submit trip → live event → terminal status → report visible", async ({ page, request }) => {
     await signInE2E(page, request);
 
     await page.goto("/app/trips/new");
     await page.getByLabel(/the place|destination/i).fill("Tokyo");
+    await page
+      .getByLabel(/the mood|foods|avoid/i)
+      .fill("ramen local gems tourist traps xhs photos no clarifying needed");
     await page.getByRole("button", { name: /go look|plan|start|create/i }).click();
+
+    const clarifier = page.getByTestId("clarifier-step");
+    try {
+      await expect(clarifier).toBeVisible({ timeout: 8_000 });
+      await page.getByRole("button", { name: /skip these/i }).click();
+    } catch {
+      await expect(clarifier).toBeHidden({ timeout: 1_000 });
+    }
 
     await expect(page).toHaveURL(/\/app\/trips\/[0-9a-f-]{36}/i, { timeout: 10_000 });
 
@@ -29,32 +42,59 @@ test.describe("trip flow (happy path)", () => {
     // both the literal event names (older renderings) and the human-voice
     // variants the current UI emits (snapped / hit a wall / stuck / etc.).
     await expect(page.getByTestId("progress-feed")).toContainText(
-      /started|producer|joiner|controller|cycle aborted|trip complete|snapped|hit a wall|stuck|done|notes app/i,
+      /started|producer|joiner|controller|cycle aborted|trip complete|setting up|asking around|pulled|cross-check|tying|snapped|hit a wall|stuck|done|notes app/i,
       { timeout: 20_000 },
     );
 
-    // Trip lands on a terminal status (complete or aborted). Either is a
-    // success for *this* spec — content correctness is asserted next.
-    await expect(
-      page.locator("[data-trip-status='complete'], [data-trip-status='aborted']"),
-    ).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("[data-trip-status='complete']")).toBeVisible({ timeout: 300_000 });
 
-    // In this e2e environment PLUS_ONE_ALLOW_REAL_LLM=0 forces the cycle to
-    // abort with an empty report (see playwright.config.ts). So the most
-    // meaningful destination check is that the page header still reflects
-    // the trip we created — the report region itself is empty by design.
     await expect(page.getByText(/Tokyo/i).first()).toBeVisible();
 
+    // Batch 3a — with the e2e Maestro-compatible LLM endpoint enabled,
+    // the trip should complete into the itinerary surface and render at
+    // least one real <img> card instead of only typed placeholders.
+    const itinerary = page.getByTestId("itinerary-view");
+    await expect(itinerary).toBeVisible({ timeout: 10_000 });
+    await expect(itinerary.getByRole("heading", { name: /Day\s+1/i })).toBeVisible();
+    await expect(itinerary.locator("article.photo-card img").first()).toBeVisible();
+    await expect(itinerary.locator(".scrawl").first()).toBeVisible();
+    await expect(itinerary.locator(".verdict").first()).toBeVisible();
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    const tripId = page.url().match(/\/app\/trips\/([0-9a-f-]{36})/i)?.[1];
+    expect(tripId, "trip id must be present in the URL").toBeTruthy();
+    const token = await page.evaluate(() => {
+      const raw = window.localStorage.getItem("plus-one-auth");
+      return raw ? JSON.parse(raw).state.token : null;
+    });
+    const detail = await request.get(`${apiBase}/api/trips/${tripId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(detail.status(), "trip detail API must respond after UI completion").toBe(200);
+    const body = await detail.json();
+    const items = body.content?.items ?? [];
+    expect(items.length, "completed trip must persist report items").toBeGreaterThan(0);
+    expect(
+      items.some((item: { classification?: string }) => item.classification !== "insufficient"),
+      "real e2e must not pass on all-insufficient fallback cards",
+    ).toBeTruthy();
+    expect(
+      items.some((item: { evidence?: unknown[] }) => (item.evidence ?? []).length > 0),
+      "report items must include source evidence",
+    ).toBeTruthy();
+    expect(
+      items.some((item: { image_url?: string | null }) => !!item.image_url),
+      "report should include at least one resolved card image",
+    ).toBeTruthy();
+
     // Batch 2i — perspective toggle and disagreement tab render without
-    // crashing even when the report is empty (the disagreement bucket is
-    // empty too — that's fine; we're just asserting non-crash rendering).
+    // crashing on the completed report.
     await expect(page.getByTestId("perspective-toggle")).toBeVisible();
     await expect(page.getByRole("tab", { name: /two minds|disagreement/i })).toBeVisible();
 
     // Batch 2k — output language toggle is present alongside the
-    // perspective toggle. PLUS_ONE_TRANSLATE_ENABLED=0 in e2e so the
-    // report has no translations key; clicking the toggle must not
-    // crash (assertion is mechanical, not content-based).
+    // perspective toggle. Translation is best-effort in real e2e; this
+    // assertion is mechanical, not content-based.
     const languageToggle = page.getByTestId("language-toggle");
     await expect(languageToggle).toBeVisible();
     await languageToggle.getByRole("radio", { name: /english/i }).click();

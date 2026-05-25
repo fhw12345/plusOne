@@ -7,6 +7,8 @@ mock_llm fixture. No real LLM, no real DB, no real network.
 from __future__ import annotations
 
 import json
+import sys
+from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import pytest
@@ -19,6 +21,8 @@ from plus_one.core.agents.framework.types import AgentContext
 
 if TYPE_CHECKING:
     from plus_one.core.llm.testing import MockLLMProvider
+
+joiner_mod = sys.modules[joiner.__module__]
 
 
 # === Producer ============================================================
@@ -118,6 +122,46 @@ async def test_joiner_classifies_candidates(mock_llm: MockLLMProvider) -> None:
     assert item.divergence_score == 0.0
     assert len(item.evidence) == 1
     assert isinstance(item.evidence[0], Evidence)
+
+
+@pytest.mark.unit
+async def test_joiner_fills_image_url_from_place_image_fixture(
+    mock_llm: MockLLMProvider,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "fixture")
+    cand = Candidate(
+        name="Ichiran Shibuya",
+        area="Shibuya",
+        style="tonkotsu chain",
+        rationale="well-known ramen chain",
+    )
+    output = {
+        "items": [
+            {
+                "candidate": cand.model_dump(),
+                "classification": "tourist_trap",
+                "confidence": 0.7,
+                "evidence": [],
+                "summary": "Famous and convenient, but not a hidden local pick.",
+            }
+        ]
+    }
+    mock_llm.queue_response(role="joiner_agent", text=json.dumps(output), parsed_data=output)
+
+    class _Image:
+        image_url = "https://img.example/ichiran.jpg"
+
+    async def fake_resolve_image(self: object, args: object) -> _Image:
+        del self, args
+        return _Image()
+
+    monkeypatch.setattr(joiner_mod.PlaceImageResolver, "resolve", fake_resolve_image)
+
+    result = await joiner([cand], AgentContext(query="Tokyo tonkotsu ramen"))
+
+    assert len(result.payload.items) == 1
+    assert result.payload.items[0].image_url == "https://img.example/ichiran.jpg"
 
 
 @pytest.mark.unit
@@ -276,6 +320,54 @@ async def test_joiner_drops_hallucinated_candidates(
     assert "dropped_unknown=1" in result.notes
 
 
+@pytest.mark.unit
+async def test_joiner_accepts_recommendations_alias_from_llm(
+    mock_llm: MockLLMProvider,
+) -> None:
+    cand = Candidate(name="Menya Itto", rationale="r")
+    item = {
+        "candidate": cand.model_dump(),
+        "classification": "local_gem",
+        "confidence": 0.8,
+        "evidence": [],
+        "summary": "ok",
+    }
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text=json.dumps({"recommendations": [item]}),
+        parsed_data={"recommendations": [item]},
+    )
+
+    result = await joiner([cand], AgentContext(query="Tokyo"))
+
+    assert len(result.payload.items) == 1
+    assert result.payload.items[0].candidate.name == "Menya Itto"
+
+
+@pytest.mark.unit
+async def test_joiner_accepts_top_level_array_from_llm(
+    mock_llm: MockLLMProvider,
+) -> None:
+    cand = Candidate(name="Menya Itto", rationale="r")
+    item = {
+        "candidate": cand.model_dump(),
+        "classification": "local_gem",
+        "confidence": 0.8,
+        "evidence": [],
+        "summary": "ok",
+    }
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text=json.dumps([item]),
+        parsed_data=[item],
+    )
+
+    result = await joiner([cand], AgentContext(query="Tokyo"))
+
+    assert len(result.payload.items) == 1
+    assert result.payload.items[0].classification == "local_gem"
+
+
 # === Joiner v3 (batch-2p + batch-2q) ====================================
 
 
@@ -294,8 +386,131 @@ async def test_joiner_v3_prompt_loads_without_unbalanced_braces(
         parsed_data={"items": [], "tl_dr": None},
     )
     result = await joiner([cand], AgentContext(query="Tokyo"))
-    assert result.payload.items == []
+    assert len(result.payload.items) == 1
+    assert result.payload.items[0].classification == "insufficient"
+    assert "fallback_items=1" in result.notes
     assert result.payload.tl_dr is None
+
+
+@pytest.mark.unit
+async def test_joiner_empty_llm_fallback_uses_tool_evidence(
+    mock_llm: MockLLMProvider,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When Maestro returns zero usable joiner items, fallback cards must
+    still be grounded in fetched tool evidence instead of empty placeholders.
+    """
+    cand = Candidate(name="Menya Itto", area="Shinkoiwa", style="tsukemen", rationale="r")
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text='{"items": [], "tl_dr": null}',
+        parsed_data={"items": [], "tl_dr": None},
+    )
+
+    async def fake_images(*args: object, **kwargs: object) -> dict[str, str | None]:
+        del args, kwargs
+        return {"menya itto": "https://img.example/itto.jpg"}
+
+    async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
+        del args, kwargs
+        from plus_one.core.agents.framework.tools import ToolResult
+
+        return [
+            ToolResult(
+                tool="reddit_search",
+                output=[
+                    SimpleNamespace(
+                        permalink="https://reddit.example/itto",
+                        title="Best tsukemen in Tokyo",
+                        body="Menya Itto is the real deal, a local favorite and worth the wait.",
+                    )
+                ],
+            ),
+            ToolResult(
+                tool="xhs_search",
+                output=[
+                    SimpleNamespace(
+                        url="https://www.xiaohongshu.com/explore/xhs_1",
+                        title="东京拉面推荐",
+                        body="本地人排队的店, 很值得去, 推荐避开周末。",
+                    )
+                ],
+            ),
+            ToolResult(
+                tool="places_search",
+                output=[],
+            ),
+        ]
+
+    monkeypatch.setattr(joiner_mod, "_resolve_candidate_images", fake_images)
+    monkeypatch.setattr(joiner_mod, "run_tool_calls", fake_run_tool_calls)
+
+    result = await joiner([cand], AgentContext(query="Tokyo ramen"))
+
+    item = result.payload.items[0]
+    assert item.classification == "local_gem"
+    assert item.classification_en == "local_gem"
+    assert item.classification_zh == "local_gem"
+    assert item.confidence > 0
+    assert len(item.evidence) >= 2
+    assert {ev.source for ev in item.evidence} >= {"reddit", "xiaohongshu"}
+    assert item.image_url == "https://img.example/itto.jpg"
+    assert "fallback_items=1" in result.notes
+
+
+@pytest.mark.unit
+async def test_joiner_llm_timeout_falls_back_to_tool_evidence(
+    mock_llm: MockLLMProvider,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cand = Candidate(name="Menya Itto", area="Shinkoiwa", style="tsukemen", rationale="r")
+    monkeypatch.setenv("PLUS_ONE_JOINER_LLM_TIMEOUT_S", "1")
+
+    async def slow_complete(*args: object, **kwargs: object) -> object:
+        del args, kwargs
+        import asyncio as _asyncio
+
+        await _asyncio.sleep(2)
+        raise AssertionError("timeout should cancel before this point")
+
+    class SlowProvider:
+        async def complete(self, **kwargs: object) -> object:
+            del kwargs
+            return await slow_complete()
+
+    monkeypatch.setattr(joiner_mod.llm_factory, "get_llm_provider", lambda role: SlowProvider())
+
+    async def fake_images(*args: object, **kwargs: object) -> dict[str, str | None]:
+        del args, kwargs
+        return {"menya itto": "https://img.example/itto.jpg"}
+
+    async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
+        del args, kwargs
+        from plus_one.core.agents.framework.tools import ToolResult
+
+        return [
+            ToolResult(
+                tool="reddit_search",
+                output=[
+                    SimpleNamespace(
+                        permalink="https://reddit.example/itto",
+                        title="Best tsukemen in Tokyo",
+                        body="Menya Itto is the real deal, a local favorite and worth the wait.",
+                    )
+                ],
+            )
+        ]
+
+    monkeypatch.setattr(joiner_mod, "_resolve_candidate_images", fake_images)
+    monkeypatch.setattr(joiner_mod, "run_tool_calls", fake_run_tool_calls)
+
+    result = await joiner([cand], AgentContext(query="Tokyo ramen"))
+
+    item = result.payload.items[0]
+    assert item.classification == "local_gem"
+    assert len(item.evidence) == 1
+    assert item.image_url == "https://img.example/itto.jpg"
+    assert "fallback_items=1" in result.notes
 
 
 @pytest.mark.unit
@@ -449,6 +664,22 @@ async def test_controller_rule_continues_when_too_many_insufficient(
     result = await controller(items, ctx)
     assert result.payload.should_continue is True
     assert "insufficient" in result.payload.reasoning
+    assert mock_llm.calls_for_role("controller_agent") == []
+
+
+@pytest.mark.unit
+async def test_controller_rule_stops_after_one_round_with_enough_usable_items(
+    mock_llm: MockLLMProvider,
+) -> None:
+    items = [_joined(f"gem_{i}", "local_gem") for i in range(3)] + [
+        _joined(f"neutral_{i}", "neutral") for i in range(2)
+    ]
+    ctx = AgentContext(query="x", max_depth=4)
+
+    result = await controller(items, ctx)
+
+    assert result.payload.should_continue is False
+    assert "usable coverage" in result.payload.reasoning
     assert mock_llm.calls_for_role("controller_agent") == []
 
 

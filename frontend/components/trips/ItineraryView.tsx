@@ -2,6 +2,8 @@
 
 import type { CSSProperties } from "react";
 
+import { LanguageToggle } from "@/components/trips/LanguageToggle";
+import { PerspectiveToggle } from "@/components/trips/PerspectiveToggle";
 import type {
   DayPlan as DayPlanT,
   DaySlot as DaySlotT,
@@ -9,6 +11,7 @@ import type {
   JoinedItemView,
   TripDetail,
 } from "@/lib/schemas/trips";
+import { TAB_LABELS, TAB_ORDER } from "@/lib/trips/categorize";
 
 export interface ItineraryViewProps {
   trip: TripDetail;
@@ -48,11 +51,59 @@ export function ItineraryView({ trip }: ItineraryViewProps) {
 
   return (
     <section data-testid="itinerary-view" style={{ marginTop: 12 }}>
+      <ItineraryControls />
       <DayStrip days={days} />
       {days.map((day) => (
         <DaySection key={day.day_index} day={day} items={items} />
       ))}
     </section>
+  );
+}
+
+function ItineraryControls() {
+  return (
+    <div
+      className="print:hidden"
+      data-print-hide
+      style={{
+        display: "grid",
+        gap: 14,
+        margin: "0 0 24px",
+        padding: "16px 0",
+        borderTop: "1px dotted hsl(var(--kraft))",
+        borderBottom: "1px dotted hsl(var(--kraft))",
+      }}
+    >
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 18 }}>
+        <PerspectiveToggle />
+        <LanguageToggle />
+      </div>
+      <div
+        role="tablist"
+        aria-label="Report sections"
+        style={{ display: "flex", flexWrap: "wrap", gap: "10px 12px" }}
+      >
+        {TAB_ORDER.map((key, i) => {
+          const tilts = ["-2deg", "1.4deg", "-1deg", "2deg", "-1.5deg", "1deg"];
+          return (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={key === "together"}
+              className={`chip ${key === "together" ? "is-on" : ""}`.trim()}
+              style={{
+                ["--tilt" as never]: tilts[i % tilts.length],
+                fontSize: 16,
+              }}
+              data-tab={key}
+            >
+              {TAB_LABELS[key]}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

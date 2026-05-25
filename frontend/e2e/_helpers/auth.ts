@@ -16,7 +16,7 @@ export async function signInE2E(
 ): Promise<{ email: string; username: string }> {
   const suffix = `${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
   const email = `e2e${suffix}@plusone.test`;
-  const username = `e2e${suffix.slice(0, 12)}`.toLowerCase();
+  const username = `e2e${suffix}`.toLowerCase().slice(0, 30);
   const password = "e2epassword1";
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -29,9 +29,7 @@ export async function signInE2E(
   // Dev-only helper endpoint that returns the most recent verify code for a
   // given email. Backend ships this in batch-2m as the test substitute for
   // SMTP.
-  const lastCode = await request.get(
-    `${apiBase}/api/auth/dev/last-code?email=${encodeURIComponent(email)}`,
-  );
+  const lastCode = await pollLastCode(request, apiBase, email);
   expect(lastCode.status(), "dev last-code endpoint must respond").toBe(200);
   const { code } = (await lastCode.json()) as { code: string };
   expect(code, "verify code must be non-empty").toBeTruthy();
@@ -61,4 +59,18 @@ export async function signInE2E(
   await expect(page).toHaveURL(/\/app(\/|$)/);
 
   return { email, username };
+}
+
+async function pollLastCode(
+  request: APIRequestContext,
+  apiBase: string,
+  email: string,
+) {
+  const url = `${apiBase}/api/auth/dev/last-code?email=${encodeURIComponent(email)}`;
+  let response = await request.get(url);
+  for (let attempt = 0; response.status() === 404 && attempt < 10; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    response = await request.get(url);
+  }
+  return response;
 }

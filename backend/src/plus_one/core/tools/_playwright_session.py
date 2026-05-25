@@ -6,8 +6,8 @@ Per PRD Batch 2k §5.4 this module is intentionally minimal in v1:
     and reused across requests. v1 is single-worker per ADR-006, so a
     process-level singleton + ``atexit`` cleanup is sufficient.
   * Each request gets a fresh ``BrowserContext`` with a (rotating)
-    User-Agent and the caller-supplied cookie blob injected, so
-    sessions never leak between requests.
+    User-Agent. If the caller supplies a cookie blob it is injected;
+    otherwise the request runs as a logged-out public browser session.
   * Failures (timeouts, 429s, captchas surfaced as response status,
     arbitrary exceptions) bubble up; the caller (``XHSSearchTool``)
     decides how to degrade (tier 2 then tier 3).
@@ -29,6 +29,7 @@ import contextlib
 import secrets
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlencode
 
 import structlog
 
@@ -116,8 +117,8 @@ async def _aclose() -> None:
 async def fetch(
     query: str,
     *,
-    cookie: str,
     limit: int,
+    cookie: str | None = None,
     user_agent: str | None = None,
     timeout_s: float = 30.0,
 ) -> FetchResult:
@@ -145,13 +146,13 @@ async def fetch(
             # either "k=v; k2=v2" form (browser cookie header) or a JSON
             # list of cookie dicts. Anything else: best-effort, log and
             # try to navigate anyway — XHS may still gate via JS.
-            await _inject_cookie(context, cookie)
+            if cookie:
+                await _inject_cookie(context, cookie)
             page = await context.new_page()
             page.set_default_timeout(int(timeout_s * 1000))
 
-            url = (
-                "https://www.xiaohongshu.com/search_result"
-                f"?keyword={query}&source=web_search_result_notes"
+            url = "https://www.xiaohongshu.com/search_result?" + urlencode(
+                {"keyword": query, "source": "web_search_result_notes"}
             )
             response = await page.goto(url, wait_until="networkidle")
             status = response.status if response is not None else 0

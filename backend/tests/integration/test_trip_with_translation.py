@@ -8,6 +8,7 @@ exercise the LLM.
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from contextlib import asynccontextmanager
 from typing import Any
@@ -189,6 +190,36 @@ async def test_translate_langs_default(monkeypatch: pytest.MonkeyPatch) -> None:
 async def test_translate_langs_custom(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PLUS_ONE_TRANSLATE_LANGS", "en, fr,  ja")
     assert trip_runner._translate_langs() == ("en", "fr", "ja")
+
+
+@pytest.mark.integration
+async def test_translation_batch_timeout_skips_slow_language(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PLUS_ONE_TRANSLATE_LANGS", "zh")
+    monkeypatch.setenv("PLUS_ONE_TRANSLATE_TIMEOUT_S", "1")
+
+    called = False
+
+    @asynccontextmanager
+    async def fake_session_scope():
+        nonlocal called
+        called = True
+        yield _StubSession(_ReportHolder())
+
+    async def slow_translate_items(
+        items: list[JoinedItem], src_lang: str, dst_lang: str
+    ) -> list[dict[str, Any]]:
+        del items, src_lang, dst_lang
+        await asyncio.sleep(2)
+        return []
+
+    monkeypatch.setattr(trip_runner, "session_scope", fake_session_scope)
+    monkeypatch.setattr(trip_runner, "translate_items", slow_translate_items)
+
+    await trip_runner._run_translations_and_update(uuid.uuid4(), [_item("Menya Itto")])
+
+    assert called is False
 
 
 @pytest.mark.integration

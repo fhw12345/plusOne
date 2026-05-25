@@ -1,4 +1,4 @@
-"""Unit tests for ``XHSSearchTool`` 3-tier fallback (PRD Batch 2k §5.5).
+"""Unit tests for ``XHSSearchTool`` fallback tiers (PRD Batch 2k §5.5).
 
 Every scenario mocks ``_playwright_session.fetch`` (real Chromium does
 not run in tests), ``get_cached`` / ``put_cached``, and the fixture
@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import httpx
 import pytest
 
 from plus_one.core.tools import _playwright_session
@@ -40,14 +41,10 @@ def _post(pid: str) -> dict[str, Any]:
 
 
 @pytest.mark.unit
-def test_missing_cookie_in_real_mode_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_cookie_in_real_mode_does_not_raise(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "real")
     monkeypatch.delenv("XHS_COOKIE", raising=False)
-    with pytest.raises(RuntimeError) as exc_info:
-        XHSSearchTool()
-    msg = str(exc_info.value)
-    assert "xhs_search" in msg
-    assert "XHS_COOKIE" in msg
+    XHSSearchTool()
 
 
 @pytest.mark.unit
@@ -136,7 +133,165 @@ async def test_tier1_fail_tier2_cache_hit(monkeypatch: pytest.MonkeyPatch, real_
     assert "cache hit" in result.notes
 
 
-# === Tier 1+2 fail -> Tier 3 fixture =====================================
+@pytest.mark.unit
+async def test_missing_cookie_public_fail_uses_search_index(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "real")
+    monkeypatch.delenv("XHS_COOKIE", raising=False)
+
+    async def fake_fetch(*args: Any, **kwargs: Any) -> Any:
+        assert kwargs["cookie"] is None
+        raise RuntimeError("login wall")
+
+    async def fake_get_cached(source: str, key: str) -> list[dict[str, Any]] | None:
+        assert source == "xhs"
+        return None
+
+    written: list[tuple[str, str, list[dict[str, Any]]]] = []
+
+    async def fake_put_cached(source: str, key: str, payload: list[dict[str, Any]]) -> None:
+        written.append((source, key, payload))
+
+    def explode_fixture(*args: object, **kwargs: object) -> list[dict[str, Any]]:
+        raise AssertionError("fixture loader must not run on search-index hit")
+
+    monkeypatch.setattr(_playwright_session, "fetch", fake_fetch)
+    monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(xhs_mod, "put_cached", fake_put_cached)
+    monkeypatch.setattr(xhs_mod, "load_json_fixture", explode_fixture)
+
+    html = """
+    <html><body>
+      <a class="result__a" href="/l/?uddg=https%3A%2F%2Fwww.xiaohongshu.com%2Fexplore%2Fabc123%3Fxsec_token%3Dtok%26noisy%3D1">
+        东京拉面真实体验
+      </a>
+    </body></html>
+    """
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(200, text=html, request=request)
+    )
+    client = httpx.AsyncClient(transport=transport, timeout=5.0)
+
+    tool = XHSSearchTool()
+    monkeypatch.setattr(tool, "_get_client", lambda: client)
+    result = await tool.execute(XHSSearchInput(query="tokyo ramen"))
+    await client.aclose()
+
+    assert result.ok
+    assert result.output is not None
+    assert [p.id for p in result.output] == ["abc123"]
+    assert result.output[0].url == "https://www.xiaohongshu.com/explore/abc123?xsec_token=tok"
+    assert "public search index hit" in result.notes
+    assert written[0][0] == "xhs"
+    assert written[0][1] == "tokyo_ramen"
+
+
+@pytest.mark.unit
+async def test_missing_cookie_uses_public_tier1(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "real")
+    monkeypatch.delenv("XHS_COOKIE", raising=False)
+    scraped = [_post("public-1")]
+
+    async def fake_fetch(query: str, **kwargs: Any) -> _playwright_session.FetchResult:
+        assert query == "tokyo ramen"
+        assert kwargs["cookie"] is None
+        return _playwright_session.FetchResult(posts=scraped)
+
+    written: list[tuple[str, str, list[dict[str, Any]]]] = []
+
+    async def fake_put_cached(source: str, key: str, payload: list[dict[str, Any]]) -> None:
+        written.append((source, key, payload))
+
+    async def explode_get(*args: object, **kwargs: object) -> Any:
+        raise AssertionError("get_cached must not run on public tier 1 success")
+
+    monkeypatch.setattr(_playwright_session, "fetch", fake_fetch)
+    monkeypatch.setattr(xhs_mod, "get_cached", explode_get)
+    monkeypatch.setattr(xhs_mod, "put_cached", fake_put_cached)
+
+    tool = XHSSearchTool()
+    result = await tool.execute(XHSSearchInput(query="tokyo ramen"))
+
+    assert result.ok
+    assert result.output is not None
+    assert [p.id for p in result.output] == ["public-1"]
+    assert written == [("xhs", "tokyo_ramen", scraped)]
+    assert "public playwright" in result.notes
+
+
+@pytest.mark.unit
+async def test_public_tier1_empty_continues_to_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "real")
+    monkeypatch.delenv("XHS_COOKIE", raising=False)
+    fixture_payload = [_post("f-empty")]
+
+    async def fake_fetch(*args: Any, **kwargs: Any) -> _playwright_session.FetchResult:
+        assert kwargs["cookie"] is None
+        return _playwright_session.FetchResult(posts=[])
+
+    async def fake_get_cached(source: str, key: str) -> list[dict[str, Any]] | None:
+        assert source == "xhs"
+        return []
+
+    async def fake_search_index(self: object, query: str, limit: int) -> list[dict[str, Any]]:
+        del self, query, limit
+        return []
+
+    async def explode_put(*args: object, **kwargs: object) -> None:
+        raise AssertionError("empty tier 1 must not cache an empty payload")
+
+    def fake_load_fixture(directory: Any, key: str) -> list[dict[str, Any]]:
+        return fixture_payload if key == "tokyo_ramen_tonkotsu" else []
+
+    monkeypatch.setattr(_playwright_session, "fetch", fake_fetch)
+    monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(xhs_mod, "put_cached", explode_put)
+    monkeypatch.setattr(xhs_mod, "load_json_fixture", fake_load_fixture)
+    monkeypatch.setattr(XHSSearchTool, "_fetch_from_search_index", fake_search_index)
+
+    tool = XHSSearchTool()
+    result = await tool.execute(XHSSearchInput(query="Menya Itto ramen 推荐"))
+
+    assert result.ok
+    assert result.output is not None
+    assert [p.id for p in result.output] == ["f-empty"]
+    assert "degraded to fixture" in result.notes
+
+
+@pytest.mark.unit
+async def test_missing_cookie_public_fail_uses_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "real")
+    monkeypatch.delenv("XHS_COOKIE", raising=False)
+    cached_payload = [_post("c-no-cookie")]
+
+    async def fake_fetch(*args: Any, **kwargs: Any) -> Any:
+        assert kwargs["cookie"] is None
+        raise RuntimeError("login wall")
+
+    async def fake_get_cached(source: str, key: str) -> list[dict[str, Any]]:
+        assert source == "xhs"
+        return cached_payload
+
+    async def explode_put(*args: object, **kwargs: object) -> None:
+        raise AssertionError("put_cached must not run on cache hit")
+
+    monkeypatch.setattr(_playwright_session, "fetch", fake_fetch)
+    monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(xhs_mod, "put_cached", explode_put)
+
+    tool = XHSSearchTool()
+    result = await tool.execute(XHSSearchInput(query="tokyo ramen"))
+
+    assert result.ok
+    assert result.output is not None
+    assert [p.id for p in result.output] == ["c-no-cookie"]
+    assert "cache hit" in result.notes
+
+
+# === Live/cache/search miss -> fixture ===================================
 
 
 @pytest.mark.unit
@@ -154,7 +309,11 @@ async def test_tier1_2_fail_tier3_fixture(
         return None
 
     async def explode_put(*args: object, **kwargs: object) -> None:
-        raise AssertionError("put_cached must not run on tier 3 fallback")
+        raise AssertionError("put_cached must not run on fixture fallback")
+
+    async def fake_search_index(self: object, query: str, limit: int) -> list[dict[str, Any]]:
+        del self, query, limit
+        return []
 
     def fake_load_fixture(directory: Any, key: str) -> list[dict[str, Any]]:
         return fixture_payload
@@ -163,6 +322,7 @@ async def test_tier1_2_fail_tier3_fixture(
     monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
     monkeypatch.setattr(xhs_mod, "put_cached", explode_put)
     monkeypatch.setattr(xhs_mod, "load_json_fixture", fake_load_fixture)
+    monkeypatch.setattr(XHSSearchTool, "_fetch_from_search_index", fake_search_index)
 
     tool = XHSSearchTool()
     result = await tool.execute(XHSSearchInput(query="tokyo ramen"))
@@ -195,9 +355,14 @@ async def test_all_three_tiers_fail_returns_empty_degraded(
     def fake_load_fixture(directory: Any, key: str) -> list[dict[str, Any]]:
         return []
 
+    async def fake_search_index(self: object, query: str, limit: int) -> list[dict[str, Any]]:
+        del self, query, limit
+        return []
+
     monkeypatch.setattr(_playwright_session, "fetch", fake_fetch)
     monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
     monkeypatch.setattr(xhs_mod, "load_json_fixture", fake_load_fixture)
+    monkeypatch.setattr(XHSSearchTool, "_fetch_from_search_index", fake_search_index)
 
     tool = XHSSearchTool()
     result = await tool.execute(XHSSearchInput(query="obscure query"))

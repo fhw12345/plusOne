@@ -25,6 +25,7 @@ def test_ttls_cover_required_sources() -> None:
     assert _cache_db._TTL_BY_SOURCE["reddit"] == timedelta(hours=24)
     assert _cache_db._TTL_BY_SOURCE["xhs"] == timedelta(days=7)
     assert _cache_db._TTL_BY_SOURCE["foursquare"] == timedelta(days=30)
+    assert _cache_db._TTL_BY_SOURCE["place_image"] == timedelta(days=30)
 
 
 @pytest.mark.unit

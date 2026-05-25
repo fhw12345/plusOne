@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 
 // Batch 2m — full credential auth happy path.
 // Replaces the magic-link flow that batch 2f PR A originally exercised.
@@ -14,7 +14,7 @@ test.describe("auth flow (credential, happy path)", () => {
   test("register → verify → authed → sign out", async ({ page, request }) => {
     const suffix = `${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
     const email = `e2e${suffix}@plusone.test`;
-    const username = `e2e${suffix.slice(0, 12)}`.toLowerCase();
+    const username = `e2e${suffix}`.toLowerCase().slice(0, 30);
     const password = "e2epassword1";
 
     // Step 1: register
@@ -28,9 +28,7 @@ test.describe("auth flow (credential, happy path)", () => {
 
     // Step 2: harness fetches the verify code (dev-only endpoint)
     const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-    const lastCode = await request.get(
-      `${apiBase}/api/auth/dev/last-code?email=${encodeURIComponent(email)}`,
-    );
+    const lastCode = await pollLastCode(apiBase, email, request);
     expect(lastCode.status(), "dev last-code endpoint must respond").toBe(200);
     const { code } = (await lastCode.json()) as { code: string };
     expect(code, "verify code must be non-empty").toBeTruthy();
@@ -47,3 +45,17 @@ test.describe("auth flow (credential, happy path)", () => {
     await expect(page.getByRole("link", { name: /let me in|sign in/i })).toBeVisible();
   });
 });
+
+async function pollLastCode(
+  apiBase: string,
+  email: string,
+  request: APIRequestContext,
+) {
+  const url = `${apiBase}/api/auth/dev/last-code?email=${encodeURIComponent(email)}`;
+  let response = await request.get(url);
+  for (let attempt = 0; response.status() === 404 && attempt < 10; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    response = await request.get(url);
+  }
+  return response;
+}

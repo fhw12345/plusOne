@@ -28,11 +28,11 @@ def real_mode(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 class _FakeResponse:
-    def __init__(self, payload: dict[str, Any], status_code: int = 200) -> None:
+    def __init__(self, payload: Any, status_code: int = 200) -> None:
         self._payload = payload
         self.status_code = status_code
 
-    def json(self) -> dict[str, Any]:
+    def json(self) -> Any:
         return self._payload
 
     def raise_for_status(self) -> None:
@@ -58,18 +58,50 @@ class _FakeClient:
         return self._response
 
 
-# === require_env at __init__ ============================================
+# === missing-key fallback ===============================================
 
 
 @pytest.mark.unit
-def test_missing_api_key_in_real_mode_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_api_key_in_real_mode_init_is_allowed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "real")
     monkeypatch.delenv("FOURSQUARE_API_KEY", raising=False)
-    with pytest.raises(RuntimeError) as exc_info:
-        FoursquarePlacesSearchTool()
-    msg = str(exc_info.value)
-    assert "places_search" in msg
-    assert "FOURSQUARE_API_KEY" in msg
+    FoursquarePlacesSearchTool()
+
+
+@pytest.mark.unit
+async def test_missing_api_key_degrades_to_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "real")
+    monkeypatch.delenv("FOURSQUARE_API_KEY", raising=False)
+
+    async def fake_get_cached(source: str, key: str) -> None:
+        return None
+
+    async def fake_put_cached(*args: object, **kwargs: object) -> None:
+        raise AssertionError("must not write when using fixture fallback")
+
+    monkeypatch.setattr(fsq_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(fsq_mod, "put_cached", fake_put_cached)
+    (tmp_path / "foursquare").mkdir()
+    (tmp_path / "foursquare" / "tokyo_ramen.json").write_text(
+        '[{"place_id":"fixture-missing-key","name":"Fixture Ramen","formatted_address":"Tokyo",'
+        '"external_url":"https://foursquare.com/v/fixture-missing-key"}]',
+        encoding="utf-8",
+    )
+
+    tool = FoursquarePlacesSearchTool(fixtures_dir=tmp_path)
+    fake_client = _FakeClient(_FakeResponse({"results": []}))
+    monkeypatch.setattr(tool, "_get_client", lambda: fake_client)
+
+    result = await tool.execute(PlacesSearchInput(query="Kagari ramen", location_hint="Tokyo"))
+
+    assert result.ok
+    assert result.output is not None
+    assert result.output[0].place_id == "fixture-missing-key"
+    assert fake_client.calls == []
+    assert "missing FOURSQUARE_API_KEY" in result.notes
 
 
 @pytest.mark.unit
@@ -160,6 +192,7 @@ async def test_cache_miss_calls_api_and_writes_cache(
     assert result.output is not None
     assert result.output[0].place_id == "fsq-fresh"
     assert result.output[0].external_url == "https://foursquare.com/v/fsq-fresh"
+    assert result.output[0].photo_url is None
     assert len(written) == 1
     assert written[0][0] == "foursquare"
     # Cache should contain the mapped (not raw) payload.
@@ -167,6 +200,7 @@ async def test_cache_miss_calls_api_and_writes_cache(
     assert cached_payload[0]["place_id"] == "fsq-fresh"
     assert cached_payload[0]["external_url"] == "https://foursquare.com/v/fsq-fresh"
     assert cached_payload[0]["categories"] == ("Ramen", "Restaurant")
+    assert cached_payload[0]["photo_url"] is None
     # Verify the API call used 'near' param.
     assert fake_client.calls[0]["params"]["near"] == "Tokyo, Japan"
     assert fake_client.calls[0]["params"]["query"] == "tokyo ramen"
@@ -196,6 +230,44 @@ async def test_api_failure_returns_not_ok(monkeypatch: pytest.MonkeyPatch, real_
     assert result.ok is False
     assert result.error is not None
     assert "foursquare" in result.error.lower()
+
+
+@pytest.mark.unit
+async def test_api_failure_degrades_to_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+    real_mode: None,
+    tmp_path,
+) -> None:
+    async def fake_get_cached(source: str, key: str) -> None:
+        return None
+
+    async def fake_put_cached(*args: object, **kwargs: object) -> None:
+        raise AssertionError("must not write when using fixture fallback")
+
+    monkeypatch.setattr(fsq_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(fsq_mod, "put_cached", fake_put_cached)
+    (tmp_path / "foursquare").mkdir()
+    (tmp_path / "foursquare" / "tokyo_ramen.json").write_text(
+        '[{"place_id":"fixture-1","name":"Fixture Ramen","formatted_address":"Tokyo",'
+        '"external_url":"https://foursquare.com/v/fixture-1"}]',
+        encoding="utf-8",
+    )
+
+    tool = FoursquarePlacesSearchTool(fixtures_dir=tmp_path)
+    err = httpx.HTTPStatusError(
+        "boom",
+        request=httpx.Request("GET", "https://places-api.foursquare.com/places/search"),
+        response=httpx.Response(400),
+    )
+    fake_client = _FakeClient(err)
+    monkeypatch.setattr(tool, "_get_client", lambda: fake_client)
+
+    result = await tool.execute(PlacesSearchInput(query="Kagari ramen", location_hint="Tokyo"))
+
+    assert result.ok
+    assert result.output is not None
+    assert result.output[0].place_id == "fixture-1"
+    assert "degraded to fixture" in result.notes
 
 
 # === fixture mode untouched =============================================
@@ -283,6 +355,7 @@ async def test_fetch_normalizes_response(monkeypatch: pytest.MonkeyPatch, real_m
     assert out[0]["price_level"] is None
     assert out[0]["distance_m"] == 50
     assert out[0]["latitude"] == pytest.approx(35.1)
+    assert out[0]["photo_url"] is None
     # Second item missing categories etc — defaults work
     assert out[1]["place_id"] == "p2"
     assert out[1]["categories"] == ()

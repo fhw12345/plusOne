@@ -76,6 +76,7 @@ logger = structlog.get_logger()
 # Three attempts at 50ms covers ~150ms total — enough for a request-session
 # commit to land on a fresh-pool connection, well under any user-visible bar.
 _RETRY_ATTEMPTS = 3
+_DEFAULT_TRANSLATION_BATCH_TIMEOUT_S = 20.0
 
 
 # ---------------------------------------------------------------------------
@@ -229,6 +230,14 @@ def _translate_langs() -> tuple[str, ...]:
     return tuple(part.strip() for part in raw.split(",") if part.strip())
 
 
+def _translation_batch_timeout_s() -> float:
+    raw = os.getenv("PLUS_ONE_TRANSLATE_TIMEOUT_S", str(_DEFAULT_TRANSLATION_BATCH_TIMEOUT_S))
+    try:
+        return max(1.0, float(raw))
+    except ValueError:
+        return _DEFAULT_TRANSLATION_BATCH_TIMEOUT_S
+
+
 async def _run_translations_and_update(
     report_id: UUID,
     items: list[JoinedItem],
@@ -256,10 +265,22 @@ async def _run_translations_and_update(
         return
 
     translations: dict[str, dict[str, Any]] = {}
+    timeout_s = _translation_batch_timeout_s()
     for lang in langs:
         per_lang: dict[str, Any] = {}
         try:
-            per_lang["items"] = await translate_items(items, src_lang="original", dst_lang=lang)
+            per_lang["items"] = await asyncio.wait_for(
+                translate_items(items, src_lang="original", dst_lang=lang),
+                timeout=timeout_s,
+            )
+        except TimeoutError:
+            logger.warning(
+                "translation_timeout",
+                report_id=str(report_id),
+                lang=lang,
+                timeout_s=timeout_s,
+            )
+            continue
         except Exception:
             logger.exception("translation_failed", report_id=str(report_id), lang=lang)
             # If items translation blew up, don't carry a half-built entry —
@@ -267,9 +288,18 @@ async def _run_translations_and_update(
             continue
         if tl_dr is not None and tl_dr.strip():
             try:
-                per_lang["tl_dr"] = await translate_tl_dr(
-                    tl_dr.strip(), src_lang="original", dst_lang=lang
+                per_lang["tl_dr"] = await asyncio.wait_for(
+                    translate_tl_dr(tl_dr.strip(), src_lang="original", dst_lang=lang),
+                    timeout=timeout_s,
                 )
+            except TimeoutError:
+                logger.warning(
+                    "translation_tl_dr_timeout",
+                    report_id=str(report_id),
+                    lang=lang,
+                    timeout_s=timeout_s,
+                )
+                per_lang["tl_dr"] = tl_dr.strip()
             except Exception:
                 logger.exception("translation_tl_dr_failed", report_id=str(report_id), lang=lang)
                 # Fail-soft to the source string so the language toggle

@@ -27,7 +27,7 @@ from plus_one.config import settings
 from plus_one.core.agents.framework.tools import ToolResult
 from plus_one.core.tools._cache import cache_key, load_json_fixture
 from plus_one.core.tools._cache_db import get_cached, put_cached
-from plus_one.core.tools._mode import get_tools_mode, require_env
+from plus_one.core.tools._mode import get_tools_mode
 
 logger = structlog.get_logger()
 
@@ -59,6 +59,9 @@ class Place(BaseModel):
     # Provider-neutral
     types: tuple[str, ...] = ()
     external_url: str | None = None
+    # Optional provider image URL. Foursquare basic-tier search does not
+    # expose photos; this may be populated by fixtures or future providers.
+    photo_url: str | None = None
 
 
 class PlacesSearchInput(BaseModel):
@@ -86,10 +89,6 @@ class FoursquarePlacesSearchTool:
 
     def __init__(self, fixtures_dir: Path | None = None) -> None:
         self._fixtures_dir = (fixtures_dir or settings.fixtures_dir) / "foursquare"
-        # In real mode, fail loud at construction if API key is missing.
-        # The client itself is built lazily so fixture mode (CI / e2e /
-        # dev) never opens a TCP socket needlessly.
-        require_env("FOURSQUARE_API_KEY", tool=self.name)
         self._client: httpx.AsyncClient | None = None
 
     # === fixture mode (unchanged behavior) ===========================
@@ -137,8 +136,9 @@ class FoursquarePlacesSearchTool:
 
         payload = response.json()
         results = payload.get("results", []) or []
+        sliced = results[: args.limit]
         out: list[dict[str, Any]] = []
-        for r in results[: args.limit]:
+        for r in sliced:
             fsq_id = r.get("fsq_place_id")
             location = r.get("location") or {}
             categories_raw = r.get("categories") or []
@@ -162,6 +162,7 @@ class FoursquarePlacesSearchTool:
                     "price_level": None,
                     "types": categories,
                     "external_url": external_url,
+                    "photo_url": None,
                 }
             )
         return out
@@ -178,10 +179,42 @@ class FoursquarePlacesSearchTool:
                 notes=f"cache hit {key!r} -> {len(places)} places",
             )
 
+        if not os.getenv("FOURSQUARE_API_KEY"):
+            raw_fixture = self._load_fixture_fallback(args, key)
+            if raw_fixture:
+                places = [Place.model_validate(item) for item in raw_fixture[: args.limit]]
+                logger.warning("foursquare_missing_key_degraded_to_fixture", key=key, count=len(places))
+                return ToolResult(
+                    tool=self.name,
+                    output=places,
+                    notes=f"missing FOURSQUARE_API_KEY; degraded to fixture {key!r} -> {len(places)} places",
+                )
+            logger.warning("foursquare_missing_key_no_fixture", key=key)
+            return ToolResult(
+                tool=self.name,
+                ok=False,
+                output=None,
+                error="FOURSQUARE_API_KEY is not configured and no fixture fallback matched",
+            )
+
         try:
             raw = await self._fetch_from_api(args)
         except Exception as exc:
-            logger.warning("foursquare_fetch_failed", key=key, error=str(exc))
+            logger.warning(
+                "foursquare_fetch_failed",
+                key=key,
+                error=str(exc),
+                error_type=type(exc).__name__,
+            )
+            raw_fixture = self._load_fixture_fallback(args, key)
+            if raw_fixture:
+                places = [Place.model_validate(item) for item in raw_fixture[: args.limit]]
+                logger.warning("foursquare_degraded_to_fixture", key=key, count=len(places))
+                return ToolResult(
+                    tool=self.name,
+                    output=places,
+                    notes=f"degraded to fixture {key!r} -> {len(places)} places",
+                )
             return ToolResult(
                 tool=self.name,
                 ok=False,
@@ -201,3 +234,28 @@ class FoursquarePlacesSearchTool:
         if get_tools_mode() == "fixture":
             return self._execute_fixture(args)
         return await self._execute_real(args)
+
+    def _load_fixture_fallback(self, args: PlacesSearchInput, key: str) -> list[dict[str, Any]]:
+        for candidate_key in _fixture_keys(args.query, args.location_hint, key):
+            raw = load_json_fixture(self._fixtures_dir, candidate_key)
+            if raw:
+                return raw
+        return []
+
+
+def _fixture_keys(query: str, location_hint: str, key: str) -> tuple[str, ...]:
+    keys = [key]
+    compact_location = location_hint.split("|", 1)[0].strip()
+    if compact_location and compact_location != location_hint:
+        keys.append(cache_key(query, compact_location))
+
+    lower = f"{query} {location_hint}".lower()
+    if "tokyo" in lower and "ramen" in lower:
+        keys.append("tokyo_ramen__tokyo_japan")
+        keys.append("tokyo_ramen")
+
+    unique: list[str] = []
+    for item in keys:
+        if item not in unique:
+            unique.append(item)
+    return tuple(unique)

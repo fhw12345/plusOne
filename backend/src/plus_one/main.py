@@ -103,6 +103,7 @@ app = FastAPI(
 )
 
 _install_access_log_scrubber()
+install_admin_tail()
 
 app.add_middleware(
     CORSMiddleware,

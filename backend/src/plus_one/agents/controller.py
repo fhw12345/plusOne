@@ -38,6 +38,7 @@ if TYPE_CHECKING:
 # they're hard-coded to PRD §10 success-metric targets (≥3 traps, ≥5 gems).
 _MIN_LOCAL_GEMS = 5
 _MIN_TOURIST_TRAPS = 3
+_MIN_USEFUL_ITEMS_TO_STOP = 5
 
 
 class ControllerInput(BaseModel):
@@ -91,6 +92,14 @@ def _rule_decision(items: list[JoinedItem], ctx: AgentContext) -> Decision | Non
         return Decision(
             should_continue=False,
             reasoning=f"sufficient coverage: {gems} gems, {traps} traps",
+            summary=ctx.summary,
+        )
+
+    useful = total - insufficient
+    if useful >= _MIN_USEFUL_ITEMS_TO_STOP:
+        return Decision(
+            should_continue=False,
+            reasoning=f"enough usable coverage: {useful} classified items",
             summary=ctx.summary,
         )
 
