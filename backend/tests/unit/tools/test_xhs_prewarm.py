@@ -1676,8 +1676,10 @@ async def test_fetch_query_once_defaults_to_public_search(
 @pytest.mark.unit
 async def test_fetch_query_once_public_search_can_use_public_profile(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
 ) -> None:
     captured: dict[str, object] = {}
+    public_profile = tmp_path / "public-profile"
 
     async def fake_fetch(*args: object, **kwargs: object) -> object:
         del args
@@ -1706,12 +1708,12 @@ async def test_fetch_query_once_public_search_can_use_public_profile(
         images_per_post=2,
         allow_text_only=False,
         public_search=True,
-        public_profile_dir="C:/tmp/public-profile",
+        public_profile_dir=str(public_profile),
     )
 
     await fetch_query_once("德里 Dilli Haat 真实体验", "Dilli Haat", args)
 
-    assert captured["profile_dir"] == "C:\\tmp\\public-profile"
+    assert captured["profile_dir"] == str(resolve_public_profile_dir(str(public_profile)))
     assert captured["storage_state_path"] is None
     assert captured["cookie"] is None
 
