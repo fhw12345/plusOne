@@ -55,14 +55,22 @@ MEDIUM_LATIN_RELEVANCE_WORD_CHARS = 4
 MIN_REORDERABLE_RELEVANCE_TOKENS = 2
 MIN_REORDERABLE_CJK_TOKEN_CHARS = 2
 MIN_SPECIFIC_LATIN_BRAND_CHARS = 3
-NORMAL_SKIP_REASONS = {"no_usable_authentic_posts", "no_relevant_authentic_posts", "no_content_images"}
+NORMAL_SKIP_REASONS = {
+    "no_usable_authentic_posts",
+    "no_relevant_authentic_posts",
+    "no_content_images",
+}
 TRANSIENT_SKIP_REASONS = {"public_search_gated"}
-FULLWIDTH_LEFT_PAREN = "\uFF08"
-FULLWIDTH_RIGHT_PAREN = "\uFF09"
+FULLWIDTH_LEFT_PAREN = "\uff08"
+FULLWIDTH_RIGHT_PAREN = "\uff09"
 OPEN_PAREN_RE = f"[{FULLWIDTH_LEFT_PAREN}(]"
 CLOSE_PAREN_RE = f"[{FULLWIDTH_RIGHT_PAREN})]"
-PAREN_CONTENT_RE = f"{OPEN_PAREN_RE}([^(){FULLWIDTH_LEFT_PAREN}{FULLWIDTH_RIGHT_PAREN}]+){CLOSE_PAREN_RE}"
-PAREN_BLOCK_RE = f"{OPEN_PAREN_RE}[^(){FULLWIDTH_LEFT_PAREN}{FULLWIDTH_RIGHT_PAREN}]+{CLOSE_PAREN_RE}"
+PAREN_CONTENT_RE = (
+    f"{OPEN_PAREN_RE}([^(){FULLWIDTH_LEFT_PAREN}{FULLWIDTH_RIGHT_PAREN}]+){CLOSE_PAREN_RE}"
+)
+PAREN_BLOCK_RE = (
+    f"{OPEN_PAREN_RE}[^(){FULLWIDTH_LEFT_PAREN}{FULLWIDTH_RIGHT_PAREN}]+{CLOSE_PAREN_RE}"
+)
 PAREN_CHARS_RE = f"[(){FULLWIDTH_LEFT_PAREN}{FULLWIDTH_RIGHT_PAREN}]"
 SEGMENT_SPLIT_RE = r"[/\u2014\u2013-]|\bor\b|\+|&|,"
 CJK_TEXT_RE = re.compile(r"[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]")
@@ -222,7 +230,11 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     "Al Bahriya": ("Al Bahriya", "Al Bahriya seafood"),
     "Al Fassia": ("马拉喀什 Al Fassia 摩洛哥菜", "Al Fassia 餐厅"),
     "Amal Women's Training Center": ("Amal", "Amal Women's Training Center"),
-    "Amal Women's Training Center restaurant": ("Amal", "Amal restaurant", "Amal Women's Training Center"),
+    "Amal Women's Training Center restaurant": (
+        "Amal",
+        "Amal restaurant",
+        "Amal Women's Training Center",
+    ),
     "Amazake-chaya": ("甘酒茶屋", "箱根 甘酒茶屋"),
     "Bab Doukkala morning market": ("杜卡拉门 早市", "Bab Doukkala 市场"),
     "Bai E Tan (白鹅潭) / Pearl River west bank": ("白鹅潭", "珠江西岸 白鹅潭"),
@@ -243,7 +255,11 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     "Beijing Road Pedestrian Street": ("北京路步行街", "广州 北京路"),
     "Bigiya": ("びぎ屋", "Bigiya 拉面"),
     "Bing Sheng Mansion or Yan Yu Tai for morning tea": ("炳胜公馆 早茶", "宴遇 早茶"),
-    "Bing Sheng Mansion's rival: Lai Heen / Jiang by Chef Fei": ("利苑 早茶", "江 by Chef Fei", "广州 利苑"),
+    "Bing Sheng Mansion's rival: Lai Heen / Jiang by Chef Fei": (
+        "利苑 早茶",
+        "江 by Chef Fei",
+        "广州 利苑",
+    ),
     "Bingsheng Mansion (炳胜公馆)": ("炳胜公馆",),
     "Bingsheng Pin Dao (炳胜品味)": ("炳胜品味",),
     "Bingsheng Pinwei (炳胜品味)": ("炳胜品味",),
@@ -304,7 +320,10 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     "Hakone Museum of Art (Moss Garden)": ("箱根美术馆 苔庭", "箱根美术馆"),
     "Hakone Open-Air Museum": ("箱根雕刻之森美术馆", "箱根露天博物馆"),
     "Hakone Pirate Ship (Hakone Sightseeing Cruise)": ("箱根海贼船", "芦之湖 海贼船"),
-    "Hakone Sekisho (checkpoint) and Old Tokaido cedar avenue": ("箱根关所 旧东海道杉並木", "箱根关所"),
+    "Hakone Sekisho (checkpoint) and Old Tokaido cedar avenue": (
+        "箱根关所 旧东海道杉並木",
+        "箱根关所",
+    ),
     "Hakone Shrine (Kuzuryu / lakeside torii)": ("箱根神社 九头龙", "芦之湖 鸟居"),
     "Hakone Shrine torii on Lake Ashi": ("箱根神社 鸟居", "芦之湖 鸟居"),
     "Hakone Sightseeing Cruise (pirate ships)": ("箱根海贼船", "芦之湖游船"),
@@ -321,8 +340,14 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     "Homemade Ramen Muginae": ("麦苗", "Homemade Ramen 麦苗"),
     "Houraidou Chaho": ("蓬莱堂茶铺", "Houraidou 茶铺"),
     "Huangpu Ancient Village (黄埔古港)": ("黄埔古港", "黄埔古村"),
-    "Huangsha Aquatic Market & nearby seafood restaurants": ("黄沙水产市场 海鲜", "黄沙 海鲜大排档"),
-    "Huangsha Aquatic Market & surrounding seafood dai pai dongs": ("黄沙水产市场 大排档", "黄沙 海鲜"),
+    "Huangsha Aquatic Market & nearby seafood restaurants": (
+        "黄沙水产市场 海鲜",
+        "黄沙 海鲜大排档",
+    ),
+    "Huangsha Aquatic Market & surrounding seafood dai pai dongs": (
+        "黄沙水产市场 大排档",
+        "黄沙 海鲜",
+    ),
     "Huangsha Seafood Market (黄沙水产市场)": ("黄沙水产市场", "黄沙海鲜市场"),
     "Humayun's Tomb": ("胡马雍陵", "德里 胡马雍墓"),
     "Hyosetsu no Mon": ("冰雪之门", "氷雪の門"),
@@ -356,7 +381,10 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     "Kyoto Obubu Tea Farms tasting room": ("京都 Obubu 茶园", "和束 茶园"),
     "Lanxin Canting (Lan Xin Restaurant)": ("兰心餐厅", "上海 兰心餐厅"),
     "Lao Ji Shi (Jesse Restaurant)": ("老吉士", "吉士酒家"),
-    "Lao Ji Shi (Jesse Restaurant) original Tianping Road location": ("老吉士 天平路", "吉士酒家 天平路"),
+    "Lao Ji Shi (Jesse Restaurant) original Tianping Road location": (
+        "老吉士 天平路",
+        "吉士酒家 天平路",
+    ),
     "Liede Village (猎德村)": ("猎德村",),
     "Liwan Lake Park & Xiguan ancestral houses": ("荔湾湖公园 西关大屋", "荔湾湖公园"),
     "Liwan Lake Park morning crowd": ("荔湾湖公园 早茶", "荔湾湖公园 本地人"),
@@ -392,7 +420,10 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     ),
     "Mercado Plaza / Marché Central de Gueliz": ("盖利兹中央市场", "马拉喀什 中央市场"),
     "Moon-Light (Tsukiakari)": ("ムーンライト", "月光 札幌"),
-    "Moon-Light (ムーンライト) / Susukino Ramen Yokocho fringe izakayas": ("ムーンライト", "薄野 拉面横丁 居酒屋"),
+    "Moon-Light (ムーンライト) / Susukino Ramen Yokocho fringe izakayas": (
+        "ムーンライト",
+        "薄野 拉面横丁 居酒屋",
+    ),
     "Mouko Tanmen Nakamoto": ("蒙古タンメン中本", "蒙古汤面中本"),
     "Mugishutei (Beer Inn Mugishutei)": ("麦酒停", "Beer Inn 麦酒停"),
     "Mustapha's snail cart on Rue Riad Zitoun el-Kedim": ("穆斯塔法 蜗牛摊", "马拉喀什 蜗牛"),
@@ -400,14 +431,20 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     "Namara Ezo": ("なまら蝦夷", "Namara Ezo 札幌"),
     "Nanporo": ("なんぽろ", "札幌 南幌"),
     "Nanporo (なんぽろ)": ("なんぽろ", "札幌 南幌"),
-    "Nanporo (なんぽろ) / Otaru-style izakaya alleys around Tanukikoji 4-5": ("なんぽろ", "狸小路 居酒屋"),
+    "Nanporo (なんぽろ) / Otaru-style izakaya alleys around Tanukikoji 4-5": (
+        "なんぽろ",
+        "狸小路 居酒屋",
+    ),
     "Naraya Cafe": ("奈良屋咖啡", "NARAYA CAFE 箱根"),
     "Nijo Market izakaya counters (e.g., Magokoro)": ("二条市场 居酒屋", "二条市场 まごころ"),
     "Nijo Market izakaya stalls": ("二条市场 居酒屋", "札幌 二条市场"),
     "Nizamuddin Dargah (Thursday qawwali)": ("尼扎姆丁圣陵 卡瓦力", "Nizamuddin Dargah"),
     "Nizamuddin Dargah Qawwali (Thursday evenings)": ("尼扎姆丁圣陵 卡瓦力", "Nizamuddin Dargah"),
     "Nizamuddin Dargah qawwali night": ("尼扎姆丁圣陵 卡瓦力", "Nizamuddin Dargah"),
-    "North Island Beer Taproom (Soft Tail Brewing area)": ("北岛啤酒 札幌", "North Island Beer 札幌"),
+    "North Island Beer Taproom (Soft Tail Brewing area)": (
+        "北岛啤酒 札幌",
+        "North Island Beer 札幌",
+    ),
     "Otaru Soko No.1 (Otaru Warehouse No.1)": ("小樽仓库No.1", "小樽仓库一号"),
     "Otoboke (おとぼけ)": ("おとぼけ", "札幌 おとぼけ"),
     "Owakudani black eggs": ("大涌谷 黑鸡蛋", "大涌谷 黑玉子"),
@@ -437,7 +474,10 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     "Salon de The Maeda-en / Kyoto Obubu Tea Farms tasting": ("前田园", "京都 Obubu 茶园"),
     "Salon de Thé MAEDA-EN / Maeda Coffee tea menu": ("前田园", "前田咖啡 茶"),
     "Sapporo Beer Garden (Kaitakushi Hall)": ("札幌啤酒园 开拓使馆", "札幌啤酒园 成吉思汗"),
-    "Sapporo Beer Garden (Kaitakushikan / Genghis Khan Hall)": ("札幌啤酒园 开拓使馆", "札幌啤酒园 成吉思汗"),
+    "Sapporo Beer Garden (Kaitakushikan / Genghis Khan Hall)": (
+        "札幌啤酒园 开拓使馆",
+        "札幌啤酒园 成吉思汗",
+    ),
     "Sapporo Beer Museum tasting room": ("札幌啤酒博物馆 试饮", "札幌啤酒博物馆"),
     "Sapporo Kaitaku Shiyakusho-mae yokocho / Namara Ezo": ("開拓使役所前横丁", "なまら蝦夷"),
     "Shaheng Fen (沙河粉村)": ("沙河粉村", "沙河粉"),
@@ -447,7 +487,10 @@ XHS_NAME_ALIASES: dict[str, tuple[str, ...]] = {
     "Shimogamo Shrine + Saryo Hosen morning combo": ("下鸭神社 宝泉", "茶寮宝泉"),
     "Sidi Ghanem industrial district food spots": ("西迪加奈姆 工业区 餐厅", "Sidi Ghanem 餐厅"),
     "Soranoiro Nippon": ("ソラノイロ NIPPON", "空之色拉面"),
-    "Souk Bab Doukkala / Mellah market (Place des Ferblantiers area)": ("杜卡拉门 市集", "Mellah 市场"),
+    "Souk Bab Doukkala / Mellah market (Place des Ferblantiers area)": (
+        "杜卡拉门 市集",
+        "Mellah 市场",
+    ),
     "Souk Semmarine & Souk el Attarine": ("Semmarine 市集", "马拉喀什 香料市集"),
     "Souk Semmarine and Souk el-Attarine": ("Semmarine 市集", "马拉喀什 香料市集"),
     "Sundar Nursery": ("桑达尔苗圃", "Sunder Nursery 德里"),
@@ -602,18 +645,26 @@ def main() -> None:
 
 def add_browser_parser(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     browser = sub.add_parser("open-browser", help="Open a headed public XHS search browser")
-    browser.add_argument("--profile-dir", default=None, help="Persistent public browser profile directory")
+    browser.add_argument(
+        "--profile-dir", default=None, help="Persistent public browser profile directory"
+    )
     browser.add_argument("--query", default=DEFAULT_SEARCH_DIAGNOSTIC_QUERY)
     browser.add_argument("--timeout-s", type=float, default=900.0)
 
 
 def add_diagnose_parser(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
-    diagnose = sub.add_parser("diagnose-search", help="Check whether the XHS public search page can return results")
-    diagnose.add_argument("--profile-dir", default=None, help="Persistent public browser profile directory")
+    diagnose = sub.add_parser(
+        "diagnose-search", help="Check whether the XHS public search page can return results"
+    )
+    diagnose.add_argument(
+        "--profile-dir", default=None, help="Persistent public browser profile directory"
+    )
     diagnose.add_argument("--query", default=DEFAULT_SEARCH_DIAGNOSTIC_QUERY)
     diagnose.add_argument("--timeout-s", type=float, default=15.0)
     diagnose.add_argument("--report-file", type=Path, default=DEFAULT_SEARCH_DIAGNOSTIC_FILE)
-    diagnose.add_argument("--screenshot-file", type=Path, default=DEFAULT_SEARCH_DIAGNOSTIC_SCREENSHOT)
+    diagnose.add_argument(
+        "--screenshot-file", type=Path, default=DEFAULT_SEARCH_DIAGNOSTIC_SCREENSHOT
+    )
     diagnose.add_argument("--headed", action="store_true")
 
 
@@ -987,7 +1038,9 @@ async def run_prewarm(args: argparse.Namespace) -> None:
     report = load_report(args.report_file) if args.resume else empty_report(args)
     report.pop("stopped_reason", None)
     done = resume_done_queries(report)
-    work = prewarm_work_items(items, args.limit_candidates, args.queries_per_candidate, done if args.resume else set())
+    work = prewarm_work_items(
+        items, args.limit_candidates, args.queries_per_candidate, done if args.resume else set()
+    )
     failures = 0
 
     print(
@@ -1042,7 +1095,10 @@ async def run_prewarm(args: argparse.Namespace) -> None:
         if result["ok"]:
             failures = 0
         else:
-            if result.get("skip_reason") in NORMAL_SKIP_REASONS or result.get("skip_reason") in TRANSIENT_SKIP_REASONS:
+            if (
+                result.get("skip_reason") in NORMAL_SKIP_REASONS
+                or result.get("skip_reason") in TRANSIENT_SKIP_REASONS
+            ):
                 failures = 0
                 await polite_sleep(args.min_sleep_s, args.max_sleep_s)
                 continue
@@ -1074,7 +1130,9 @@ async def preflight_xhs_search_gate(args: argparse.Namespace) -> dict[str, Any]:
     resolved_profile = resolve_profile_dir(profile_dir) if profile_dir else None
     try:
         timeout_s = min(float(args.timeout_s), 35.0)
-        device_profile = _playwright_session._device_profile_for_fetch(str(resolved_profile) if resolved_profile else None)
+        device_profile = _playwright_session._device_profile_for_fetch(
+            str(resolved_profile) if resolved_profile else None
+        )
         user_agent = _playwright_session.pick_user_agent(
             os.getenv("XHS_USER_AGENT"),
             device_profile=device_profile,
@@ -1217,7 +1275,12 @@ async def import_local_cache(path: Path) -> None:
             )
     print(
         json.dumps(
-            {"status": "import_local_complete", "file": str(path), "imported": imported, "skipped": skipped},
+            {
+                "status": "import_local_complete",
+                "file": str(path),
+                "imported": imported,
+                "skipped": skipped,
+            },
             ensure_ascii=False,
         )
     )
@@ -1243,7 +1306,9 @@ async def import_xhs_evidence(path: Path) -> None:
 
 def write_coverage_report(args: argparse.Namespace) -> None:
     items = load_query_items(args.query_file)
-    report = merge_reports([load_report(path) for path in [args.report_file, *args.extra_report_file]])
+    report = merge_reports(
+        [load_report(path) for path in [args.report_file, *args.extra_report_file]]
+    )
     cache_rows = load_local_cache_rows(args.local_cache_file)
     candidate_rows = summarise_candidate_coverage(
         items,
@@ -1274,7 +1339,9 @@ def write_coverage_report(args: argparse.Namespace) -> None:
             "query_count": sum(len(item.get("queries") or []) for item in gap_items),
             "items": gap_items,
         }
-        args.gap_query_file.write_text(json.dumps(gap_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        args.gap_query_file.write_text(
+            json.dumps(gap_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     printable = dict(summary)
     printable["status"] = "coverage_written"
     printable["output_file"] = str(args.output_file)
@@ -1343,7 +1410,9 @@ def sanitize_public_gate_rows(report: dict[str, Any], cutoff: str) -> tuple[dict
         if index in sanitize_indexes:
             updated["skip_reason"] = None
             updated["error_type"] = "XHSPublicSearchGate"
-            updated["error"] = "xhs public search gate active: retry later or use public index/detail fallback"
+            updated["error"] = (
+                "xhs public search gate active: retry later or use public index/detail fallback"
+            )
             updated["public_gate_sanitized"] = True
             updated.pop("empty_retry_version", None)
             changed_count += 1
@@ -1401,7 +1470,10 @@ def is_public_gate_suspect_row(row: dict[str, Any]) -> bool:
     if int(row.get("raw_count") or 0) != 0:
         return False
     attempts = row.get("attempts") or []
-    return all(isinstance(attempt, dict) and int(attempt.get("raw_count") or 0) == 0 for attempt in attempts)
+    return all(
+        isinstance(attempt, dict) and int(attempt.get("raw_count") or 0) == 0
+        for attempt in attempts
+    )
 
 
 def is_security_gate_suspect_row(row: dict[str, Any]) -> bool:
@@ -1534,11 +1606,15 @@ def collect_report_stats(report: dict[str, Any]) -> dict[str, Any]:
             ok_queries_by_candidate.setdefault(candidate, set()).add(query)
         elif row.get("skip_reason") in NORMAL_SKIP_REASONS:
             skipped_by_candidate[candidate] = skipped_by_candidate.get(candidate, 0) + 1
-        elif row.get("skip_reason") in TRANSIENT_SKIP_REASONS or is_gate_error(str(row.get("error") or "")):
+        elif row.get("skip_reason") in TRANSIENT_SKIP_REASONS or is_gate_error(
+            str(row.get("error") or "")
+        ):
             continue
         else:
             errors_by_candidate[candidate] = errors_by_candidate.get(candidate, 0) + 1
-            last_error_by_candidate[candidate] = str(row.get("error") or row.get("error_type") or "")[:300]
+            last_error_by_candidate[candidate] = str(
+                row.get("error") or row.get("error_type") or ""
+            )[:300]
     return {
         "ok_queries": ok_queries_by_candidate,
         "skipped": skipped_by_candidate,
@@ -1562,15 +1638,21 @@ def collect_cache_stats(cache_rows: list[dict[str, Any]]) -> dict[str, dict[str,
         posts = [post for post in payload if isinstance(post, dict)]
         relevant = filter_relevant_posts(posts, candidate, str(row.get("query") or ""))
         cached_unique = unseen_posts_for_candidate(candidate, posts, cached_seen_by_candidate)
-        relevant_unique = unseen_posts_for_candidate(candidate, relevant, relevant_seen_by_candidate)
-        cached_posts_by_candidate[candidate] = cached_posts_by_candidate.get(candidate, 0) + len(cached_unique)
+        relevant_unique = unseen_posts_for_candidate(
+            candidate, relevant, relevant_seen_by_candidate
+        )
+        cached_posts_by_candidate[candidate] = cached_posts_by_candidate.get(candidate, 0) + len(
+            cached_unique
+        )
         cached_images_by_candidate[candidate] = cached_images_by_candidate.get(candidate, 0) + sum(
             len(post.get("images") or []) for post in cached_unique
         )
-        relevant_posts_by_candidate[candidate] = relevant_posts_by_candidate.get(candidate, 0) + len(relevant_unique)
-        relevant_images_by_candidate[candidate] = relevant_images_by_candidate.get(candidate, 0) + sum(
-            len(post.get("images") or []) for post in relevant_unique
-        )
+        relevant_posts_by_candidate[candidate] = relevant_posts_by_candidate.get(
+            candidate, 0
+        ) + len(relevant_unique)
+        relevant_images_by_candidate[candidate] = relevant_images_by_candidate.get(
+            candidate, 0
+        ) + sum(len(post.get("images") or []) for post in relevant_unique)
     return {
         "cached_posts": cached_posts_by_candidate,
         "cached_images": cached_images_by_candidate,
@@ -1684,7 +1766,9 @@ def enrich_query_item_for_gaps(item: dict[str, Any]) -> dict[str, Any]:
     candidate = str(item.get("candidate") or "")
     original_queries = [str(query) for query in item.get("queries") or [] if query]
     explicit_aliases = [str(alias) for alias in item.get("aliases") or [] if alias]
-    destinations = [str(destination) for destination in item.get("destinations") or [] if destination]
+    destinations = [
+        str(destination) for destination in item.get("destinations") or [] if destination
+    ]
     destination_aliases = destination_aliases_for_item(destinations)
     strip_destination_aliases = all_destination_aliases_for_item(destinations)
     category = str(item.get("category") or "generic")
@@ -1697,7 +1781,9 @@ def enrich_query_item_for_gaps(item: dict[str, Any]) -> dict[str, Any]:
             preferred_names.extend(name_group)
             for intent in category_query_intents_for_candidate(category, candidate, name_group):
                 for search_name in name_group:
-                    query = " ".join(part for part in (destination, search_name, intent) if part).strip()
+                    query = " ".join(
+                        part for part in (destination, search_name, intent) if part
+                    ).strip()
                     append_query_once(queries, query)
     for query in original_queries:
         if should_keep_original_query(query, preferred_names):
@@ -1720,7 +1806,9 @@ def all_destination_aliases_for_item(destinations: list[str]) -> tuple[str, ...]
     if not destinations:
         return ("",)
     destination = destinations[0]
-    return DESTINATION_QUERY_ALIASES.get(destination, DESTINATION_NAME_ALIASES.get(destination, (destination,)))
+    return DESTINATION_QUERY_ALIASES.get(
+        destination, DESTINATION_NAME_ALIASES.get(destination, (destination,))
+    )
 
 
 def preferred_destination_aliases(aliases: tuple[str, ...]) -> tuple[str, ...]:
@@ -1742,7 +1830,9 @@ def search_candidate_names(candidate: str, explicit_aliases: list[str] | None = 
     return localized_first_names(names)
 
 
-def search_names_for_destination(names: list[str], destination_aliases: tuple[str, ...]) -> list[str]:
+def search_names_for_destination(
+    names: list[str], destination_aliases: tuple[str, ...]
+) -> list[str]:
     stripped = [strip_destination_alias_from_name(name, destination_aliases) for name in names]
     return localized_first_names(stripped)
 
@@ -1776,7 +1866,9 @@ def is_localized_search_name(name: str) -> bool:
 def has_specific_latin_brand_text(text: str) -> bool:
     words = re.findall(r"[a-z][a-z0-9]+", text.casefold())
     specific_words = [
-        word for word in words if word not in GENERIC_RELEVANCE_TERMS and len(word) >= MIN_SPECIFIC_LATIN_BRAND_CHARS
+        word
+        for word in words
+        if word not in GENERIC_RELEVANCE_TERMS and len(word) >= MIN_SPECIFIC_LATIN_BRAND_CHARS
     ]
     return bool(specific_words)
 
@@ -1812,7 +1904,15 @@ def category_query_intents_for_candidate(
     text = intent_detection_text(candidate, names)
     intents = category_query_intents(category)
     if is_ramen_candidate(text):
-        intents = ("拉面推荐", "拉面店推荐", "排队拉面", "本地人推荐", "真实体验", "值得吃吗", "避雷")
+        intents = (
+            "拉面推荐",
+            "拉面店推荐",
+            "排队拉面",
+            "本地人推荐",
+            "真实体验",
+            "值得吃吗",
+            "避雷",
+        )
     elif is_tea_candidate(text):
         intents = ("茶室推荐", "本地人推荐", "真实体验", "茶道体验", "避雷")
     elif is_cafe_candidate(text):
@@ -1865,19 +1965,25 @@ def is_tea_candidate(text: str) -> bool:
         "houraidou",
         "maeda-en",
     )
-    return any(keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords)
+    return any(
+        keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords
+    )
 
 
 def is_cafe_candidate(text: str) -> bool:
     compact = compact_relevance_text(text)
     keywords = ("咖啡", "cafe", "café", "coffee", "kissa", "kissaten", "喫茶")
-    return any(keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords)
+    return any(
+        keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords
+    )
 
 
 def is_dessert_candidate(text: str) -> bool:
     compact = compact_relevance_text(text)
     keywords = ("甜品", "甜点", "dessert", "sweets", "wagashi", "抄院", "然花")
-    return any(keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords)
+    return any(
+        keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords
+    )
 
 
 def is_bar_candidate(text: str) -> bool:
@@ -1897,7 +2003,9 @@ def is_bar_candidate(text: str) -> bool:
         "薄野",
         "susukino",
     )
-    return any(keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords)
+    return any(
+        keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords
+    )
 
 
 def is_street_food_candidate(text: str) -> bool:
@@ -1932,7 +2040,9 @@ def is_street_food_candidate(text: str) -> bool:
         "paranthe wali gali",
         "parathe wali gali",
     )
-    return any(keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords)
+    return any(
+        keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords
+    )
 
 
 def is_ramen_candidate(text: str) -> bool:
@@ -1953,7 +2063,9 @@ def is_ramen_candidate(text: str) -> bool:
         "ramen",
         "soba noodles",
     )
-    return any(keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords)
+    return any(
+        keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords
+    )
 
 
 def is_food_candidate(text: str) -> bool:
@@ -1994,8 +2106,9 @@ def is_food_candidate(text: str) -> bool:
         "parathe",
         "food",
     )
-    return any(keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords)
-
+    return any(
+        keyword in text or compact_relevance_text(keyword) in compact for keyword in keywords
+    )
 
 
 def prewarm_work_items(
@@ -2053,7 +2166,9 @@ def resume_done_queries(report: dict[str, Any]) -> set[tuple[str, str]]:
 async def fetch_one(query: str, candidate: str, args: argparse.Namespace) -> dict[str, Any]:
     attempts: list[dict[str, Any]] = []
     last_full_result: dict[str, Any] | None = None
-    for attempt_index, attempt_query in enumerate(candidate_queries(query, candidate, args.max_query_attempts), start=1):
+    for attempt_index, attempt_query in enumerate(
+        candidate_queries(query, candidate, args.max_query_attempts), start=1
+    ):
         print(
             json.dumps(
                 {
@@ -2177,7 +2292,9 @@ async def fetch_query_once(query: str, candidate: str, args: argparse.Namespace)
         }
 
 
-async def fetch_public_index_with_timeout(query: str, candidate: str, args: argparse.Namespace) -> dict[str, Any]:
+async def fetch_public_index_with_timeout(
+    query: str, candidate: str, args: argparse.Namespace
+) -> dict[str, Any]:
     return await asyncio.wait_for(
         fetch_public_index_once(query, candidate, args),
         timeout=float(args.call_timeout_s),
@@ -2195,7 +2312,9 @@ def fetch_error_result(query: str, candidate: str, exc: Exception) -> dict[str, 
     }
 
 
-async def fetch_public_index_once(query: str, candidate: str, args: argparse.Namespace) -> dict[str, Any]:
+async def fetch_public_index_once(
+    query: str, candidate: str, args: argparse.Namespace
+) -> dict[str, Any]:
     tool = XHSSearchTool()
     indexed = await tool._fetch_from_search_index(query, int(args.post_limit))
     if not indexed:
@@ -2236,12 +2355,20 @@ async def build_fetch_result(
     require_local_images: bool,
 ) -> dict[str, Any]:
     text_usable = usable_posts(raw_posts, require_images=False)
-    image_usable = [post for post in text_usable if post_has_required_images(post, require_local=require_local_images)]
+    image_usable = [
+        post
+        for post in text_usable
+        if post_has_required_images(post, require_local=require_local_images)
+    ]
     authentic_posts = filter_authentic_xhs_posts(text_usable)
     posts = filter_relevant_posts(authentic_posts, candidate, query)
     relevant_text_posts = posts
     if not bool(getattr(args, "allow_text_only", False)):
-        posts = [post for post in posts if post_has_required_images(post, require_local=require_local_images)]
+        posts = [
+            post
+            for post in posts
+            if post_has_required_images(post, require_local=require_local_images)
+        ]
     posts = mark_quality_checked_posts(posts, candidate, query)
     key = xhs_cache_key(query)
     if posts:
@@ -2273,9 +2400,19 @@ async def build_fetch_result(
         "irrelevant_dropped_count": len(authentic_posts) - len(relevant_text_posts),
         "missing_image_count": len(relevant_text_posts) - len(posts),
         "image_count": sum(len(post.get("images") or []) for post in posts),
-        "skip_reason": skip_reason_for_posts(text_usable, authentic_posts, relevant_text_posts, posts),
+        "skip_reason": skip_reason_for_posts(
+            text_usable, authentic_posts, relevant_text_posts, posts
+        ),
         "quality_version": RESULT_QUALITY_VERSION,
-        "sample": preview_post(posts[0] if posts else relevant_text_posts[0] if relevant_text_posts else raw_posts[0] if raw_posts else None),
+        "sample": preview_post(
+            posts[0]
+            if posts
+            else relevant_text_posts[0]
+            if relevant_text_posts
+            else raw_posts[0]
+            if raw_posts
+            else None
+        ),
         "diagnostics": diagnostics,
     }
 
@@ -2297,7 +2434,9 @@ def is_public_search_gate(exc: Exception) -> bool:
     return is_transient_xhs_gate(exc)
 
 
-def candidate_queries(query: str, candidate: str, max_attempts: int = MAX_QUERY_ATTEMPTS) -> list[str]:
+def candidate_queries(
+    query: str, candidate: str, max_attempts: int = MAX_QUERY_ATTEMPTS
+) -> list[str]:
     queries = [query]
     intent = query_intent(query)
     raw_destination = query_destination(query)
@@ -2306,11 +2445,15 @@ def candidate_queries(query: str, candidate: str, max_attempts: int = MAX_QUERY_
     limit = max(1, max_attempts)
     if len(queries) >= limit:
         return queries[:limit]
-    names = search_names_for_destination(localized_fallback_candidate_names(candidate), destination_aliases)
+    names = search_names_for_destination(
+        localized_fallback_candidate_names(candidate), destination_aliases
+    )
     for name_group in localized_name_groups(names):
         for fallback_intent in fallback_query_intents(intent):
             for search_name in name_group:
-                fallback = " ".join(part for part in (destination, search_name, fallback_intent) if part).strip()
+                fallback = " ".join(
+                    part for part in (destination, search_name, fallback_intent) if part
+                ).strip()
                 if fallback and fallback not in queries:
                     queries.append(fallback)
                 if len(queries) >= limit:
@@ -2409,14 +2552,18 @@ def has_cjk_text(text: str) -> bool:
 
 
 def has_meaningful_cjk_text(text: str) -> bool:
-    for chunk in re.findall(r"[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]+", text.translate(CJK_NORMALIZATION_TABLE)):
+    for chunk in re.findall(
+        r"[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]+", text.translate(CJK_NORMALIZATION_TABLE)
+    ):
         compact = compact_relevance_text(chunk)
         if compact and compact not in GENERIC_CJK_COMPACT_RELEVANCE_TERMS:
             return True
     return False
 
 
-def filter_relevant_posts(posts: list[dict[str, Any]], candidate: str, query: str) -> list[dict[str, Any]]:
+def filter_relevant_posts(
+    posts: list[dict[str, Any]], candidate: str, query: str
+) -> list[dict[str, Any]]:
     terms = relevance_terms(candidate, query)
     if not terms:
         return [post for post in posts if not has_destination_title_conflict(post, query)]
@@ -2424,7 +2571,8 @@ def filter_relevant_posts(posts: list[dict[str, Any]], candidate: str, query: st
         post
         for post in posts
         if not has_destination_title_conflict(post, query)
-        and candidate_relevance_score(post, terms, candidate=candidate, query=query) >= MIN_CANDIDATE_RELEVANCE_SCORE
+        and candidate_relevance_score(post, terms, candidate=candidate, query=query)
+        >= MIN_CANDIDATE_RELEVANCE_SCORE
     ]
 
 
@@ -2480,7 +2628,9 @@ def competing_destination_alias_compacts(target_compacts: set[str]) -> set[str]:
     return {alias for alias in aliases if alias and alias not in target_compacts}
 
 
-def mark_quality_checked_posts(posts: list[dict[str, Any]], candidate: str, query: str) -> list[dict[str, Any]]:
+def mark_quality_checked_posts(
+    posts: list[dict[str, Any]], candidate: str, query: str
+) -> list[dict[str, Any]]:
     terms = relevance_terms(candidate, query)
     marked: list[dict[str, Any]] = []
     for post in posts:
@@ -2514,7 +2664,10 @@ def candidate_relevance_score(
 def post_quality_matches_candidate(post: dict[str, Any], candidate: str, query: str) -> bool:
     if post.get("xhs_quality_version") != RESULT_QUALITY_VERSION:
         return False
-    return str(post.get("xhs_candidate") or "") == candidate and str(post.get("xhs_query") or "") == query
+    return (
+        str(post.get("xhs_candidate") or "") == candidate
+        and str(post.get("xhs_query") or "") == query
+    )
 
 
 def candidate_relevance_match(post: dict[str, Any], terms: list[str]) -> tuple[float, list[str]]:
@@ -2529,7 +2682,11 @@ def candidate_relevance_match(post: dict[str, Any], terms: list[str]) -> tuple[f
         compact = compact_relevance_text(folded)
         if not folded or not compact:
             continue
-        if folded in text or compact in compact_text or reordered_relevance_match(term, compact_text):
+        if (
+            folded in text
+            or compact in compact_text
+            or reordered_relevance_match(term, compact_text)
+        ):
             best = max(best, relevance_weight(term))
             matched_terms.append(term)
     return best, matched_terms
@@ -2560,7 +2717,9 @@ def relevance_terms(candidate: str, query: str) -> list[str]:
     terms: list[str] = []
     terms.extend(fallback_candidate_names(candidate))
     terms.extend(query_entity_terms(query))
-    for alias in XHS_NAME_ALIASES.get(candidate, ()):  # explicit for readability when aliases are short
+    for alias in XHS_NAME_ALIASES.get(
+        candidate, ()
+    ):  # explicit for readability when aliases are short
         terms.append(alias)
     unique: list[str] = []
     for term in terms:
@@ -2582,7 +2741,9 @@ def query_entity_terms(query: str) -> list[str]:
 
 def clean_relevance_term(term: str) -> str:
     cleaned = clean_candidate_name(term)
-    cleaned = re.sub(r"\b(?:recommend|recommended|review|reviews|guide)\b", " ", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(
+        r"\b(?:recommend|recommended|review|reviews|guide)\b", " ", cleaned, flags=re.IGNORECASE
+    )
     cleaned = cleaned.translate(CJK_NORMALIZATION_TABLE)
     return " ".join(cleaned.split()).strip()
 
@@ -2595,7 +2756,9 @@ def is_specific_relevance_term(term: str) -> bool:
         return len(compact) >= MIN_CJK_RELEVANCE_CHARS
     words = re.findall(r"[a-z0-9]+", term.casefold())
     specific_words = [
-        word for word in words if word not in GENERIC_RELEVANCE_TERMS and len(word) >= MIN_LATIN_RELEVANCE_WORD_CHARS
+        word
+        for word in words
+        if word not in GENERIC_RELEVANCE_TERMS and len(word) >= MIN_LATIN_RELEVANCE_WORD_CHARS
     ]
     return bool(
         len("".join(specific_words)) >= MIN_LATIN_JOINED_RELEVANCE_CHARS
@@ -2616,7 +2779,9 @@ def relevance_weight(term: str) -> float:
 
 
 def compact_relevance_text(text: str) -> str:
-    return re.sub(r"[\W_]+", "", text.translate(CJK_NORMALIZATION_TABLE), flags=re.UNICODE).casefold()
+    return re.sub(
+        r"[\W_]+", "", text.translate(CJK_NORMALIZATION_TABLE), flags=re.UNICODE
+    ).casefold()
 
 
 def skip_reason_for_posts(
@@ -2657,7 +2822,12 @@ def pipeline_diagnostics(
 
 def clean_candidate_name(raw: str) -> str:
     text = re.sub(PAREN_CHARS_RE, " ", raw)
-    text = re.sub(r"\b(?:area|site|location|grounds|day trip|temple grounds)\b", " ", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"\b(?:area|site|location|grounds|day trip|temple grounds)\b",
+        " ",
+        text,
+        flags=re.IGNORECASE,
+    )
     return " ".join(text.split()).strip(" -_/,&")
 
 
@@ -2667,7 +2837,9 @@ def query_destination(query: str) -> str:
     return aliases[0] if aliases else raw
 
 
-async def mirror_cached_payload(original_query: str, fetched_query: str, result: dict[str, Any]) -> None:
+async def mirror_cached_payload(
+    original_query: str, fetched_query: str, result: dict[str, Any]
+) -> None:
     key = result.get("key")
     if not isinstance(key, str) or not key:
         return
@@ -2800,7 +2972,9 @@ def normalise_query_item(item: dict[str, Any]) -> dict[str, Any]:
     return {
         "candidate": str(item.get("candidate") or "").strip(),
         "category": str(item.get("category") or "generic").strip() or "generic",
-        "destinations": [str(destination) for destination in item.get("destinations") or [] if destination],
+        "destinations": [
+            str(destination) for destination in item.get("destinations") or [] if destination
+        ],
         "aliases": [str(alias) for alias in item.get("aliases") or [] if alias],
         "queries": [str(query) for query in item.get("queries") or [] if query],
     }
@@ -2955,7 +3129,9 @@ def args_public_profile_dir(args: argparse.Namespace) -> str | None:
     return value or None
 
 
-def xhs_profile_dir(*, public_search: bool = False, public_profile_dir: str | None = None) -> str | None:
+def xhs_profile_dir(
+    *, public_search: bool = False, public_profile_dir: str | None = None
+) -> str | None:
     if public_search:
         if public_profile_dir:
             return str(resolve_public_profile_dir(public_profile_dir))
@@ -2979,7 +3155,11 @@ def xhs_storage_state_path(*, public_search: bool = False) -> str | None:
 
 
 def xhs_cookie(*, public_search: bool = False) -> str | None:
-    if public_search or xhs_profile_dir(public_search=public_search) or xhs_storage_state_path(public_search=public_search):
+    if (
+        public_search
+        or xhs_profile_dir(public_search=public_search)
+        or xhs_storage_state_path(public_search=public_search)
+    ):
         return None
     return os.getenv("XHS_COOKIE") or None
 

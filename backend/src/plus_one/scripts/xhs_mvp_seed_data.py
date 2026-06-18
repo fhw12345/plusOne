@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 MVP_XHS_TARGET_CITIES = (
     "Shanghai",
     "Guangzhou",
@@ -49,7 +48,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("外滩", "attraction", "Shanghai"),
     _seed("新天地", "attraction", "Shanghai"),
     _seed("田子坊", "attraction", "Shanghai"),
-
     # Guangzhou
     _seed("银记肠粉", "food", "Guangzhou"),
     _seed("陈添记鱼皮", "food", "Guangzhou"),
@@ -66,7 +64,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("东山口", "attraction", "Guangzhou"),
     _seed("白云山", "attraction", "Guangzhou"),
     _seed("广州塔珠江夜游", "attraction", "Guangzhou", "广州塔", "珠江夜游"),
-
     # Tokyo
     _seed("筑地场外市场", "food", "Tokyo", "築地場外市場"),
     _seed("月岛文字烧", "food", "Tokyo", "月島もんじゃ"),
@@ -83,7 +80,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("人形町今半", "food", "Tokyo"),
     _seed("代官山茑屋书店", "attraction", "Tokyo"),
     _seed("东京站拉面街", "food", "Tokyo"),
-
     # Kyoto
     _seed("锦市场", "food", "Kyoto"),
     _seed("出町双叶", "food", "Kyoto", "出町ふたば"),
@@ -100,7 +96,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("南禅寺", "attraction", "Kyoto"),
     _seed("京都御苑", "attraction", "Kyoto"),
     _seed("一保堂茶铺", "drink", "Kyoto", "一保堂"),
-
     # Osaka
     _seed("黑门市场", "food", "Osaka"),
     _seed("道顿堀", "food", "Osaka"),
@@ -117,7 +112,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("梅田蓝天大厦", "attraction", "Osaka"),
     _seed("北滨咖啡街", "drink", "Osaka", "北滨"),
     _seed("中崎町", "attraction", "Osaka"),
-
     # Seoul
     _seed("明洞饺子", "food", "Seoul", "명동교자"),
     _seed("广藏市场", "food", "Seoul", "광장시장"),
@@ -134,7 +128,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("梨泰院", "attraction", "Seoul", "이태원"),
     _seed("乙支路", "attraction", "Seoul", "을지로"),
     _seed("新沙洞林荫道", "attraction", "Seoul", "가로수길"),
-
     # Taipei
     _seed("阜杭豆浆", "food", "Taipei"),
     _seed("永康牛肉面", "food", "Taipei"),
@@ -151,7 +144,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("松山文创园", "attraction", "Taipei"),
     _seed("九份老街", "attraction", "Taipei"),
     _seed("龙山寺", "attraction", "Taipei"),
-
     # Hong Kong
     _seed("华嫂冰室", "food", "Hong Kong"),
     _seed("九记牛腩", "food", "Hong Kong"),
@@ -168,7 +160,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("上环", "attraction", "Hong Kong"),
     _seed("庙街夜市", "food", "Hong Kong"),
     _seed("太平山顶", "attraction", "Hong Kong"),
-
     # Singapore
     _seed("天天海南鸡饭", "food", "Singapore"),
     _seed("亚坤", "food", "Singapore", "亚坤咖椰吐司"),
@@ -185,7 +176,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("星耀樟宜", "attraction", "Singapore", "Jewel Changi"),
     _seed("娘惹菜蓝姜", "food", "Singapore", "Blue Ginger"),
     _seed("阿秋甜品", "food", "Singapore"),
-
     # Bangkok
     _seed("Jeh O Chula", "food", "Bangkok", "朱拉隆功妈妈面", "朱拉妈妈面", "妈妈面"),
     _seed("Thipsamai", "food", "Bangkok", "Thipsamai Pad Thai", "Thipsamai泰式炒粉"),
@@ -202,7 +192,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("曼谷旧城区咖啡", "drink", "Bangkok"),
     _seed("Talat Noi", "attraction", "Bangkok", "曼谷老城 Talat Noi"),
     _seed("王权云顶大厦", "attraction", "Bangkok", "Mahanakhon"),
-
     # Paris
     _seed("埃菲尔铁塔", "attraction", "Paris"),
     _seed("卢浮宫", "attraction", "Paris"),
@@ -219,7 +208,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("天使娜热巧克力", "drink", "Paris", "Angelina"),
     _seed("皮埃尔艾尔梅马卡龙", "food", "Paris", "Pierre Herme"),
     _seed("巴黎左岸咖啡", "drink", "Paris"),
-
     # London
     _seed("大英博物馆", "attraction", "London"),
     _seed("伦敦塔桥", "attraction", "London"),
@@ -236,7 +224,6 @@ MVP_XHS_QUERY_ITEMS: list[dict[str, Any]] = [
     _seed("Padella意面", "food", "London", "Padella"),
     _seed("Fortnum Mason下午茶", "drink", "London", "Fortnum & Mason"),
     _seed("Sketch下午茶", "drink", "London", "Sketch"),
-
     # New York
     _seed("中央公园", "attraction", "New York"),
     _seed("大都会艺术博物馆", "attraction", "New York"),

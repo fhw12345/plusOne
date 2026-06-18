@@ -72,9 +72,9 @@ test.describe("strict XHS real chain (admin)", () => {
 
     const items = detail.content?.items ?? [];
     expect(items.length, "completed trip must persist report items").toBeGreaterThan(0);
-    const xhsEvidence = items.flatMap((item) => item.evidence ?? []).filter(
-      (ev) => ev.source === "xiaohongshu",
-    );
+    const xhsEvidence = items
+      .flatMap((item) => item.evidence ?? [])
+      .filter((ev) => ev.source === "xiaohongshu");
     expect(xhsEvidence.length, "report must include XHS evidence").toBeGreaterThan(0);
     expect(
       xhsEvidence.every((ev) => ev.url?.includes("xiaohongshu.com/explore/")),

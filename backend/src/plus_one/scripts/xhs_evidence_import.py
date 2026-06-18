@@ -170,7 +170,9 @@ async def import_evidence_rows(evidence: EvidenceRows) -> ImportStats:
         await _upsert_images(session, evidence.images, post_ids, now)
         await _upsert_matches(session, evidence.matches, post_ids, now)
 
-    return ImportStats(posts=len(evidence.posts), images=len(evidence.images), matches=len(evidence.matches))
+    return ImportStats(
+        posts=len(evidence.posts), images=len(evidence.images), matches=len(evidence.matches)
+    )
 
 
 async def import_local_cache_file(path: Path) -> ImportStats:
@@ -223,7 +225,9 @@ async def _load_post_ids(session: Any, note_ids: list[str]) -> dict[str, Any]:
     return post_ids
 
 
-async def _upsert_images(session: Any, images: list[ImageRow], post_ids: dict[str, Any], now: datetime) -> None:
+async def _upsert_images(
+    session: Any, images: list[ImageRow], post_ids: dict[str, Any], now: datetime
+) -> None:
     values = [
         {
             "post_id": post_ids[image.note_id],
@@ -257,7 +261,9 @@ async def _upsert_images(session: Any, images: list[ImageRow], post_ids: dict[st
         )
 
 
-async def _upsert_matches(session: Any, matches: list[MatchRow], post_ids: dict[str, Any], now: datetime) -> None:
+async def _upsert_matches(
+    session: Any, matches: list[MatchRow], post_ids: dict[str, Any], now: datetime
+) -> None:
     values = [
         {
             "post_id": post_ids[match.note_id],

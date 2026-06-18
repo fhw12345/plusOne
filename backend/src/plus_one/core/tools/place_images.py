@@ -257,9 +257,7 @@ def _looks_like_place_image(image: PlaceImage, args: PlaceImageInput) -> bool:
     if not terms:
         return True
     haystack = " ".join(
-        part
-        for part in (image.title, image.page_url, image.image_url)
-        if part
+        part for part in (image.title, image.page_url, image.image_url) if part
     ).lower()
     return any(term in haystack for term in terms)
 

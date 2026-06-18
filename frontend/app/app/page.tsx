@@ -17,9 +17,10 @@ import { useAuthStore } from "@/store/auth";
 
 function isUnauthorized(error: unknown): boolean {
   return (
-    error instanceof ApiError ||
-    (typeof error === "object" && error !== null && "status" in error)
-  ) && (error as { status?: unknown }).status === 401;
+    (error instanceof ApiError ||
+      (typeof error === "object" && error !== null && "status" in error)) &&
+    (error as { status?: unknown }).status === 401
+  );
 }
 
 function SkeletonGallery() {
@@ -146,7 +147,7 @@ export default function AppPage() {
             <span className="type-sm">couldn&rsquo;t open your notebook</span>
           </div>
           <p className="body">
-            something snagged on the wire. {" "}
+            something snagged on the wire.{" "}
             <button
               type="button"
               onClick={retryNotebook}

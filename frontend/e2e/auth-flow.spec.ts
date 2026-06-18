@@ -46,11 +46,7 @@ test.describe("auth flow (credential, happy path)", () => {
   });
 });
 
-async function pollLastCode(
-  apiBase: string,
-  email: string,
-  request: APIRequestContext,
-) {
+async function pollLastCode(apiBase: string, email: string, request: APIRequestContext) {
   const url = `${apiBase}/api/auth/dev/last-code?email=${encodeURIComponent(email)}`;
   let response = await request.get(url);
   for (let attempt = 0; response.status() === 404 && attempt < 10; attempt += 1) {

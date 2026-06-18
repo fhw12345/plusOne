@@ -69,7 +69,9 @@ async def test_cache_hit_skips_http(monkeypatch: pytest.MonkeyPatch) -> None:
     resolver = PlaceImageResolver()
     monkeypatch.setattr(resolver, "_get_client", lambda: fake_client)
 
-    image = await resolver.resolve(PlaceImageInput(name="Tsuta", location_hint="Tokyo", category="ramen"))
+    image = await resolver.resolve(
+        PlaceImageInput(name="Tsuta", location_hint="Tokyo", category="ramen")
+    )
 
     assert image is not None
     assert image.image_url == "https://img.example/cached.jpg"
@@ -175,7 +177,10 @@ async def test_openverse_fallback_when_commons_is_irrelevant(
     assert image is not None
     assert image.image_url == "https://openverse.example/tsuta.jpg"
     assert image.source == "openverse:flickr"
-    assert [call[0] for call in fake_client.calls] == [image_mod._COMMONS_API, image_mod._OPENVERSE_API]
+    assert [call[0] for call in fake_client.calls] == [
+        image_mod._COMMONS_API,
+        image_mod._OPENVERSE_API,
+    ]
 
 
 @pytest.mark.unit
@@ -208,7 +213,9 @@ async def test_real_mode_ignores_generic_fixture_after_provider_failures(
 
     monkeypatch.setattr(resolver, "_resolve_live", fail_live)
 
-    image = await resolver.resolve(PlaceImageInput(name="Kagari", location_hint="Tokyo", category="ramen"))
+    image = await resolver.resolve(
+        PlaceImageInput(name="Kagari", location_hint="Tokyo", category="ramen")
+    )
 
     assert image is None
     assert written == []
@@ -265,7 +272,9 @@ async def test_fixture_mode_can_use_generic_fixture(
     )
 
     resolver = PlaceImageResolver(fixtures_dir=tmp_path)
-    image = await resolver.resolve(PlaceImageInput(name="Kagari", location_hint="Tokyo", category="ramen"))
+    image = await resolver.resolve(
+        PlaceImageInput(name="Kagari", location_hint="Tokyo", category="ramen")
+    )
 
     assert image is not None
     assert image.image_url == "https://img.example/tokyo-ramen.jpg"

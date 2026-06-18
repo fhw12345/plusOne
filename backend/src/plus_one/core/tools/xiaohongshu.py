@@ -26,12 +26,12 @@ reader as tier 3 (current behavior preserved exactly).
 
 from __future__ import annotations
 
-import hashlib
+import base64
 import contextlib
+import hashlib
 import json
 import os
 import re
-import base64
 from html import escape, unescape
 from html.parser import HTMLParser
 from pathlib import Path
@@ -441,7 +441,9 @@ class XHSSearchTool:
         raw_fixture = self._load_fixture_fallback(args.query, key)
         if raw_fixture:
             logger.warning("xhs_degraded_to_fixture", key=key, count=len(raw_fixture))
-            fixture_posts = filter_query_relevant_xhs_posts(annotate_xhs_posts(raw_fixture), args.query)
+            fixture_posts = filter_query_relevant_xhs_posts(
+                annotate_xhs_posts(raw_fixture), args.query
+            )
             posts = [XHSPost.model_validate(item) for item in fixture_posts[: args.limit]]
             return ToolResult(
                 tool=self.name,
@@ -561,8 +563,12 @@ class XHSSearchTool:
     ) -> list[dict[str, object]]:
         """Best-effort add note-detail text/images to public-index hits."""
         try:
-            resolved_timeout_s = float(timeout_s if timeout_s is not None else os.getenv("XHS_TIMEOUT_S", "30"))
-            resolved_images_per_post = int(images_per_post if images_per_post is not None else _images_per_post())
+            resolved_timeout_s = float(
+                timeout_s if timeout_s is not None else os.getenv("XHS_TIMEOUT_S", "30")
+            )
+            resolved_images_per_post = int(
+                images_per_post if images_per_post is not None else _images_per_post()
+            )
             device_profile = _playwright_session._device_profile_for_fetch(None)
             context, close_context = await _playwright_session._open_scrape_context(
                 user_agent=_playwright_session.pick_user_agent(
@@ -612,7 +618,9 @@ async def _enrich_public_index_posts_with_context(
 
     enriched = [dict(post) for post in posts]
     if _cache_images_enabled():
-        image_index_posts = [post for post in enriched if post.get("xhs_image_index_stub") and post.get("images")]
+        image_index_posts = [
+            post for post in enriched if post.get("xhs_image_index_stub") and post.get("images")
+        ]
         if image_index_posts:
             cached_image_posts = await _playwright_session._cache_post_images_with_context(
                 context,
@@ -621,9 +629,13 @@ async def _enrich_public_index_posts_with_context(
                 timeout_s=min(timeout_s, 8.0),
             )
             cached_by_id = {_index_post_identity(post): post for post in cached_image_posts}
-            enriched = [dict(cached_by_id.get(_index_post_identity(post), post)) for post in enriched]
+            enriched = [
+                dict(cached_by_id.get(_index_post_identity(post), post)) for post in enriched
+            ]
 
-    detail_candidates = [post for post in enriched if _public_index_post_needs_detail_enrichment(post)]
+    detail_candidates = [
+        post for post in enriched if _public_index_post_needs_detail_enrichment(post)
+    ]
     if detail_candidates:
         detail_enriched = await _playwright_session._enrich_posts_from_details(
             context,
@@ -637,7 +649,8 @@ async def _enrich_public_index_posts_with_context(
         uncached_image_posts = [
             post
             for post in enriched
-            if post.get("images") and not any(str(image).startswith("/media/") for image in post.get("images") or [])
+            if post.get("images")
+            and not any(str(image).startswith("/media/") for image in post.get("images") or [])
         ]
         if uncached_image_posts:
             cached_uncached_posts = await _playwright_session._cache_post_images_with_context(
@@ -647,7 +660,9 @@ async def _enrich_public_index_posts_with_context(
                 timeout_s=min(timeout_s, 8.0),
             )
             cached_by_id = {_index_post_identity(post): post for post in cached_uncached_posts}
-            enriched = [dict(cached_by_id.get(_index_post_identity(post), post)) for post in enriched]
+            enriched = [
+                dict(cached_by_id.get(_index_post_identity(post), post)) for post in enriched
+            ]
 
     return enriched
 
@@ -659,9 +674,12 @@ def _public_index_post_needs_detail_enrichment(post: dict[str, object]) -> bool:
     has_local_image = any(image.startswith("/media/") for image in images)
     if post.get("xhs_image_index_stub") and title and (body or has_local_image):
         return False
-    if post.get("xhs_index_stub") and not body and not images and title.casefold() in {"", "小红书", "xiaohongshu"}:
-        return False
-    return True
+    return not (
+        post.get("xhs_index_stub")
+        and not body
+        and not images
+        and title.casefold() in {"", "小红书", "xiaohongshu"}
+    )
 
 
 def annotate_xhs_posts(posts: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -689,7 +707,9 @@ def filter_authentic_xhs_posts(posts: list[dict[str, Any]]) -> list[dict[str, An
     return kept
 
 
-def filter_query_relevant_xhs_posts(posts: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
+def filter_query_relevant_xhs_posts(
+    posts: list[dict[str, Any]], query: str
+) -> list[dict[str, Any]]:
     terms = _query_relevance_terms(query)
     if not terms:
         return [post for post in posts if not post.get("xhs_index_stub")]
@@ -728,7 +748,10 @@ def _query_relevance_terms(query: str) -> list[str]:
         if any(ord(char) > _ASCII_MAX_CODEPOINT for char in term):
             if len(_compact_relevance_text(term)) >= _MIN_CJK_QUERY_TERM_CHARS:
                 terms.append(term)
-        elif len(term) >= _MIN_LATIN_QUERY_TERM_CHARS and term.casefold() not in _GENERIC_QUERY_ENTITY_TERMS:
+        elif (
+            len(term) >= _MIN_LATIN_QUERY_TERM_CHARS
+            and term.casefold() not in _GENERIC_QUERY_ENTITY_TERMS
+        ):
             terms.append(term)
     return _unique(terms)
 
@@ -747,7 +770,9 @@ def _query_relevance_score(post: dict[str, Any], terms: list[str]) -> float:
 
 
 def _compact_relevance_text(text: str) -> str:
-    return re.sub(r"[\W_]+", "", text.translate(CJK_NORMALIZATION_TABLE), flags=re.UNICODE).casefold()
+    return re.sub(
+        r"[\W_]+", "", text.translate(CJK_NORMALIZATION_TABLE), flags=re.UNICODE
+    ).casefold()
 
 
 def _looks_like_destination_only(term: str) -> bool:
@@ -823,7 +848,11 @@ def assess_xhs_authenticity(post: dict[str, Any]) -> dict[str, Any]:
     else:
         score -= 0.05
 
-    if len(soft_terms) >= _SOFT_PROMO_PILEUP_COUNT and not local_terms and not _DETAIL_RE.search(lowered):
+    if (
+        len(soft_terms) >= _SOFT_PROMO_PILEUP_COUNT
+        and not local_terms
+        and not _DETAIL_RE.search(lowered)
+    ):
         score -= 0.12
 
     score = round(max(0.0, min(1.0, score)), 2)
@@ -901,7 +930,9 @@ def _posts_from_links(
     return posts
 
 
-def _posts_from_sogou_image_index_html(text: str, query: str, limit: int) -> list[dict[str, object]]:
+def _posts_from_sogou_image_index_html(
+    text: str, query: str, limit: int
+) -> list[dict[str, object]]:
     posts: list[dict[str, object]] = []
     seen: set[str] = set()
     for item in _sogou_image_index_items(text):
@@ -909,7 +940,9 @@ def _posts_from_sogou_image_index_html(text: str, query: str, limit: int) -> lis
             continue
         title = " ".join(str(item.get("title") or item.get("content_title") or "").split())
         body = " ".join(str(item.get("content_major") or item.get("summary") or "").split())
-        raw_page_url = str(item.get("page_url") or item.get("pageUrl") or item.get("url") or item.get("link") or "")
+        raw_page_url = str(
+            item.get("page_url") or item.get("pageUrl") or item.get("url") or item.get("link") or ""
+        )
         page_url = _normalise_xhs_url(raw_page_url) if raw_page_url else None
         image_url = _first_sogou_xhs_image_url(item)
         if not page_url or not image_url or page_url in seen:
@@ -1021,7 +1054,9 @@ def _is_likely_public_xhs_image(url: str) -> bool:
 
 def _search_index_queries(query: str) -> tuple[str, ...]:
     cleaned = " ".join(query.split())
-    without_recommend = re.sub(r"\b(recommend|recommended|推荐)\b", " ", cleaned, flags=re.IGNORECASE)
+    without_recommend = re.sub(
+        r"\b(recommend|recommended|推荐)\b", " ", cleaned, flags=re.IGNORECASE
+    )
     without_recommend = " ".join(without_recommend.split())
     candidates = [
         f"site:xiaohongshu.com/explore {cleaned}",
@@ -1262,7 +1297,9 @@ def _decode_redirect_value(raw_value: str) -> str:
         encoded = value[2:]
         padding = "=" * (-len(encoded) % 4)
         with contextlib.suppress(Exception):
-            decoded = base64.urlsafe_b64decode(f"{encoded}{padding}").decode("utf-8", errors="ignore")
+            decoded = base64.urlsafe_b64decode(f"{encoded}{padding}").decode(
+                "utf-8", errors="ignore"
+            )
             if decoded:
                 return unquote(decoded).strip()
     return value

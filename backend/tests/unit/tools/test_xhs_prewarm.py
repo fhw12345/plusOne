@@ -10,13 +10,15 @@ import pytest
 
 from plus_one.core.tools import _playwright_session
 from plus_one.core.tools.xiaohongshu import XHSSearchTool
+from plus_one.scripts import xhs_prewarm
+from plus_one.scripts.xhs_mvp_seed_data import MVP_XHS_TARGET_CITIES
 from plus_one.scripts.xhs_prewarm import (
     build_mvp_seed_payload,
     build_search_diagnostic,
     candidate_queries,
     classify_search_diagnostic,
-    collect_report_stats,
     collect_cache_stats,
+    collect_report_stats,
     dedupe_gap_candidate_rows,
     enrich_query_item_for_gaps,
     fetch_one,
@@ -34,8 +36,6 @@ from plus_one.scripts.xhs_prewarm import (
     skip_reason_for_posts,
     xhs_profile_dir,
 )
-from plus_one.scripts import xhs_prewarm
-from plus_one.scripts.xhs_mvp_seed_data import MVP_XHS_TARGET_CITIES
 
 
 @pytest.mark.unit
@@ -232,7 +232,10 @@ def test_enrich_query_item_for_gaps_strips_duplicate_city_from_alias() -> None:
 
     enriched = enrich_query_item_for_gaps(item)
 
-    assert enriched["queries"][:2] == ["马拉喀什 Al Bahriya 美食推荐", "马拉喀什 Al Bahriya seafood 美食推荐"]
+    assert enriched["queries"][:2] == [
+        "马拉喀什 Al Bahriya 美食推荐",
+        "马拉喀什 Al Bahriya seafood 美食推荐",
+    ]
 
 
 @pytest.mark.unit
@@ -477,7 +480,10 @@ def test_dedupe_gap_candidate_rows_deprioritizes_stale_partial_rows() -> None:
         "query_item": {"queries": ["广州 卡住部分 本地人推荐"]},
     }
 
-    assert dedupe_gap_candidate_rows([stale_partial, fresh_partial]) == [fresh_partial, stale_partial]
+    assert dedupe_gap_candidate_rows([stale_partial, fresh_partial]) == [
+        fresh_partial,
+        stale_partial,
+    ]
 
 
 @pytest.mark.unit
@@ -501,7 +507,10 @@ def test_dedupe_gap_candidate_rows_keeps_stale_partial_after_fresh_partial() -> 
         "query_item": {"queries": ["广州 新候选 本地人推荐"]},
     }
 
-    assert dedupe_gap_candidate_rows([stale_partial, fresh_partial]) == [fresh_partial, stale_partial]
+    assert dedupe_gap_candidate_rows([stale_partial, fresh_partial]) == [
+        fresh_partial,
+        stale_partial,
+    ]
 
 
 @pytest.mark.unit
@@ -509,7 +518,10 @@ def test_merge_reports_combines_main_and_gap_results() -> None:
     merged = merge_reports(
         [
             {"settings": {"post_limit": 8}, "results": [{"candidate": "A", "ok": True}]},
-            {"settings": {"post_limit": 4}, "results": [{"candidate": "B", "skip_reason": "no_relevant_authentic_posts"}]},
+            {
+                "settings": {"post_limit": 4},
+                "results": [{"candidate": "B", "skip_reason": "no_relevant_authentic_posts"}],
+            },
         ]
     )
 
@@ -586,8 +598,16 @@ def test_collect_cache_stats_dedupes_same_post_across_queries() -> None:
         "images": ["/media/xhs/a.webp", "/media/xhs/b.webp"],
     }
     rows = [
-        {"candidate": "Columbia Circle (Shanghai Film Studio site)", "query": "上海 上生新所 本地人推荐", "payload": [post]},
-        {"candidate": "Columbia Circle (Shanghai Film Studio site)", "query": "上海 上生新所 真实体验", "payload": [dict(post)]},
+        {
+            "candidate": "Columbia Circle (Shanghai Film Studio site)",
+            "query": "上海 上生新所 本地人推荐",
+            "payload": [post],
+        },
+        {
+            "candidate": "Columbia Circle (Shanghai Film Studio site)",
+            "query": "上海 上生新所 真实体验",
+            "payload": [dict(post)],
+        },
     ]
 
     stats = collect_cache_stats(rows)
@@ -630,7 +650,9 @@ def test_prewarm_work_items_resume_advances_to_next_queries_per_candidate() -> N
         }
     ]
 
-    work = prewarm_work_items(items, limit_candidates=1, queries_per_candidate=2, done=resume_done_queries(report))
+    work = prewarm_work_items(
+        items, limit_candidates=1, queries_per_candidate=2, done=resume_done_queries(report)
+    )
 
     assert work == [
         {"candidate": "D-matcha Kyoto Tea Farm (Wazuka)", "query": "京都 d matcha 和束 茶道体验"},
@@ -692,7 +714,13 @@ def test_sanitize_public_gate_rows_only_marks_trailing_raw_empty_rows() -> None:
                 "empty_retry_version": 4,
                 "attempts": [{"query": "东京 旧 query 美食推荐", "raw_count": 0}],
             },
-            {"candidate": "Covered", "query": "上海 M50", "ok": True, "raw_count": 8, "quality_version": 4},
+            {
+                "candidate": "Covered",
+                "query": "上海 M50",
+                "ok": True,
+                "raw_count": 8,
+                "quality_version": 4,
+            },
             {
                 "candidate": "Gate Empty",
                 "query": "上海 M50创意园 本地人推荐",
@@ -714,7 +742,9 @@ def test_sanitize_public_gate_rows_only_marks_trailing_raw_empty_rows() -> None:
 
 
 @pytest.mark.unit
-async def test_preflight_xhs_search_gate_reports_search_gate(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_preflight_xhs_search_gate_reports_search_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     class FakePage:
         url = "https://www.xiaohongshu.com/website-login/error?error_msg=安全限制"
 
@@ -740,9 +770,13 @@ async def test_preflight_xhs_search_gate_reports_search_gate(monkeypatch: pytest
 
     async def fake_goto(*args: object, **kwargs: object) -> int:
         del args, kwargs
-        raise RuntimeError("xhs verification required: solve the safety check in the persistent profile")
+        raise RuntimeError(
+            "xhs verification required: solve the safety check in the persistent profile"
+        )
 
-    monkeypatch.setattr("plus_one.scripts.xhs_prewarm.open_preflight_context", fake_open_preflight_context)
+    monkeypatch.setattr(
+        "plus_one.scripts.xhs_prewarm.open_preflight_context", fake_open_preflight_context
+    )
     monkeypatch.setattr(_playwright_session, "_goto_xhs_search", fake_goto)
     args = SimpleNamespace(timeout_s=18.0, call_timeout_s=45.0)
 
@@ -788,9 +822,16 @@ async def test_preflight_xhs_search_gate_reports_raw_count(monkeypatch: pytest.M
 
     async def fake_selector_counts(page: object) -> dict[str, int]:
         del page
-        return {'a[href*="/search_result/"]': 1, 'a[href*="/explore/"]': 0, "section.note-item": 1, "section[data-index]": 0}
+        return {
+            'a[href*="/search_result/"]': 1,
+            'a[href*="/explore/"]': 0,
+            "section.note-item": 1,
+            "section[data-index]": 0,
+        }
 
-    monkeypatch.setattr("plus_one.scripts.xhs_prewarm.open_preflight_context", fake_open_preflight_context)
+    monkeypatch.setattr(
+        "plus_one.scripts.xhs_prewarm.open_preflight_context", fake_open_preflight_context
+    )
     monkeypatch.setattr(_playwright_session, "_goto_xhs_search", fake_goto)
     monkeypatch.setattr(_playwright_session, "_page_body_text", fake_body_text)
     monkeypatch.setattr("plus_one.scripts.xhs_prewarm.xhs_selector_counts", fake_selector_counts)
@@ -904,7 +945,7 @@ def test_filter_relevant_posts_keeps_short_latin_alias_inside_real_note_body() -
             "id": "chez-lamine",
             "author": "traveler",
             "title": "Marrakesh-5, 值得一尝",
-            "body": "图1-5，chez lamine的馕坑羊肉，两个人0.5kg差不多，皮脆肉嫩。",
+            "body": "图1-5, chez lamine的馕坑羊肉, 两个人0.5kg差不多, 皮脆肉嫩。",
             "url": "https://www.xiaohongshu.com/explore/chez-lamine",
             "images": ["/media/xhs/chez.webp"],
         }
@@ -926,7 +967,7 @@ def test_filter_relevant_posts_keeps_swfc_note_without_observation_deck_wording(
             "id": "swfc",
             "author": "traveler",
             "title": "陆家嘴三件套打卡两个",
-            "body": "从观光角度上海环球金融中心的体验碾压上海金茂大厦，100层基本不用排队。",
+            "body": "从观光角度上海环球金融中心的体验碾压上海金茂大厦, 100层基本不用排队。",
             "url": "https://www.xiaohongshu.com/explore/swfc",
             "images": ["/media/xhs/swfc.webp"],
         }
@@ -962,7 +1003,9 @@ def test_filter_relevant_posts_drops_title_with_competing_destination() -> None:
         },
     ]
 
-    kept = filter_relevant_posts(posts, "D-matcha Kyoto Tea Farm (Wazuka)", "京都 d matcha 和束 真实体验")
+    kept = filter_relevant_posts(
+        posts, "D-matcha Kyoto Tea Farm (Wazuka)", "京都 d matcha 和束 真实体验"
+    )
 
     assert [post["id"] for post in kept] == ["right-city"]
 
@@ -987,9 +1030,14 @@ def test_filter_relevant_posts_drops_moon_light_single_word_false_positive() -> 
 
 @pytest.mark.unit
 def test_skip_reason_distinguishes_relevant_text_without_images() -> None:
-    relevant_text = [{"id": "text", "title": "AFURI 惠比寿", "url": "https://www.xiaohongshu.com/explore/text"}]
+    relevant_text = [
+        {"id": "text", "title": "AFURI 惠比寿", "url": "https://www.xiaohongshu.com/explore/text"}
+    ]
 
-    assert skip_reason_for_posts(relevant_text, relevant_text, relevant_text, []) == "no_content_images"
+    assert (
+        skip_reason_for_posts(relevant_text, relevant_text, relevant_text, [])
+        == "no_content_images"
+    )
 
 
 @pytest.mark.unit
@@ -1019,7 +1067,9 @@ def test_pipeline_diagnostics_keeps_stage_samples() -> None:
 
 
 @pytest.mark.unit
-async def test_fetch_one_preserves_failed_attempt_diagnostics(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_fetch_one_preserves_failed_attempt_diagnostics(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     async def fake_fetch_query_once(query: str, candidate: str, args: object) -> dict[str, object]:
         del args
         return {
@@ -1044,7 +1094,9 @@ async def test_fetch_one_preserves_failed_attempt_diagnostics(monkeypatch: pytes
 
 
 @pytest.mark.unit
-async def test_fetch_one_retries_after_transient_search_gate(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_fetch_one_retries_after_transient_search_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     seen: list[str] = []
 
     async def fake_fetch_query_once(query: str, candidate: str, args: object) -> dict[str, object]:
@@ -1074,7 +1126,9 @@ async def test_fetch_one_retries_after_transient_search_gate(monkeypatch: pytest
         del args, kwargs
 
     monkeypatch.setattr("plus_one.scripts.xhs_prewarm.fetch_query_once", fake_fetch_query_once)
-    monkeypatch.setattr("plus_one.scripts.xhs_prewarm.mirror_cached_payload", fake_mirror_cached_payload)
+    monkeypatch.setattr(
+        "plus_one.scripts.xhs_prewarm.mirror_cached_payload", fake_mirror_cached_payload
+    )
     args = SimpleNamespace(max_query_attempts=2)
 
     result = await fetch_one("东京 AFURI 惠比寿 美食推荐", "Afuri Ebisu", args)
@@ -1085,7 +1139,9 @@ async def test_fetch_one_retries_after_transient_search_gate(monkeypatch: pytest
 
 
 @pytest.mark.unit
-async def test_fetch_query_once_marks_public_search_gate_as_transient(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_fetch_query_once_marks_public_search_gate_as_transient(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     async def fake_fetch(*args: object, **kwargs: object) -> object:
         del args, kwargs
         raise RuntimeError("xhs public search gate: search results are gated by XHS")
@@ -1117,7 +1173,9 @@ async def test_fetch_query_once_uses_public_index_after_public_gate(
         del args, kwargs
         raise RuntimeError("xhs public search gate: search results are gated by XHS")
 
-    async def fake_fetch_from_search_index(self: object, query: str, limit: int) -> list[dict[str, object]]:
+    async def fake_fetch_from_search_index(
+        self: object, query: str, limit: int
+    ) -> list[dict[str, object]]:
         del self, limit
         assert query == "德里 Dilli Haat 真实体验"
         return [
@@ -1158,7 +1216,9 @@ async def test_fetch_query_once_uses_public_index_after_public_gate(
     async def fake_put_cached(source: str, key: str, payload: list[dict[str, object]]) -> None:
         written.append((source, key, payload))
 
-    def fake_append_local_cache(path, query: str, candidate: str, posts: list[dict[str, object]]) -> None:
+    def fake_append_local_cache(
+        path, query: str, candidate: str, posts: list[dict[str, object]]
+    ) -> None:
         del path
         local_rows.append((query, candidate, posts))
 
@@ -1196,7 +1256,9 @@ async def test_fetch_query_once_public_index_only_skips_xhs_search_page(
         del args, kwargs
         raise AssertionError("public-index-only mode must not visit the XHS search page")
 
-    async def fake_fetch_from_search_index(self: object, query: str, limit: int) -> list[dict[str, object]]:
+    async def fake_fetch_from_search_index(
+        self: object, query: str, limit: int
+    ) -> list[dict[str, object]]:
         del self, limit
         assert query == "Delhi Dilli Haat local review"
         return [
@@ -1238,7 +1300,9 @@ async def test_fetch_query_once_public_index_only_skips_xhs_search_page(
     async def fake_put_cached(source: str, key: str, payload: list[dict[str, object]]) -> None:
         del source, key, payload
 
-    def fake_append_local_cache(path, query: str, candidate: str, posts: list[dict[str, object]]) -> None:
+    def fake_append_local_cache(
+        path, query: str, candidate: str, posts: list[dict[str, object]]
+    ) -> None:
         del path, query, candidate, posts
 
     monkeypatch.setattr("plus_one.scripts.xhs_prewarm.put_cached", fake_put_cached)
@@ -1270,7 +1334,9 @@ async def test_fetch_query_once_public_index_only_honors_call_timeout(
         await asyncio.sleep(0.2)
         return {"ok": True, "source": "public_search_index"}
 
-    monkeypatch.setattr("plus_one.scripts.xhs_prewarm.fetch_public_index_once", slow_public_index_once)
+    monkeypatch.setattr(
+        "plus_one.scripts.xhs_prewarm.fetch_public_index_once", slow_public_index_once
+    )
     args = SimpleNamespace(
         post_limit=4,
         timeout_s=1,
@@ -1294,7 +1360,9 @@ async def test_fetch_public_index_once_passes_cli_detail_limits(
 ) -> None:
     captured: dict[str, object] = {}
 
-    async def fake_fetch_from_search_index(self: object, query: str, limit: int) -> list[dict[str, object]]:
+    async def fake_fetch_from_search_index(
+        self: object, query: str, limit: int
+    ) -> list[dict[str, object]]:
         del self, query
         assert limit == 4
         return [
@@ -1318,7 +1386,9 @@ async def test_fetch_public_index_once_passes_cli_detail_limits(
         images_per_post: int,
     ) -> list[dict[str, object]]:
         del self
-        captured.update({"limit": limit, "timeout_s": timeout_s, "images_per_post": images_per_post})
+        captured.update(
+            {"limit": limit, "timeout_s": timeout_s, "images_per_post": images_per_post}
+        )
         enriched = [dict(post) for post in posts]
         enriched[0].update(
             {
@@ -1334,7 +1404,9 @@ async def test_fetch_public_index_once_passes_cli_detail_limits(
     async def fake_put_cached(source: str, key: str, payload: list[dict[str, object]]) -> None:
         del source, key, payload
 
-    def fake_append_local_cache(path, query: str, candidate: str, posts: list[dict[str, object]]) -> None:
+    def fake_append_local_cache(
+        path, query: str, candidate: str, posts: list[dict[str, object]]
+    ) -> None:
         del path, query, candidate, posts
 
     monkeypatch.setattr(XHSSearchTool, "_fetch_from_search_index", fake_fetch_from_search_index)
@@ -1365,9 +1437,20 @@ async def test_fetch_query_once_rejects_public_index_without_local_images(
         del args, kwargs
         raise RuntimeError("xhs public search gate: search results are gated by XHS")
 
-    async def fake_fetch_from_search_index(self: object, query: str, limit: int) -> list[dict[str, object]]:
+    async def fake_fetch_from_search_index(
+        self: object, query: str, limit: int
+    ) -> list[dict[str, object]]:
         del self, query, limit
-        return [{"id": "idx1", "title": "Dilli Haat", "body": "", "url": "https://www.xiaohongshu.com/explore/idx1", "images": [], "xhs_index_stub": True}]
+        return [
+            {
+                "id": "idx1",
+                "title": "Dilli Haat",
+                "body": "",
+                "url": "https://www.xiaohongshu.com/explore/idx1",
+                "images": [],
+                "xhs_index_stub": True,
+            }
+        ]
 
     async def fake_enrich_indexed_posts(
         self: object,
@@ -1495,7 +1578,7 @@ def test_filter_relevant_posts_matches_mercado_mellah_english_spice_market_alias
             "id": "mellah1",
             "title": "省流版马拉喀什购物地图 避开85%雷点",
             "author": "行天",
-            "body": "蓝色④区：Mellah spice market是个有机市场，即平价精油批发地。",
+            "body": "蓝色④区: Mellah spice market是个有机市场, 即平价精油批发地。",
             "url": "https://www.xiaohongshu.com/explore/mellah1",
             "images": ["/media/xhs/aa/mellah.webp"],
         }
@@ -1579,7 +1662,9 @@ async def test_fetch_query_once_defaults_to_public_search(
     monkeypatch.setenv("XHS_COOKIE", "sess=abc")
     monkeypatch.delenv("XHS_USE_CONFIGURED_SESSION", raising=False)
     monkeypatch.setattr(_playwright_session, "fetch", fake_fetch)
-    args = SimpleNamespace(post_limit=4, timeout_s=1, call_timeout_s=2, images_per_post=2, allow_text_only=False)
+    args = SimpleNamespace(
+        post_limit=4, timeout_s=1, call_timeout_s=2, images_per_post=2, allow_text_only=False
+    )
 
     await fetch_query_once("德里 Dilli Haat 真实体验", "Dilli Haat", args)
 
@@ -1632,7 +1717,9 @@ async def test_fetch_query_once_public_search_can_use_public_profile(
 
 
 @pytest.mark.unit
-def test_xhs_public_profile_dir_uses_public_resolver(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+def test_xhs_public_profile_dir_uses_public_resolver(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
     auth_profile = tmp_path / "auth-profile"
     public_profile = tmp_path / "public-profile"
     monkeypatch.setenv("XHS_PROFILE_DIR", str(auth_profile))
@@ -1644,7 +1731,9 @@ def test_xhs_public_profile_dir_uses_public_resolver(monkeypatch: pytest.MonkeyP
 
 
 @pytest.mark.unit
-def test_xhs_default_public_search_ignores_configured_session_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_xhs_default_public_search_ignores_configured_session_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from plus_one.scripts.xhs_prewarm import args_public_search, xhs_cookie, xhs_storage_state_path
 
     monkeypatch.setenv("XHS_PROFILE_DIR", "C:/tmp/auth-profile")
@@ -1662,7 +1751,9 @@ def test_xhs_default_public_search_ignores_configured_session_env(monkeypatch: p
 
 
 @pytest.mark.unit
-async def test_build_search_diagnostic_defaults_to_public_profile(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_build_search_diagnostic_defaults_to_public_profile(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     public_profile = tmp_path / "public-profile"
     auth_profile = tmp_path / "auth-profile"
     captured: dict[str, object] = {}
@@ -1680,8 +1771,8 @@ async def test_build_search_diagnostic_defaults_to_public_profile(tmp_path, monk
         def set_default_navigation_timeout(self, timeout: int) -> None:
             captured["navigation_timeout"] = timeout
 
-        async def wait_for_timeout(self, timeout: int) -> None:
-            captured["wait_timeout"] = timeout
+        async def wait_for_timeout(self, delay_ms: int) -> None:
+            captured["wait_timeout"] = delay_ms
 
         async def title(self) -> str:
             return "小红书搜索"
@@ -1718,8 +1809,12 @@ async def test_build_search_diagnostic_defaults_to_public_profile(tmp_path, monk
         return "公开搜索结果"
 
     monkeypatch.setenv("XHS_PROFILE_DIR", str(auth_profile))
-    monkeypatch.setattr("plus_one.scripts.xhs_prewarm.DEFAULT_PUBLIC_BROWSER_PROFILE_DIR", public_profile)
-    monkeypatch.setattr(xhs_prewarm, "_open_public_diagnostic_context", fake_open_public_diagnostic_context)
+    monkeypatch.setattr(
+        "plus_one.scripts.xhs_prewarm.DEFAULT_PUBLIC_BROWSER_PROFILE_DIR", public_profile
+    )
+    monkeypatch.setattr(
+        xhs_prewarm, "_open_public_diagnostic_context", fake_open_public_diagnostic_context
+    )
     monkeypatch.setattr(_playwright_session, "_goto_xhs_search", fake_goto_xhs_search)
     monkeypatch.setattr(_playwright_session, "_page_body_text", fake_page_body_text)
 
@@ -1740,10 +1835,14 @@ async def test_build_search_diagnostic_defaults_to_public_profile(tmp_path, monk
 
 
 @pytest.mark.unit
-async def test_fetch_query_once_marks_profile_gate_as_transient(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_fetch_query_once_marks_profile_gate_as_transient(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     async def fake_fetch(*args: object, **kwargs: object) -> object:
         del args, kwargs
-        raise RuntimeError("xhs verification required: solve the safety check in the persistent profile")
+        raise RuntimeError(
+            "xhs verification required: solve the safety check in the persistent profile"
+        )
 
     async def fake_public_index_once(query: str, candidate: str, args: object) -> dict[str, object]:
         return {
@@ -1759,14 +1858,15 @@ async def test_fetch_query_once_marks_profile_gate_as_transient(monkeypatch: pyt
     monkeypatch.delenv("XHS_STORAGE_STATE", raising=False)
     monkeypatch.delenv("XHS_COOKIE", raising=False)
     monkeypatch.setattr(_playwright_session, "fetch", fake_fetch)
-    monkeypatch.setattr("plus_one.scripts.xhs_prewarm.fetch_public_index_once", fake_public_index_once)
+    monkeypatch.setattr(
+        "plus_one.scripts.xhs_prewarm.fetch_public_index_once", fake_public_index_once
+    )
     args = SimpleNamespace(post_limit=4, timeout_s=1, call_timeout_s=2, images_per_post=2)
 
     result = await fetch_query_once("德里 Dilli Haat 真实体验", "Dilli Haat", args)
 
     assert result["skip_reason"] == "public_search_gated"
     assert result["error_type"] == "RuntimeError"
-
 
 
 @pytest.mark.unit
@@ -1777,7 +1877,7 @@ def test_classify_search_diagnostic_detects_account_security_error() -> None:
             "cookie_names": ["web_session", "id_token"],
             "selector_counts": {},
         },
-        "安全限制\n当前账号存在异常，请切换账号后重试",
+        "安全限制\n当前账号存在异常, 请切换账号后重试",
     )
 
     assert result["has_verify"] is True

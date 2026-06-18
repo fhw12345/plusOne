@@ -61,11 +61,7 @@ export async function signInE2E(
   return { email, username };
 }
 
-async function pollLastCode(
-  request: APIRequestContext,
-  apiBase: string,
-  email: string,
-) {
+async function pollLastCode(request: APIRequestContext, apiBase: string, email: string) {
   const url = `${apiBase}/api/auth/dev/last-code?email=${encodeURIComponent(email)}`;
   let response = await request.get(url);
   for (let attempt = 0; response.status() === 404 && attempt < 10; attempt += 1) {

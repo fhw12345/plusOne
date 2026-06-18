@@ -183,7 +183,9 @@ class FoursquarePlacesSearchTool:
             raw_fixture = self._load_fixture_fallback(args, key)
             if raw_fixture:
                 places = [Place.model_validate(item) for item in raw_fixture[: args.limit]]
-                logger.warning("foursquare_missing_key_degraded_to_fixture", key=key, count=len(places))
+                logger.warning(
+                    "foursquare_missing_key_degraded_to_fixture", key=key, count=len(places)
+                )
                 return ToolResult(
                     tool=self.name,
                     output=places,

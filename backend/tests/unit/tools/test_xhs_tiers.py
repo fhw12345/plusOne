@@ -19,13 +19,13 @@ from plus_one.core.tools import xiaohongshu as xhs_mod
 from plus_one.core.tools.xiaohongshu import (
     XHSSearchInput,
     XHSSearchTool,
-    _links_from_text,
     _enrich_public_index_posts_with_context,
+    _image_index_queries,
+    _links_from_text,
     _merge_index_posts,
     _normalise_xhs_url,
     _posts_from_sogou_image_index_html,
     _public_index_post_needs_detail_enrichment,
-    _image_index_queries,
     assess_xhs_authenticity,
     filter_authentic_xhs_posts,
     filter_query_relevant_xhs_posts,
@@ -270,7 +270,9 @@ def test_random_delay_seconds_uses_configured_range(monkeypatch: pytest.MonkeyPa
 
 
 @pytest.mark.unit
-def test_persistent_profile_uses_home_search_entry_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_persistent_profile_uses_home_search_entry_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv("XHS_SEARCH_ENTRY", raising=False)
 
     assert _playwright_session._use_home_search_entry(".auth/xhs-profile") is True
@@ -285,8 +287,18 @@ def test_search_entry_can_force_direct_url(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 @pytest.mark.unit
-def test_search_result_ai_counts_as_search_landing() -> None:
-    assert "search_result" in "/search_result_ai"
+async def test_search_result_ai_counts_as_search_landing() -> None:
+    class FakePage:
+        url = "https://www.xiaohongshu.com/search_result_ai?keyword=test"
+
+        async def evaluate(self, script: str) -> str:
+            del script
+            return ""
+
+        async def wait_for_load_state(self, *args: object, **kwargs: object) -> None:
+            raise AssertionError("search_result_ai should return without waiting")
+
+    await _playwright_session._wait_for_search_landing(FakePage(), timeout_s=1)
 
 
 @pytest.mark.unit
@@ -457,7 +469,9 @@ async def test_enrich_posts_from_details_retries_navigation_interrupted_evaluate
             del script
             self.evaluate_calls += 1
             if self.evaluate_calls == 1:
-                raise RuntimeError("Execution context was destroyed, most likely because of a navigation")
+                raise RuntimeError(
+                    "Execution context was destroyed, most likely because of a navigation"
+                )
             return {
                 "author": "alice",
                 "title": "detail title",
@@ -487,7 +501,9 @@ async def test_enrich_posts_from_details_retries_navigation_interrupted_evaluate
         }
     ]
 
-    enriched = await _playwright_session._enrich_posts_from_details(FakeContext(), posts, timeout_s=2)
+    enriched = await _playwright_session._enrich_posts_from_details(
+        FakeContext(), posts, timeout_s=2
+    )
 
     assert fake_page.evaluate_calls == 2
     assert fake_page.closed is True
@@ -556,15 +572,20 @@ async def test_cache_post_images_with_context_rewrites_images_to_local_media(
 
     assert cached[0]["source_images"] == ["https://sns-webpic-qc.xhscdn.com/photo!webp"]
     assert cached[0]["images"][0].startswith("/media/xhs/")
-    assert cached[0]["cached_images"][0]["source_url"] == "https://sns-webpic-qc.xhscdn.com/photo!webp"
+    assert (
+        cached[0]["cached_images"][0]["source_url"] == "https://sns-webpic-qc.xhscdn.com/photo!webp"
+    )
     assert (tmp_path / "xhs").exists()
 
 
 @pytest.mark.unit
 def test_canonicalise_xhs_note_url_keeps_xsec_token() -> None:
-    assert _playwright_session._canonicalise_xhs_note_url(
-        "https://www.xiaohongshu.com/search_result/abc?xsec_token=tok&xsec_source="
-    ) == "https://www.xiaohongshu.com/explore/abc?xsec_token=tok&xsec_source="
+    assert (
+        _playwright_session._canonicalise_xhs_note_url(
+            "https://www.xiaohongshu.com/search_result/abc?xsec_token=tok&xsec_source="
+        )
+        == "https://www.xiaohongshu.com/explore/abc?xsec_token=tok&xsec_source="
+    )
 
 
 @pytest.mark.unit
@@ -663,13 +684,13 @@ async def test_search_index_parser_accepts_sogou_discovery_item_links() -> None:
 @pytest.mark.unit
 async def test_search_index_prefers_sogou_image_result_over_plain_stub() -> None:
     web_html = '<a href="https://www.xiaohongshu.com/explore/plain123">plain123</a>'
-    image_html = r'''
+    image_html = r"""
     <script>{"searchList":[
       {"ch_site_name":"小红书","title":"京都和束 d matcha 茶园游","content_major":"和束茶园真实体验",
        "page_url":"https:\/\/www.xiaohongshu.com\/explore\/image123",
        "pic_url":"http:\/\/o4.xiaohongshu.com\/discovery\/w1280\/photo.jpg"}
     ]}</script>
-    '''
+    """
 
     def handler(request: httpx.Request) -> httpx.Response:
         text = image_html if "pic.sogou.com" in str(request.url) else web_html
@@ -690,14 +711,14 @@ async def test_search_index_prefers_sogou_image_result_over_plain_stub() -> None
 
 @pytest.mark.unit
 def test_posts_from_sogou_image_index_html_extracts_xhs_image_results() -> None:
-    html = r'''
+    html = r"""
     <script>window.__INITIAL_STATE__={"query":"京都 d matcha 和束 小红书","searchList":[
       {"ch_site_name":"小红书","title":"京都和束 d matcha 茶园游","content_major":"和束茶园真实体验",
        "page_url":"https:\/\/www.xiaohongshu.com\/explore\/abc123",
        "pic_url":"http:\/\/o4.xiaohongshu.com\/discovery\/w1280\/photo.jpg"},
       {"ch_site_name":"搜狐网","title":"无关","pic_url":"https:\/\/example.com\/x.jpg"}
     ]};</script>
-    '''
+    """
 
     posts = _posts_from_sogou_image_index_html(html, "京都 d matcha 和束 小红书", 3)
 
@@ -729,13 +750,13 @@ def test_image_index_queries_try_xhs_prefixed_and_intentless_variants() -> None:
 
 @pytest.mark.unit
 async def test_search_index_tries_prefixed_image_query_after_empty_image_result() -> None:
-    image_html = r'''
+    image_html = r"""
     <script>{"searchList":[
       {"ch_site_name":"小红书","title":"广州永记牛杂真实体验","content_major":"老店牛杂本地人推荐",
        "page_url":"https:\/\/www.xiaohongshu.com\/explore\/beef123",
        "pic_url":"http:\/\/o4.xiaohongshu.com\/discovery\/w1280\/beef.jpg"}
     ]}</script>
-    '''
+    """
     requested_queries: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -762,13 +783,13 @@ async def test_search_index_tries_prefixed_image_query_after_empty_image_result(
 
 @pytest.mark.unit
 def test_posts_from_sogou_image_index_html_accepts_url_field_for_xhs_results() -> None:
-    html = r'''
+    html = r"""
     <script>window.__INITIAL_STATE__={"searchList":[
       {"ch_site_name":"","title":"京都和束 d matcha 茶园游","content_major":"和束茶园真实体验",
        "url":"https:\/\/www.xiaohongshu.com\/search_result\/abc123?xsec_token=tok",
        "picUrl":"http:\/\/o4.xiaohongshu.com\/discovery\/w1280\/photo.jpg"}
     ]};</script>
-    '''
+    """
 
     posts = _posts_from_sogou_image_index_html(html, "京都 d matcha 和束 小红书", 3)
 
@@ -779,14 +800,14 @@ def test_posts_from_sogou_image_index_html_accepts_url_field_for_xhs_results() -
 
 @pytest.mark.unit
 def test_posts_from_sogou_image_index_html_accepts_legacy_discovery_item_urls() -> None:
-    html = r'''
+    html = r"""
     <script>window.__INITIAL_STATE__={"searchList":[
       {"ch_site_name":"小红书","title":"箱根丸山物产 小红书笔记","content_major":"大涌谷茶屋真实体验",
        "url":"http:\/\/www.xiaohongshu.com\/discovery\/item\/5678248233f60c3235ce8ca2",
        "picUrl":"http:\/\/o4.xiaohongshu.com\/discovery\/w640\/photo.jpg",
        "oriPicUrl":"http:\/\/o4.xiaohongshu.com\/discovery\/w640\/photo.jpg"}
     ]};</script>
-    '''
+    """
 
     posts = _posts_from_sogou_image_index_html(html, "箱根 丸山物产 小红书", 3)
 
@@ -819,7 +840,9 @@ def test_merge_index_posts_dedupes_by_note_id_and_keeps_image_result() -> None:
 async def test_enrich_indexed_posts_caches_detail_images(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: dict[str, object] = {}
 
-    async def fake_enrich_details(context: object, posts: list[dict[str, object]], timeout_s: float) -> list[dict[str, object]]:
+    async def fake_enrich_details(
+        context: object, posts: list[dict[str, object]], timeout_s: float
+    ) -> list[dict[str, object]]:
         assert context is fake_context
         assert timeout_s > 0
         enriched = [dict(posts[0])]
@@ -833,7 +856,9 @@ async def test_enrich_indexed_posts_caches_detail_images(monkeypatch: pytest.Mon
         enriched[0].pop("xhs_index_stub", None)
         return enriched
 
-    async def fake_cache_images(context: object, posts: list[dict[str, object]], **kwargs: object) -> list[dict[str, object]]:
+    async def fake_cache_images(
+        context: object, posts: list[dict[str, object]], **kwargs: object
+    ) -> list[dict[str, object]]:
         assert context is fake_context
         calls["cache"] = kwargs
         cached = [dict(posts[0])]
@@ -876,11 +901,15 @@ async def test_enrich_indexed_posts_caches_detail_images(monkeypatch: pytest.Mon
 
 
 @pytest.mark.unit
-async def test_public_image_index_caches_index_image_without_detail_enrich(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_public_image_index_caches_index_image_without_detail_enrich(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     calls: dict[str, object] = {}
     image_url = "http://o4.xiaohongshu.com/discovery/w1280/photo.jpg"
 
-    async def fake_cache_images(context: object, posts: list[dict[str, object]], **kwargs: object) -> list[dict[str, object]]:
+    async def fake_cache_images(
+        context: object, posts: list[dict[str, object]], **kwargs: object
+    ) -> list[dict[str, object]]:
         assert context is fake_context
         calls["cache"] = kwargs
         cached = [dict(posts[0])]
@@ -1256,7 +1285,9 @@ async def test_public_search_gate_uses_search_index(
     monkeypatch.setattr(xhs_mod, "put_cached", fake_put_cached)
     monkeypatch.setattr(xhs_mod, "load_json_fixture", explode_fixture)
 
-    async def fake_enrich_indexed_posts(self: object, posts: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
+    async def fake_enrich_indexed_posts(
+        self: object, posts: list[dict[str, Any]], limit: int
+    ) -> list[dict[str, Any]]:
         del self, limit
         enriched = [dict(post) for post in posts]
         enriched[0].update(
@@ -1278,9 +1309,7 @@ async def test_public_search_gate_uses_search_index(
       </a>
     </body></html>
     """
-    transport = httpx.MockTransport(
-        lambda request: httpx.Response(200, text=html, request=request)
-    )
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, text=html, request=request))
     client = httpx.AsyncClient(transport=transport, timeout=5.0)
 
     tool = XHSSearchTool()

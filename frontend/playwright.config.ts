@@ -82,8 +82,7 @@ export default defineConfig({
         // set MAESTRO_BASE_URL in the parent shell to run against a real
         // Agent Maestro instance instead.
         PLUS_ONE_ALLOW_REAL_LLM: "1",
-        MAESTRO_BASE_URL:
-          process.env.MAESTRO_BASE_URL ?? "http://127.0.0.1:23333/api/anthropic",
+        MAESTRO_BASE_URL: process.env.MAESTRO_BASE_URL ?? "http://127.0.0.1:23333/api/anthropic",
         MAESTRO_AUTH_TOKEN: process.env.MAESTRO_AUTH_TOKEN ?? "Powered by Agent Maestro",
         LLM_DEFAULT_MAX_TOKENS: process.env.LLM_DEFAULT_MAX_TOKENS ?? "16000",
         PLUS_ONE_TOOLS_MODE: process.env.PLUS_ONE_TOOLS_MODE ?? "real",

@@ -62,6 +62,7 @@ _DESKTOP_USER_AGENTS: tuple[str, ...] = (
 )
 
 _MAX_RETRIES = 3
+_DETAIL_EVALUATE_RETRIES = 3
 _BACKOFF_BASE_S = 1.0
 _HTTP_TOO_MANY_REQUESTS = 429
 _HTTP_CLIENT_ERROR_FLOOR = 400
@@ -69,7 +70,9 @@ _XHS_NOTE_PATH_MARKERS = ("/explore/", "/search_result/", "/discovery/item/")
 _XHS_HOME_URL = "https://www.xiaohongshu.com/explore"
 _XHS_SEARCH_SOURCE = "web_search_result_notes"
 _XHS_PUBLIC_SEARCH_GATE_TEXT = "登录后查看搜索结果"
-_XHS_LOGIN_WALL_TEXT = _XHS_PUBLIC_SEARCH_GATE_TEXT  # Backwards-compatible alias for older helpers/tests.
+_XHS_LOGIN_WALL_TEXT = (
+    _XHS_PUBLIC_SEARCH_GATE_TEXT  # Backwards-compatible alias for older helpers/tests.
+)
 _XHS_VERIFY_TEXT_MARKERS = (
     "安全验证",
     "安全限制",
@@ -303,7 +306,9 @@ async def _goto_xhs_search(
     """Navigate to XHS search using the least-gated route for the context."""
     if _use_home_search_entry(profile_dir):
         try:
-            return await _goto_xhs_search_from_home(page, query, timeout_s=timeout_s, profile_dir=profile_dir)
+            return await _goto_xhs_search_from_home(
+                page, query, timeout_s=timeout_s, profile_dir=profile_dir
+            )
         except Exception as exc:
             if _is_gate_exception(exc):
                 raise
@@ -324,7 +329,9 @@ async def _goto_xhs_search_from_home(
     timeout_s: float,
     profile_dir: str | None,
 ) -> int:
-    response = await page.goto(_XHS_HOME_URL, wait_until="domcontentloaded", timeout=int(timeout_s * 1000))
+    response = await page.goto(
+        _XHS_HOME_URL, wait_until="domcontentloaded", timeout=int(timeout_s * 1000)
+    )
     await _maybe_minimize_profile_window(profile_dir, delay_s=0.05)
     await _random_page_wait(page, 1.2, 2.8)
     body_text = await _page_body_text(page)
@@ -369,7 +376,7 @@ async def _search_result_card_count(page: Any) -> int:
     try:
         return int(
             await page.locator(
-                'section.note-item, section[data-index], '
+                "section.note-item, section[data-index], "
                 'a[href*="/search_result/"], a[href*="/explore/"]'
             ).count()
         )
@@ -408,7 +415,14 @@ Get-CimInstance Win32_Process | Where-Object {{ $_.Name -eq 'chrome.exe' -and $_
 """
     try:
         subprocess.run(  # noqa: S603 - fixed local PowerShell helper for headed diagnostics.
-            [_powershell_executable(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
+            [
+                _powershell_executable(),
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                script,
+            ],
             check=False,
             capture_output=True,
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
@@ -470,7 +484,10 @@ def _has_verification_text(body_text: str) -> bool:
 
 def _is_verification_url(page_url: str) -> bool:
     parsed = urlparse(page_url)
-    if parsed.path in {"/website-login/error", "/website-login/captcha"} or "/captcha" in parsed.path:
+    if (
+        parsed.path in {"/website-login/error", "/website-login/captcha"}
+        or "/captcha" in parsed.path
+    ):
         return True
     decoded_url = unquote(page_url)
     return any(marker in decoded_url for marker in _XHS_VERIFY_TEXT_MARKERS)
@@ -805,7 +822,9 @@ async def _scrape_search_posts(page: Any, limit: int, timeout_s: float) -> list[
                    || document.body.innerText.includes('登录后查看搜索结果')
                    || document.body.innerText.includes('扫码')
                 """,
-                timeout=min(int(max(deadline - asyncio.get_running_loop().time(), 0.5) * 1000), 3000),
+                timeout=min(
+                    int(max(deadline - asyncio.get_running_loop().time(), 0.5) * 1000), 3000
+                ),
             )
         body_text = await _page_body_text(page)
         _raise_for_gate_url(page.url)
@@ -953,12 +972,13 @@ async def _enrich_posts_from_details(
 
 async def _evaluate_detail_with_retry(page: Any, timeout_ms: int) -> Any:
     last_exc: Exception | None = None
-    for attempt in range(3):
+    for attempt in range(_DETAIL_EVALUATE_RETRIES):
         try:
             return await page.evaluate(_DETAIL_SCRAPE_JS)
         except Exception as exc:
             last_exc = exc
-            if not _is_navigation_interrupted_evaluate(exc) or attempt == 2:
+            is_last_attempt = attempt == _DETAIL_EVALUATE_RETRIES - 1
+            if not _is_navigation_interrupted_evaluate(exc) or is_last_attempt:
                 raise
             with contextlib.suppress(Exception):
                 await page.wait_for_load_state("domcontentloaded", timeout=min(timeout_ms, 2000))
@@ -1088,9 +1108,15 @@ async def _download_image_with_context(
             },
             timeout=max(1000, int(timeout_s * 1000)),
         )
-        content_type = str(response.headers.get("content-type", "")).split(";", 1)[0].lower().strip()
+        content_type = (
+            str(response.headers.get("content-type", "")).split(";", 1)[0].lower().strip()
+        )
         ext = _XHS_IMAGE_EXT_BY_TYPE.get(content_type) or _image_ext_from_url(source_url)
-        if not response.ok or ext is None or _content_length_too_large(response.headers.get("content-length")):
+        if (
+            not response.ok
+            or ext is None
+            or _content_length_too_large(response.headers.get("content-length"))
+        ):
             return None
         return await response.body(), content_type, ext
     except Exception as exc:
@@ -1234,7 +1260,9 @@ def _is_likely_xhs_content_image(url: str) -> bool:
     host = parsed.netloc.lower()
     if host.startswith("fe-platform.") and parsed.path.startswith("/platform/"):
         return False
-    return "xhscdn.com" in host or (host.endswith(".xiaohongshu.com") and parsed.path.startswith("/discovery/"))
+    return "xhscdn.com" in host or (
+        host.endswith(".xiaohongshu.com") and parsed.path.startswith("/discovery/")
+    )
 
 
 def _clean_content_images(*sources: Any) -> list[str]:

@@ -453,7 +453,9 @@ class XHSPostMatch(Base, TimestampMixin):
 
     __tablename__ = "xhs_post_matches"
     __table_args__ = (
-        UniqueConstraint("post_id", "candidate", "query", name="uq_xhs_post_matches_post_candidate_query"),
+        UniqueConstraint(
+            "post_id", "candidate", "query", name="uq_xhs_post_matches_post_candidate_query"
+        ),
         Index("ix_xhs_post_matches_candidate", "candidate"),
         Index("ix_xhs_post_matches_query", "query"),
     )

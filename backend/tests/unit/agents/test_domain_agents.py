@@ -548,7 +548,9 @@ async def test_joiner_empty_llm_fallback_uses_tool_evidence(
 
     async def fake_images(*args: object, **kwargs: object) -> dict[str, object | None]:
         del args, kwargs
-        return {"menya itto": joiner_mod.ImageRef(url="https://img.example/itto.jpg", source="test")}
+        return {
+            "menya itto": joiner_mod.ImageRef(url="https://img.example/itto.jpg", source="test")
+        }
 
     async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
         del args, kwargs
@@ -568,13 +570,13 @@ async def test_joiner_empty_llm_fallback_uses_tool_evidence(
             ToolResult(
                 tool="xhs_search",
                 output=[
-                        SimpleNamespace(
-                            url="https://www.xiaohongshu.com/explore/xhs_1",
-                            title="东京 Menya Itto 拉面推荐",
-                            body="Menya Itto 本地人排队, 很值得去, 推荐避开周末。",
-                        )
-                    ],
-                ),
+                    SimpleNamespace(
+                        url="https://www.xiaohongshu.com/explore/xhs_1",
+                        title="东京 Menya Itto 拉面推荐",
+                        body="Menya Itto 本地人排队, 很值得去, 推荐避开周末。",
+                    )
+                ],
+            ),
             ToolResult(
                 tool="places_search",
                 output=[],
@@ -759,7 +761,9 @@ async def test_joiner_llm_timeout_falls_back_to_tool_evidence(
 
     async def fake_images(*args: object, **kwargs: object) -> dict[str, object | None]:
         del args, kwargs
-        return {"menya itto": joiner_mod.ImageRef(url="https://img.example/itto.jpg", source="test")}
+        return {
+            "menya itto": joiner_mod.ImageRef(url="https://img.example/itto.jpg", source="test")
+        }
 
     async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
         del args, kwargs

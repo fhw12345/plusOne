@@ -260,7 +260,9 @@ def _build_tool_calls(candidate: Candidate, query: str) -> list[ToolCall]:
             args={"query": search_base, "subreddits": ["JapanTravel", "ramen"], "limit": 10},
         ),
         ToolCall(tool="xhs_search", args={"query": f"{search_base} 推荐", "limit": 10}),
-        ToolCall(tool="places_search", args={"query": base, "location_hint": location_hint, "limit": 5}),
+        ToolCall(
+            tool="places_search", args={"query": base, "location_hint": location_hint, "limit": 5}
+        ),
     ]
 
 
@@ -332,7 +334,10 @@ async def _classify_with_llm(
             llm.complete(
                 system=system,
                 messages=[
-                    Message(role="user", content=_render_user_payload(candidates, all_results, ctx.query))
+                    Message(
+                        role="user",
+                        content=_render_user_payload(candidates, all_results, ctx.query),
+                    )
                 ],
                 response_model=_RawJoinerOutput,
             ),
@@ -448,15 +453,23 @@ def _synthesise_tl_dr(items: list[JoinedItem], query: str) -> str | None:
     lines: list[str] = []
     place = destination or "this trip"
     if gems:
-        lines.append(f"{place} has {len(gems)} stronger pick{'s' if len(gems) != 1 else ''}: {_join_names(gems[:3])}.")
+        lines.append(
+            f"{place} has {len(gems)} stronger pick{'s' if len(gems) != 1 else ''}: {_join_names(gems[:3])}."
+        )
     else:
         lines.append(f"{place} does not have a clean must-go signal yet.")
     if traps:
-        lines.append(f"Be careful with {_join_names(traps[:3])}; the sources show tourist-trap or skip signals.")
+        lines.append(
+            f"Be careful with {_join_names(traps[:3])}; the sources show tourist-trap or skip signals."
+        )
     if mixed:
-        lines.append(f"Treat {_join_names(mixed[:3])} as optional, not anchors; evidence is mixed or mostly confirms popularity.")
+        lines.append(
+            f"Treat {_join_names(mixed[:3])} as optional, not anchors; evidence is mixed or mostly confirms popularity."
+        )
     if thin:
-        lines.append(f"I would not plan around {_join_names(thin[:2])} until better evidence appears.")
+        lines.append(
+            f"I would not plan around {_join_names(thin[:2])} until better evidence appears."
+        )
     return " ".join(lines)[:1000]
 
 
@@ -590,7 +603,9 @@ def _trim_text(raw: object, limit: int) -> str:
     return text[:limit]
 
 
-def _render_user_payload(candidates: list[Candidate], all_results: list[list[Any]], query: str) -> str:
+def _render_user_payload(
+    candidates: list[Candidate], all_results: list[list[Any]], query: str
+) -> str:
     lines: list[str] = [f"User query: {query}", ""]
     for candidate, results in zip(candidates, all_results, strict=True):
         lines.append(f"## {candidate.name} ({candidate.area or 'unknown'})")
@@ -802,7 +817,9 @@ def _fallback_items(
     items: list[JoinedItem] = []
     for candidate, results in zip(candidates, all_results, strict=True):
         evidence = _fallback_evidence(results)
-        classification, confidence, classification_en, classification_zh = _fallback_verdict(evidence)
+        classification, confidence, classification_en, classification_zh = _fallback_verdict(
+            evidence
+        )
         summary = _fallback_summary(classification, evidence)
         image = image_by_name.get(candidate.name.lower())
         item = JoinedItem(
@@ -862,7 +879,9 @@ def _fallback_verdict(
         return "insufficient", 0.0, None, None
 
     fused = _verdict_from_evidence(evidence)
-    en = _verdict_from_evidence([ev for ev in evidence if ev.source == "reddit"], allow_neutral=False)
+    en = _verdict_from_evidence(
+        [ev for ev in evidence if ev.source == "reddit"], allow_neutral=False
+    )
     zh = _verdict_from_evidence(
         [ev for ev in evidence if ev.source == "xiaohongshu"], allow_neutral=False
     )
@@ -872,7 +891,12 @@ def _fallback_verdict(
         confidence = min(confidence, 0.62)
     if fused == "insufficient":
         confidence = 0.0
-    return fused, confidence, en if en != "insufficient" else None, zh if zh != "insufficient" else None
+    return (
+        fused,
+        confidence,
+        en if en != "insufficient" else None,
+        zh if zh != "insufficient" else None,
+    )
 
 
 def _xhs_hit_is_reliable(hit: object) -> bool:
@@ -887,7 +911,9 @@ def _xhs_hit_is_reliable(hit: object) -> bool:
                 "images": getattr(hit, "images", ()),
             }
         )
-        return bool(not assessed["is_promotional"] and assessed["score"] >= _MIN_XHS_AUTHENTICITY_SCORE)
+        return bool(
+            not assessed["is_promotional"] and assessed["score"] >= _MIN_XHS_AUTHENTICITY_SCORE
+        )
     try:
         return float(getattr(hit, "authenticity_score", 0.0)) >= _MIN_XHS_AUTHENTICITY_SCORE
     except (TypeError, ValueError):

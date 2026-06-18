@@ -155,7 +155,9 @@ describe("apiFetch", () => {
     globalThis.fetch = vi.fn(
       (_input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) =>
         new Promise<Response>((_resolve, reject) => {
-          init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+          init?.signal?.addEventListener("abort", () =>
+            reject(new DOMException("aborted", "AbortError")),
+          );
         }),
     ) as unknown as typeof fetch;
 

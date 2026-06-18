@@ -62,9 +62,7 @@ function truncate(text: string, max = 130): string {
 }
 
 function formatSourceList(evidence: NonNullable<JoinedItemView["evidence"]>): string {
-  const labels = Array.from(
-    new Set(evidence.map((ev) => sourceLabel(ev.source)).filter(Boolean)),
-  );
+  const labels = Array.from(new Set(evidence.map((ev) => sourceLabel(ev.source)).filter(Boolean)));
   if (labels.length === 0) return "source notes";
   if (labels.length === 1) return labels[0] ?? "source notes";
   return `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`;
@@ -129,7 +127,10 @@ function resolveItineraryItems(
   return items && items.length > 0 ? items : (content.items ?? []);
 }
 
-function resolveItineraryTlDr(content: TripDetail["content"], language: ReportLanguage): string | null {
+function resolveItineraryTlDr(
+  content: TripDetail["content"],
+  language: ReportLanguage,
+): string | null {
   if (!content) return null;
   if (language === "original") return content.tl_dr ?? null;
   const translated = content.translations?.[language];
@@ -368,7 +369,11 @@ function ItineraryCard({
   const view = item as JoinedItemView;
   const name = view.candidate?.name ?? "untitled";
   const classification = resolveClassification(item, perspective);
-  const description = cleanDisplayText(view.long_description || view.summary || "", view, classification);
+  const description = cleanDisplayText(
+    view.long_description || view.summary || "",
+    view,
+    classification,
+  );
   const verdict = classification ? (VERDICT_BY_CLASS[classification] ?? null) : null;
   const confidence = typeof view.confidence === "number" ? Math.round(view.confidence * 100) : null;
   const evidence = view.evidence ?? [];
@@ -399,7 +404,7 @@ function ItineraryCard({
       )}
       <p className="cap">{name}</p>
       <p className="itinerary-meta type">
-        {classification ? CLASS_LABEL[classification] ?? classification : "unclassified"}
+        {classification ? (CLASS_LABEL[classification] ?? classification) : "unclassified"}
         {confidence !== null ? ` · ${confidence}% confidence` : ""}
       </p>
       {decision ? <p className="itinerary-decision scrawl">{decision}</p> : null}
@@ -414,8 +419,12 @@ function ItineraryCard({
 
       {classificationEn || classificationZh ? (
         <p className="itinerary-signals type">
-          {classificationEn ? <span>EN {CLASS_LABEL[classificationEn] ?? classificationEn}</span> : null}
-          {classificationZh ? <span>ZH {CLASS_LABEL[classificationZh] ?? classificationZh}</span> : null}
+          {classificationEn ? (
+            <span>EN {CLASS_LABEL[classificationEn] ?? classificationEn}</span>
+          ) : null}
+          {classificationZh ? (
+            <span>ZH {CLASS_LABEL[classificationZh] ?? classificationZh}</span>
+          ) : null}
         </p>
       ) : null}
 

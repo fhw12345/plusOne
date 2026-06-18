@@ -37,7 +37,9 @@ def classify_page_state(url: str, body_text: str) -> PageState:
     """Classify the loaded XHS page state without raising."""
     if _playwright_session._has_login_wall_text(body_text) or _has_login_panel_text(body_text):
         return "login_required"
-    if _playwright_session._is_verification_url(url) or _playwright_session._has_verification_text(body_text):
+    if _playwright_session._is_verification_url(url) or _playwright_session._has_verification_text(
+        body_text
+    ):
         return "security_gate"
     return "ok"
 
@@ -161,12 +163,16 @@ async def _goto_search(page: Any, query: str, *, entry: str, timeout_s: float) -
             raise DemoNavigationError("xhs home entry search box not visible") from exc
         await search_box.click(timeout=5_000)
         await page.keyboard.press("Control+A")
-        await page.keyboard.type(query, delay=int(_playwright_session._random_delay_seconds(0.045, 0.12) * 1000))
+        await page.keyboard.type(
+            query, delay=int(_playwright_session._random_delay_seconds(0.045, 0.12) * 1000)
+        )
         await _playwright_session._random_page_wait(page, 0.35, 1.1)
         await page.keyboard.press("Enter")
         await _playwright_session._random_page_wait(page, 1.8, 3.8)
         return
-    await page.goto(_search_url(query), wait_until="domcontentloaded", timeout=int(timeout_s * 1000))
+    await page.goto(
+        _search_url(query), wait_until="domcontentloaded", timeout=int(timeout_s * 1000)
+    )
 
 
 async def _demo_search_dwell(page: Any, args: argparse.Namespace) -> None:
@@ -204,7 +210,9 @@ async def login_command(args: argparse.Namespace) -> None:
             browser = await pw.chromium.launch(headless=False)
             context = await browser.new_context(locale="zh-CN", timezone_id="Asia/Shanghai")
         page = await context.new_page()
-        await page.goto(XHS_HOME_URL, wait_until="domcontentloaded", timeout=int(args.timeout_s * 1000))
+        await page.goto(
+            XHS_HOME_URL, wait_until="domcontentloaded", timeout=int(args.timeout_s * 1000)
+        )
         print("A headed XHS browser is open. Log in or solve the security check there.")
         await asyncio.to_thread(input, "Press Enter here after XHS search works in that browser...")
         await context.storage_state(path=str(state_file))
@@ -277,7 +285,9 @@ async def _open_demo_context(
     return context, browser, "storage_state"
 
 
-async def _crawl_with_context(context: Any, args: argparse.Namespace, *, auth_mode: str) -> dict[str, Any]:
+async def _crawl_with_context(
+    context: Any, args: argparse.Namespace, *, auth_mode: str
+) -> dict[str, Any]:
     page = await context.new_page()
     page.set_default_timeout(int(args.timeout_s * 1000))
     page.set_default_navigation_timeout(int(args.timeout_s * 1000))
@@ -431,7 +441,9 @@ def _detail_with_cached_images(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Demo headed XHS login -> persistent-profile crawl")
+    parser = argparse.ArgumentParser(
+        description="Demo headed XHS login -> persistent-profile crawl"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     login = sub.add_parser("login", help="open headed browser and export storage state")
@@ -454,10 +466,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="persistent browser profile to reuse; pass an empty value to use storage_state instead",
     )
     crawl.add_argument("--headed", action="store_true", help="show the browser while crawling")
-    crawl.add_argument("--cache-images", action="store_true", help="download note images into the local media cache")
+    crawl.add_argument(
+        "--cache-images",
+        action="store_true",
+        help="download note images into the local media cache",
+    )
     crawl.add_argument("--images-per-post", type=int, default=3)
-    crawl.add_argument("--scrolls", type=int, default=2, help="reader-like search result scrolls before extraction")
-    crawl.add_argument("--no-detail-scroll", action="store_true", help="skip the reader-like detail-page scroll")
+    crawl.add_argument(
+        "--scrolls", type=int, default=2, help="reader-like search result scrolls before extraction"
+    )
+    crawl.add_argument(
+        "--no-detail-scroll", action="store_true", help="skip the reader-like detail-page scroll"
+    )
     return parser
 
 
