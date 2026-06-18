@@ -1,5 +1,11 @@
 # Handoff — 2026-05-22
 
+> Historical note (2026-05-25): this credential handoff has been superseded.
+> Current real mode no longer needs Reddit credentials (ADR-007 uses the public
+> JSON endpoint) and no longer uses Google Places (ADR-003 addendum replaced it
+> with Foursquare Places plus fixture fallback). Keep this file only as context
+> for the debugging path that led to the current implementation.
+
 ## Where we are
 
 Plus One has all 8 master-PRD feature gaps closed and verified end-to-end on `feat/batch-2n-destination-autocomplete`. The branch contains 8 batches of feature work (2n through 2u) on top of `main`. **Nothing has been merged to `main` yet**; `feat/batch-2l-scrapbook-reskin` is open as PR #26 (separate concern, do not merge into this branch).

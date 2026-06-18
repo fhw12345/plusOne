@@ -179,7 +179,7 @@ async def test_openverse_fallback_when_commons_is_irrelevant(
 
 
 @pytest.mark.unit
-async def test_real_mode_falls_back_to_public_fixture_after_provider_failures(
+async def test_real_mode_ignores_generic_fixture_after_provider_failures(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Any,
 ) -> None:
@@ -210,7 +210,63 @@ async def test_real_mode_falls_back_to_public_fixture_after_provider_failures(
 
     image = await resolver.resolve(PlaceImageInput(name="Kagari", location_hint="Tokyo", category="ramen"))
 
+    assert image is None
+    assert written == []
+
+
+@pytest.mark.unit
+async def test_real_mode_ignores_irrelevant_cached_image(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "real")
+
+    async def fake_get_cached(source: str, key: str) -> list[dict[str, Any]]:
+        assert source == "place_image"
+        assert key == "menya_itto__tokyo__ramen"
+        return [
+            {
+                "image_url": "https://upload.wikimedia.org/ichiran.jpg",
+                "source": "wikimedia_commons",
+                "title": "File:Ichiran ramen by SkyChen in Shibuya, Tokyo.jpg",
+            }
+        ]
+
+    async def fake_put_cached(source: str, key: str, payload: list[dict[str, Any]]) -> None:
+        del source, key, payload
+        raise AssertionError("irrelevant cached image should not be re-cached")
+
+    monkeypatch.setattr(image_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(image_mod, "put_cached", fake_put_cached)
+
+    resolver = PlaceImageResolver()
+
+    async def no_live_image(args: PlaceImageInput) -> None:
+        del args
+
+    monkeypatch.setattr(resolver, "_resolve_live", no_live_image)
+
+    image = await resolver.resolve(
+        PlaceImageInput(name="Menya Itto", location_hint="Tokyo", category="ramen")
+    )
+
+    assert image is None
+
+
+@pytest.mark.unit
+async def test_fixture_mode_can_use_generic_fixture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Any,
+) -> None:
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "fixture")
+    (tmp_path / "place_images").mkdir()
+    (tmp_path / "place_images" / "tokyo_ramen.json").write_text(
+        '[{"image_url":"https://img.example/tokyo-ramen.jpg","source":"fixture","title":"Ramen"}]',
+        encoding="utf-8",
+    )
+
+    resolver = PlaceImageResolver(fixtures_dir=tmp_path)
+    image = await resolver.resolve(PlaceImageInput(name="Kagari", location_hint="Tokyo", category="ramen"))
+
     assert image is not None
     assert image.image_url == "https://img.example/tokyo-ramen.jpg"
     assert image.source == "fixture"
-    assert written[0][0] == "place_image"

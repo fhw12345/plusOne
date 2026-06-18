@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-05-22). Supersedes the Reddit clause of [ADR-003](./ADR-003-data-sources-strategy.md) only — XHS and Google Places clauses are unchanged.
+Accepted (2026-05-22). Supersedes the Reddit clause of [ADR-003](./ADR-003-data-sources-strategy.md).
+The Google Places clause was later superseded by the 2026-05-23 Foursquare
+addendum in ADR-003; XHS remains governed by ADR-003.
 
 ## Context
 
@@ -20,7 +22,8 @@ Accepted (2026-05-22). Supersedes the Reddit clause of [ADR-003](./ADR-003-data-
 - Preserve the existing 24h `tool_cache` TTL (`_TTL_BY_SOURCE` untouched), module-level `Semaphore(3)`, and 1.0s minimum inter-request interval — same back-pressure story as the PRAW path.
 - Graceful degradation: every HTTP error (429, 503, etc.), network error (`httpx.ConnectError`, timeout), and parse error returns `ToolResult(ok=True, output=[], notes=...)` rather than raising. The joiner's existing "insufficient evidence" fallback handles empty results cleanly.
 - Defensive parsing: every field read via `.get(..., default)` so schema drift on the unofficial endpoint degrades to default-valued `RedditPost` entries rather than exceptions.
-- XHS (Playwright 3-tier scrape with rotating accounts) and Google Places (official API) clauses of ADR-003 are unchanged.
+- XHS remains governed by ADR-003. The Google Places clause is historical and
+  was later replaced by Foursquare Places in ADR-003's 2026-05-23 addendum.
 
 ## Alternatives considered
 

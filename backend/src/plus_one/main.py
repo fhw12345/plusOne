@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from plus_one import __version__
 from plus_one.api.admin import router as admin_router
@@ -125,6 +126,9 @@ app.include_router(me_router)
 app.include_router(companions_router)
 app.include_router(trips_router)
 app.include_router(shared_router)
+
+settings.media_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/media", StaticFiles(directory=settings.media_dir), name="media")
 
 
 @app.get("/health")

@@ -19,13 +19,16 @@ Plus One solves these by running a multi-source agent cycle that:
 
 ## Status
 
-🚧 **Phase α — Active development**. See [docs/prd.md](docs/prd.md) for the
-full product spec and [docs/adr/](docs/adr/) for key architectural decisions.
+🚧 **Phase α — local MVP stabilization**. See [docs/prd.md](docs/prd.md) for
+the product spec and [docs/adr/](docs/adr/) for key architectural decisions.
 
-**Backend is complete; frontend pending.** See
-[docs/handoff/REMAINING_WORK.md](docs/handoff/REMAINING_WORK.md) for the
-current state, a curl-based demo of the working backend, and the plan
-for finishing the frontend + end-to-end smoke.
+The browser MVP is wired end to end: auth, trip creation, SSE progress,
+agent-cycle reports, itinerary rendering, profile / companion management,
+sharing, export / delete flows, and admin logs all have implementation and
+test coverage. The latest real-chain proof is recorded in
+[docs/status/batch-3a-real-e2e.md](docs/status/batch-3a-real-e2e.md): the
+Tokyo ramen Playwright flow completed against local Agent Maestro with real
+tool mode plus fixture fallback.
 
 Plus One is **self-hosted on the developer's machine** (see [ADR-006](docs/adr/ADR-006-local-host-posture.md)).
 Only PostgreSQL runs on Azure for durability. LLM traffic goes through a
@@ -82,11 +85,11 @@ pnpm dev
 - **Agent framework**: custom cycle / skill / multi-agent system (see ADR-002)
 - **LLM**: All traffic via **Agent Maestro** gateway — multi-vendor (Claude / GPT / Gemini), role-based model selection (see ADR-005)
 - **DB**: Azure Database for PostgreSQL Flexible Server
-- **Cache / Queue**: Redis
-- **Scraping**: Playwright (Reddit via PRAW, Xiaohongshu via headless browser)
+- **Cache / Queue**: Redis, DB-backed tool cache, in-process SSE queues for MVP
+- **Data sources**: Reddit public JSON endpoint (ADR-007), Xiaohongshu Playwright with prewarmed DB/local-media cache plus public-index fallback, Foursquare Places
 - **Observability**: Langfuse (LLM traces + cost), structlog (JSONL logs)
-- **Frontend**: Next.js 14 App Router, TypeScript, Tailwind, shadcn/ui, Zustand
-- **PWA**: next-pwa
+- **Frontend**: Next.js 16 App Router, React 19, TypeScript, Tailwind 4, shadcn/ui, Zustand, TanStack Query
+- **PWA**: Serwist
 - **Deploy**: Self-hosted local (see ADR-006). Postgres on Azure managed.
 
 ## Repo layout

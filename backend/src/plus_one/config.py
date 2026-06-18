@@ -8,8 +8,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
+from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_BACKEND_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(_BACKEND_ENV_FILE, override=False)
 
 
 class Settings(BaseSettings):
@@ -29,6 +33,12 @@ class Settings(BaseSettings):
     # Tools (Reddit, XHS, Foursquare Places) read pre-collected JSON from this
     # directory in v1. Live API wiring is a follow-up batch.
     fixtures_dir: Path = Path("fixtures")
+
+    # === Local media cache ===
+    # Pre-collected media that the app is allowed to serve itself. XHS
+    # prewarm stores downloaded note images here so trip detail does not
+    # depend on the viewer having an XHS login/session.
+    media_dir: Path = Path("media")
 
     # === Agent Maestro (LLM gateway) ===
     # Maestro is an Anthropic-API-compatible gateway exposing Claude / GPT / Gemini

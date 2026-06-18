@@ -10,9 +10,17 @@ import { AdminWireLink } from "@/components/AdminWireLink";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { useTrips } from "@/hooks/useTrips";
+import { ApiError } from "@/lib/api/client";
 import { logout } from "@/lib/api/auth";
 import type { TripListItem } from "@/lib/schemas/trips";
 import { useAuthStore } from "@/store/auth";
+
+function isUnauthorized(error: unknown): boolean {
+  return (
+    error instanceof ApiError ||
+    (typeof error === "object" && error !== null && "status" in error)
+  ) && (error as { status?: unknown }).status === 401;
+}
 
 function SkeletonGallery() {
   return (
@@ -49,7 +57,9 @@ export default function AppPage() {
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
   const clear = useAuthStore((s) => s.clear);
-  const { data: user, isLoading: userLoading } = useCurrentUser();
+  const currentUser = useCurrentUser();
+  const user = currentUser.data;
+  const userLoading = currentUser.isLoading;
   const signingOut = useRef(false);
 
   useEffect(() => {
@@ -58,6 +68,17 @@ export default function AppPage() {
       router.replace("/login");
     }
   }, [hydrated, token, router]);
+
+  const trips = useTrips();
+
+  useEffect(() => {
+    if (!hydrated || !token) return;
+    const errors = [currentUser.error, trips.error];
+    if (errors.some(isUnauthorized)) {
+      clear();
+      router.replace("/login");
+    }
+  }, [clear, currentUser.error, hydrated, router, token, trips.error]);
 
   const onSignOut = async () => {
     signingOut.current = true;
@@ -71,18 +92,72 @@ export default function AppPage() {
     router.refresh();
   };
 
-  const trips = useTrips();
   const flatTrips = useMemo<TripListItem[]>(
     () => trips.data?.pages.flatMap((p) => p.trips) ?? [],
     [trips.data],
   );
 
-  if (!hydrated || !token || userLoading || !user) {
+  const authError = isUnauthorized(currentUser.error) || isUnauthorized(trips.error);
+  const identityError = currentUser.isError && !authError;
+
+  const retryNotebook = () => {
+    currentUser.refetch();
+    trips.refetch();
+  };
+
+  if (!hydrated || (token && userLoading && !authError && !currentUser.isError)) {
     return (
       <div className="shell">
         <p className="scrawl" style={{ marginTop: 80, fontSize: 19 }}>
           one sec &mdash; pulling your notes&hellip;
         </p>
+      </div>
+    );
+  }
+
+  if (!token || authError) {
+    return (
+      <div className="shell">
+        <div className="ticket" role="alert" style={{ marginTop: 80 }}>
+          <div className="stamp-row">
+            <span className="type" style={{ color: "hsl(var(--signal-snag))" }}>
+              session expired
+            </span>
+            <span className="type-sm">please sign in again</span>
+          </div>
+          <p className="body">
+            <Link href="/login" className="link-hand" onClick={() => clear()}>
+              back to login
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (identityError || !user) {
+    return (
+      <div className="shell">
+        <div className="ticket" role="alert" style={{ marginTop: 80 }}>
+          <div className="stamp-row">
+            <span className="type" style={{ color: "hsl(var(--signal-snag))" }}>
+              wire cut
+            </span>
+            <span className="type-sm">couldn&rsquo;t open your notebook</span>
+          </div>
+          <p className="body">
+            something snagged on the wire. {" "}
+            <button
+              type="button"
+              onClick={retryNotebook}
+              className="link-hand"
+              style={{ font: "inherit", fontSize: 16, background: "none", border: 0, padding: 0 }}
+            >
+              try this one again
+            </button>
+            ?
+          </p>
+        </div>
       </div>
     );
   }

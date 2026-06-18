@@ -14,10 +14,12 @@
 ┌─────────────────────────────────────────────────────────────┐
 │      FastAPI Web (localhost:8000)                           │
 │                                                             │
-│   /api/auth         magic-link login + JWT                  │
-│   /api/profile      user + companion CRUD                   │
+│   /api/auth         register / verify / login + JWT cookie  │
+│   /api/profile      user profile CRUD                       │
+│   /api/companions   companion CRUD                          │
 │   /api/trips        POST → enqueue, GET /:id/stream → SSE   │
-│   /api/feedback     thumbs + free-text reactions            │
+│   /api/shared       share-link report view                  │
+│   /api/me           export + hard-delete                    │
 │                                                             │
 │   In-process asyncio.Queue per session                      │
 │   (v2: Arq + Redis Pub/Sub when concurrency demands)        │
@@ -50,9 +52,9 @@
                               │   Claude / GPT / Gemini      │
                               │   via Copilot quota          │
                               │                              │
-                              │  Reddit (PRAW)               │
+                              │  Reddit public JSON          │
                               │  Foursquare Places API       │
-                              │  Xiaohongshu (Playwright)    │
+                              │  Xiaohongshu fallback chain  │
                               │  Langfuse (optional, local)  │
                               └──────────────────────────────┘
 ```
@@ -67,7 +69,7 @@
 | Persistence | Postgres (Azure managed) | Reliability > self-hosting; managed backups + PITR |
 | Queue (MVP) | In-process asyncio.Queue | <100 users; defer Arq until measured queue depth |
 | Streaming | SSE | Simpler than WebSocket; one-way is enough |
-| Frontend | Next.js 14 App Router + PWA | Modern, single-language with backend types |
+| Frontend | Next.js 16 App Router + React 19 + Serwist PWA | Modern, single-language with backend types |
 
 ## Three-layer agent architecture
 

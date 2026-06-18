@@ -17,9 +17,29 @@ export class ApiError extends Error {
   }
 }
 
+const DEFAULT_TIMEOUT_MS = 20_000;
+
 function getApiBase(): string {
   // PRD lock: read NEXT_PUBLIC_API_URL only (no _BASE_URL alias).
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+}
+
+function shouldHandleExpiredSession(url: string): boolean {
+  try {
+    const path = new URL(url, getApiBase()).pathname;
+    return !new Set(["/api/auth/login", "/api/auth/login-with-code"]).has(path);
+  } catch {
+    return true;
+  }
+}
+
+function handleExpiredSession(url: string): void {
+  if (!shouldHandleExpiredSession(url)) return;
+  useAuthStore.getState().clear();
+  if (typeof window === "undefined") return;
+  if (window.location.pathname !== "/login") {
+    window.location.assign("/login");
+  }
 }
 
 /**
@@ -42,7 +62,29 @@ export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(url, { ...init, headers });
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, DEFAULT_TIMEOUT_MS);
+
+  const abortFromCaller = () => controller.abort(init.signal?.reason);
+  if (init.signal?.aborted) abortFromCaller();
+  else init.signal?.addEventListener("abort", abortFromCaller, { once: true });
+
+  let response: Response;
+  try {
+    response = await fetch(url, { ...init, headers, signal: controller.signal });
+  } catch (err) {
+    if (timedOut) {
+      throw new ApiError("request_timeout", 408, null);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+    init.signal?.removeEventListener("abort", abortFromCaller);
+  }
 
   // 204 No Content — no body to parse. Return undefined cast to T; callers
   // for 204 endpoints declare `apiFetch<void>(...)`.
@@ -65,6 +107,9 @@ export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}
       parsed && typeof parsed === "object" && "detail" in parsed
         ? String((parsed as { detail: unknown }).detail)
         : response.statusText;
+    if (response.status === 401) {
+      handleExpiredSession(url);
+    }
     throw new ApiError(detail, response.status, parsed);
   }
 

@@ -21,6 +21,7 @@ from plus_one.core.agents.framework.types import AgentContext
 
 if TYPE_CHECKING:
     from plus_one.core.llm.testing import MockLLMProvider
+    from plus_one.core.tools.place_images import PlaceImageInput
 
 joiner_mod = sys.modules[joiner.__module__]
 
@@ -151,6 +152,7 @@ async def test_joiner_fills_image_url_from_place_image_fixture(
 
     class _Image:
         image_url = "https://img.example/ichiran.jpg"
+        source = "fixture"
 
     async def fake_resolve_image(self: object, args: object) -> _Image:
         del self, args
@@ -162,6 +164,141 @@ async def test_joiner_fills_image_url_from_place_image_fixture(
 
     assert len(result.payload.items) == 1
     assert result.payload.items[0].image_url == "https://img.example/ichiran.jpg"
+    assert result.payload.items[0].image_source == "fixture"
+
+
+@pytest.mark.unit
+async def test_joiner_uses_xhs_image_before_place_image_lookup(
+    mock_llm: MockLLMProvider,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cand = Candidate(
+        name="M50 Creative Park",
+        area="Shanghai",
+        style="contemporary art",
+        rationale="warehouse gallery cluster",
+    )
+    output = {
+        "items": [
+            {
+                "candidate": cand.model_dump(),
+                "classification": "local_gem",
+                "confidence": 0.72,
+                "evidence": [],
+                "summary": "A strong art stop with recent XHS visual evidence.",
+            }
+        ]
+    }
+    mock_llm.queue_response(role="joiner_agent", text=json.dumps(output), parsed_data=output)
+
+    async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
+        del args, kwargs
+        from plus_one.core.agents.framework.tools import ToolResult
+
+        return [
+            ToolResult(tool="reddit_search", output=[]),
+            ToolResult(
+                tool="xhs_search",
+                output=[
+                    SimpleNamespace(
+                        url="https://www.xiaohongshu.com/explore/xhs_1",
+                        title="M50 展览",
+                        body="最近拍照和看展都不错。",
+                        images=("https://sns-webpic-qc.xhscdn.com/m50-photo!webp",),
+                    )
+                ],
+            ),
+            ToolResult(tool="places_search", output=[]),
+        ]
+
+    async def explode_resolve_image(*args: object, **kwargs: object) -> object:
+        del args, kwargs
+        raise AssertionError("XHS image should avoid place image lookup")
+
+    monkeypatch.setattr(joiner_mod, "run_tool_calls", fake_run_tool_calls)
+    monkeypatch.setattr(joiner_mod.PlaceImageResolver, "resolve", explode_resolve_image)
+
+    result = await joiner([cand], AgentContext(query="Shanghai art"))
+
+    assert result.payload.items[0].image_url == "https://sns-webpic-qc.xhscdn.com/m50-photo!webp"
+    assert result.payload.items[0].image_source == "xhs"
+
+
+@pytest.mark.unit
+async def test_joiner_image_hint_keeps_candidate_food_style(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cand = Candidate(
+        name="Menya Itto",
+        area="Tokyo",
+        style="tsukemen thick fish pork broth",
+        rationale="ramen shop with dense soup",
+    )
+
+    from plus_one.core.agents.framework.tools import ToolResult
+
+    results = [
+        ToolResult(
+            tool="places_search",
+            output=[SimpleNamespace(photo_url=None, categories=("Indian", "Japanese Curry"))],
+        )
+    ]
+    seen: list[object] = []
+
+    class _Image:
+        image_url = "https://img.example/menya-itto.jpg"
+        source = "place_image"
+
+    class _Resolver:
+        async def resolve(self, args: object) -> _Image:
+            seen.append(args)
+            return _Image()
+
+    image = await joiner_mod._resolve_candidate_image(cand, results, "Tokyo", _Resolver())
+
+    assert image is not None
+    assert image.url == "https://img.example/menya-itto.jpg"
+    assert image.source == "place_image"
+    assert seen
+    args = seen[0]
+    assert args.category.startswith("ramen")
+    assert "tsukemen" in args.category
+    assert "Indian" in args.category
+    assert "dense soup" not in args.category
+
+
+@pytest.mark.unit
+async def test_joiner_retries_broad_ramen_image_category() -> None:
+    cand = Candidate(
+        name="Nakiryu",
+        area="Tokyo",
+        style="Shoyu / tantanmen, Michelin",
+        rationale="Michelin ramen away from the main tourist cores",
+    )
+    from plus_one.core.agents.framework.tools import ToolResult
+
+    results = [ToolResult(tool="places_search", output=[])]
+    seen: list[object] = []
+
+    class _Image:
+        image_url = "https://img.example/nakiryu.jpg"
+        source = "openverse:flickr"
+
+    class _Resolver:
+        async def resolve(self, args: PlaceImageInput) -> _Image | None:
+            seen.append(args)
+            if args.category == "ramen":
+                return _Image()
+            return None
+
+    image = await joiner_mod._resolve_candidate_image(cand, results, "Tokyo", _Resolver())
+
+    assert image is not None
+    assert image.url == "https://img.example/nakiryu.jpg"
+    assert [args.category for args in seen] == [
+        "ramen Shoyu / tantanmen Michelin",
+        "ramen",
+    ]
 
 
 @pytest.mark.unit
@@ -374,11 +511,13 @@ async def test_joiner_accepts_top_level_array_from_llm(
 @pytest.mark.unit
 async def test_joiner_v3_prompt_loads_without_unbalanced_braces(
     mock_llm: MockLLMProvider,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """v3.md must parse via the load_prompt path with the two `.replace`
     placeholders, including the literal JSON braces in the output-format
     block (the joiner uses ``.replace`` precisely so those stay safe).
     """
+    monkeypatch.setenv("PLUS_ONE_TOOLS_MODE", "fixture")
     cand = Candidate(name="Menya Itto", rationale="r")
     mock_llm.queue_response(
         role="joiner_agent",
@@ -389,7 +528,7 @@ async def test_joiner_v3_prompt_loads_without_unbalanced_braces(
     assert len(result.payload.items) == 1
     assert result.payload.items[0].classification == "insufficient"
     assert "fallback_items=1" in result.notes
-    assert result.payload.tl_dr is None
+    assert result.payload.tl_dr is not None
 
 
 @pytest.mark.unit
@@ -407,9 +546,9 @@ async def test_joiner_empty_llm_fallback_uses_tool_evidence(
         parsed_data={"items": [], "tl_dr": None},
     )
 
-    async def fake_images(*args: object, **kwargs: object) -> dict[str, str | None]:
+    async def fake_images(*args: object, **kwargs: object) -> dict[str, object | None]:
         del args, kwargs
-        return {"menya itto": "https://img.example/itto.jpg"}
+        return {"menya itto": joiner_mod.ImageRef(url="https://img.example/itto.jpg", source="test")}
 
     async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
         del args, kwargs
@@ -429,13 +568,13 @@ async def test_joiner_empty_llm_fallback_uses_tool_evidence(
             ToolResult(
                 tool="xhs_search",
                 output=[
-                    SimpleNamespace(
-                        url="https://www.xiaohongshu.com/explore/xhs_1",
-                        title="东京拉面推荐",
-                        body="本地人排队的店, 很值得去, 推荐避开周末。",
-                    )
-                ],
-            ),
+                        SimpleNamespace(
+                            url="https://www.xiaohongshu.com/explore/xhs_1",
+                            title="东京 Menya Itto 拉面推荐",
+                            body="Menya Itto 本地人排队, 很值得去, 推荐避开周末。",
+                        )
+                    ],
+                ),
             ToolResult(
                 tool="places_search",
                 output=[],
@@ -454,8 +593,146 @@ async def test_joiner_empty_llm_fallback_uses_tool_evidence(
     assert item.confidence > 0
     assert len(item.evidence) >= 2
     assert {ev.source for ev in item.evidence} >= {"reddit", "xiaohongshu"}
+    assert item.summary
+    assert "Rule fallback" not in item.summary
     assert item.image_url == "https://img.example/itto.jpg"
+    assert item.image_source == "test"
     assert "fallback_items=1" in result.notes
+
+
+@pytest.mark.unit
+async def test_joiner_filters_wrong_city_and_wrong_place_evidence(
+    mock_llm: MockLLMProvider,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cand = Candidate(name="Menya Itto", area="Tokyo", style="tsukemen", rationale="r")
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text='{"items": [], "tl_dr": null}',
+        parsed_data={"items": [], "tl_dr": None},
+    )
+
+    async def fake_images(*args: object, **kwargs: object) -> dict[str, object | None]:
+        del args, kwargs
+        return {}
+
+    async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
+        del args, kwargs
+        from plus_one.core.agents.framework.tools import ToolResult
+
+        return [
+            ToolResult(tool="reddit_search", output=[]),
+            ToolResult(
+                tool="xhs_search",
+                output=[
+                    SimpleNamespace(
+                        url="https://www.xiaohongshu.com/explore/osaka",
+                        title="大阪 Menya Itto 开业啦",
+                        body="大阪新店排队很多。",
+                    ),
+                    SimpleNamespace(
+                        url="https://www.xiaohongshu.com/explore/tokyo",
+                        title="东京 Menya Itto 沾面",
+                        body="东京本店工作日去, 本地朋友带路, 点了沾面, 排队30分钟, 汤底浓但是偏咸。",
+                    ),
+                ],
+            ),
+            ToolResult(
+                tool="places_search",
+                output=[
+                    SimpleNamespace(
+                        name="Menya Syo",
+                        formatted_address="西新宿7-22-34, 新宿区, 東京都",
+                    ),
+                    SimpleNamespace(
+                        name="Menya Itto",
+                        formatted_address="東新小岩1-4-17, 葛飾区, 東京都",
+                    ),
+                ],
+            ),
+        ]
+
+    monkeypatch.setattr(joiner_mod, "_resolve_candidate_images", fake_images)
+    monkeypatch.setattr(joiner_mod, "run_tool_calls", fake_run_tool_calls)
+
+    result = await joiner([cand], AgentContext(query="Tokyo ramen"))
+
+    snippets = [ev.snippet for ev in result.payload.items[0].evidence]
+    assert any("东京 Menya Itto" in snippet for snippet in snippets)
+    assert any("Menya Itto" in snippet and "葛飾" in snippet for snippet in snippets)
+    assert all("大阪" not in snippet for snippet in snippets)
+    assert all("Menya Syo" not in snippet for snippet in snippets)
+
+
+@pytest.mark.unit
+async def test_joiner_mixed_fallback_is_not_go_signal(
+    mock_llm: MockLLMProvider,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cand = Candidate(name="Afuri", area="Tokyo", style="yuzu ramen", rationale="r")
+    mock_llm.queue_response(
+        role="joiner_agent",
+        text='{"items": [], "tl_dr": null}',
+        parsed_data={"items": [], "tl_dr": None},
+    )
+
+    async def fake_images(*args: object, **kwargs: object) -> dict[str, object | None]:
+        del args, kwargs
+        return {}
+
+    async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
+        del args, kwargs
+        from plus_one.core.agents.framework.tools import ToolResult
+
+        return [
+            ToolResult(tool="reddit_search", output=[]),
+            ToolResult(
+                tool="xhs_search",
+                output=[
+                    SimpleNamespace(
+                        url="https://www.xiaohongshu.com/explore/afuri",
+                        title="东京 Afuri 拉面真实反馈",
+                        body="很多人推荐也排队, 但柚子拉面避雷, 不好吃, 汤底一般。",
+                    )
+                ],
+            ),
+            ToolResult(tool="places_search", output=[]),
+        ]
+
+    monkeypatch.setattr(joiner_mod, "_resolve_candidate_images", fake_images)
+    monkeypatch.setattr(joiner_mod, "run_tool_calls", fake_run_tool_calls)
+
+    result = await joiner([cand], AgentContext(query="Tokyo ramen"))
+
+    item = result.payload.items[0]
+    assert item.classification == "neutral"
+    assert item.confidence <= 0.62
+    assert "split" in item.summary
+
+
+@pytest.mark.unit
+async def test_joiner_synthesises_tldr_when_llm_omits_it(
+    mock_llm: MockLLMProvider,
+) -> None:
+    cand = Candidate(name="Menya Itto", area="Tokyo", style="tsukemen", rationale="r")
+    output = {
+        "items": [
+            {
+                "candidate": cand.model_dump(),
+                "classification": "local_gem",
+                "confidence": 0.8,
+                "evidence": [],
+                "summary": "good",
+            }
+        ],
+        "tl_dr": None,
+    }
+    mock_llm.queue_response(role="joiner_agent", text=json.dumps(output), parsed_data=output)
+
+    result = await joiner([cand], AgentContext(query="Tokyo ramen"))
+
+    assert result.payload.tl_dr is not None
+    assert "Menya Itto" in result.payload.tl_dr
 
 
 @pytest.mark.unit
@@ -480,9 +757,9 @@ async def test_joiner_llm_timeout_falls_back_to_tool_evidence(
 
     monkeypatch.setattr(joiner_mod.llm_factory, "get_llm_provider", lambda role: SlowProvider())
 
-    async def fake_images(*args: object, **kwargs: object) -> dict[str, str | None]:
+    async def fake_images(*args: object, **kwargs: object) -> dict[str, object | None]:
         del args, kwargs
-        return {"menya itto": "https://img.example/itto.jpg"}
+        return {"menya itto": joiner_mod.ImageRef(url="https://img.example/itto.jpg", source="test")}
 
     async def fake_run_tool_calls(*args: object, **kwargs: object) -> list[object]:
         del args, kwargs
@@ -510,6 +787,7 @@ async def test_joiner_llm_timeout_falls_back_to_tool_evidence(
     assert item.classification == "local_gem"
     assert len(item.evidence) == 1
     assert item.image_url == "https://img.example/itto.jpg"
+    assert item.image_source == "test"
     assert "fallback_items=1" in result.notes
 
 

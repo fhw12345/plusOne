@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-05-13)
+Accepted (2026-05-13). Amended by later stack work: the current frontend is
+Next.js 16 + React 19, the PWA layer is Serwist, and ADR-006 changed hosting to
+self-hosted local app services with managed Postgres.
 
 ## Context
 
@@ -37,13 +39,13 @@ moving to Python for this project. Constraints:
 | Background tasks | asyncio.Queue + BackgroundTask (MVP); Arq later |
 | Scraping | Playwright (Python) |
 | Observability | Langfuse (LLM) + structlog (app) |
-| Frontend | Next.js 14 App Router + TypeScript |
-| Styling | Tailwind + shadcn/ui |
-| State | Zustand |
-| PWA | next-pwa |
+| Frontend | Next.js 16 App Router + React 19 + TypeScript |
+| Styling | Tailwind 4 + shadcn/ui |
+| State | Zustand + TanStack Query |
+| PWA | Serwist |
 | Streaming | Server-Sent Events |
-| Frontend host | Vercel |
-| Backend host | Fly.io (Tokyo region) |
+| Frontend host | Local dev server for MVP |
+| Backend host | Local FastAPI process for MVP |
 | DB host | Azure (East Asia) |
 | Package mgmt | uv (Python) + pnpm (Node) |
 
@@ -74,22 +76,23 @@ moving to Python for this project. Constraints:
 - Best-in-class LLM ecosystem (Pydantic AI, Anthropic SDK, Langfuse all Python-first)
 - Playwright Python is mature for scraping
 - FastAPI + asyncio handles long-running tasks naturally
-- Next.js + Vercel gives modern frontend with minimal ops
+- Next.js gives a modern frontend with typed routes and PWA support
 - Azure Postgres removes self-hosted DB risk (a reviewer flagged this as critical)
 
 ### Negative / Trade-offs
 
 - Two languages (Python + TypeScript) — context switching cost
 - Dev learning Python while building — expect 1.5x time on early backend work
-- Vendor mix (Vercel + Fly + Azure) — three dashboards instead of one
+- Local-host posture limits external ops, but puts demo reliability on the
+  developer machine
 - Magic-link adds email-delivery dependency (vs password)
 
 ### Follow-ups
 
 - [x] ADR-005: All LLM traffic via Agent Maestro gateway (token-unlimited multi-vendor)
-- [ ] ADR-002: Why custom agent framework over LangGraph
-- [ ] ADR-003: Data sources strategy (Reddit + XHS scraping + Google Places)
-- [ ] ADR-004: Monorepo structure
+- [x] ADR-002: Why custom agent framework over LangGraph
+- [x] ADR-003: Data sources strategy (later amended: Reddit JSON + Foursquare)
+- [x] ADR-004: Monorepo structure
 
 ## References
 

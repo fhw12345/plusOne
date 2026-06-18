@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 from typing import Any, cast
 from uuid import UUID  # noqa: TC003 - runtime use as Pydantic field annotation
 
@@ -28,6 +29,7 @@ from plus_one.core.tools import (
     XHSSearchTool,
 )
 from plus_one.core.tools.place_images import PlaceImageInput, PlaceImageResolver
+from plus_one.core.tools.xiaohongshu import assess_xhs_authenticity
 
 logger = structlog.get_logger()
 
@@ -47,7 +49,17 @@ class JoinedItem(BaseModel):
     divergence_score: float = Field(default=0.0, ge=0.0, le=1.0)
     match_scores: dict[UUID, float] | None = Field(default=None)
     image_url: str | None = Field(default=None)
+    image_source: str | None = Field(default=None)
     long_description: str = Field(default="", max_length=2400)
+
+
+class ImageRef(BaseModel):
+    """Resolved card image plus where it came from."""
+
+    model_config = ConfigDict(frozen=True)
+
+    url: str
+    source: str
 
 
 class JoinerPayload(BaseModel):
@@ -95,6 +107,9 @@ _MAX_SNIPPET_CHARS = 240
 _MAX_FALLBACK_EVIDENCE = 3
 _RAW_LOG_CHARS = 1000
 _DEFAULT_JOINER_LLM_TIMEOUT_S = 45.0
+_NAME_MATCH_THRESHOLD = 0.55
+_MIN_XHS_AUTHENTICITY_SCORE = 0.35
+_MIN_NAME_TOKEN_CHARS = 3
 
 _POSITIVE_TERMS = (
     "gem",
@@ -128,6 +143,69 @@ _TOURIST_TERMS = (
     "连锁",
     "不要",
     "不推荐",
+    "不值得",
+    "避雷",
+    "踩雷",
+    "排雷",
+    "不好吃",
+    "失望",
+    "拉垮",
+    "一般",
+    "生气",
+)
+
+_NAME_STOPWORDS = {
+    "and",
+    "bar",
+    "cafe",
+    "ginza",
+    "honten",
+    "ichigaya",
+    "japan",
+    "japanese",
+    "menya",
+    "noodle",
+    "ramen",
+    "restaurant",
+    "shibuya",
+    "shinjuku",
+    "shop",
+    "sushi",
+    "the",
+    "tokyo",
+}
+_DESTINATION_ALIASES: dict[str, tuple[str, ...]] = {
+    "tokyo": ("tokyo", "東京", "东京", "東京都"),
+    "kyoto": ("kyoto", "京都"),
+    "osaka": ("osaka", "大阪"),
+    "shanghai": ("shanghai", "上海"),
+    "beijing": ("beijing", "北京"),
+    "guangzhou": ("guangzhou", "广州", "廣州"),
+    "sapporo": ("sapporo", "札幌"),
+    "hakone": ("hakone", "箱根"),
+    "vancouver": ("vancouver", "温哥华", "溫哥華"),
+    "irvine": ("irvine", "尔湾", "爾灣"),
+    "bay area": ("bay area", "湾区", "灣區", "北湾", "北灣"),
+    "singapore": ("singapore", "新加坡"),
+    "seoul": ("seoul", "서울", "首尔", "首爾"),
+    "taipei": ("taipei", "台北", "臺北"),
+    "hong kong": ("hong kong", "香港"),
+    "london": ("london", "伦敦", "倫敦"),
+    "paris": ("paris", "巴黎"),
+    "bangkok": ("bangkok", "曼谷"),
+}
+_FOOD_TERMS = (
+    "ramen",
+    "tsukemen",
+    "soba",
+    "noodle",
+    "拉面",
+    "拉麵",
+    "蘸面",
+    "沾面",
+    "麺",
+    "麵",
+    "美食",
 )
 
 
@@ -142,6 +220,16 @@ def _format_hit(source: str, hit: object) -> str:
     title = getattr(hit, "title", None) or getattr(hit, "name", "") or ""
     body = getattr(hit, "body", None) or getattr(hit, "formatted_address", "") or ""
     snippet = str(body)[:_MAX_SNIPPET_CHARS]
+    if source == "xiaohongshu":
+        score = getattr(hit, "authenticity_score", None)
+        local = ",".join(getattr(hit, "local_signals", ()) or ())
+        promo = ",".join(getattr(hit, "promotion_signals", ()) or ())
+        quality = f" authenticity={score if score is not None else 'unknown'}"
+        if local:
+            quality += f" local_signals={local[:120]}"
+        if promo:
+            quality += f" promo_signals={promo[:120]}"
+        snippet = f"{quality}; {snippet}"
     return f"- [{source}][{url}] {title}: {snippet}"
 
 
@@ -165,12 +253,13 @@ def _build_tool_calls(candidate: Candidate, query: str) -> list[ToolCall]:
     if candidate.style:
         base = f"{base} {candidate.style}"
     location_hint = _location_hint_from_query(query)
+    search_base = f"{base} {location_hint}" if location_hint else base
     return [
         ToolCall(
             tool="reddit_search",
-            args={"query": base, "subreddits": ["JapanTravel", "ramen"], "limit": 10},
+            args={"query": search_base, "subreddits": ["JapanTravel", "ramen"], "limit": 10},
         ),
-        ToolCall(tool="xhs_search", args={"query": f"{base} 推荐", "limit": 10}),
+        ToolCall(tool="xhs_search", args={"query": f"{search_base} 推荐", "limit": 10}),
         ToolCall(tool="places_search", args={"query": base, "location_hint": location_hint, "limit": 5}),
     ]
 
@@ -187,6 +276,10 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
     registry = _default_registry()
     fetch_tasks = [run_tool_calls(registry, _build_tool_calls(c, ctx.query)) for c in candidates]
     all_results = await asyncio.gather(*fetch_tasks)
+    all_results = [
+        _filter_results_for_candidate(candidate, results, ctx.query)
+        for candidate, results in zip(candidates, all_results, strict=True)
+    ]
     image_by_name = await _resolve_candidate_images(candidates, all_results, ctx.query)
 
     response = await _classify_with_llm(candidates, all_results, ctx)
@@ -203,7 +296,7 @@ async def joiner(candidates: list[Candidate], ctx: AgentContext) -> PhaseResult[
             candidates=len(candidates),
             fallback_items=fallback_items,
         )
-    tl_dr = _normalise_tl_dr(parsed.tl_dr)
+    tl_dr = _normalise_tl_dr(parsed.tl_dr) or _synthesise_tl_dr(repaired, ctx.query)
 
     return PhaseResult(
         payload=JoinerPayload(items=repaired, tl_dr=tl_dr),
@@ -335,6 +428,45 @@ def _coerce_joined_item(raw: dict[str, Any], index: int) -> JoinedItem | None:
 def _normalise_tl_dr(raw: object) -> str | None:
     text = _trim_text(raw, 1000)
     return text or None
+
+
+def _synthesise_tl_dr(items: list[JoinedItem], query: str) -> str | None:
+    """Deterministic report-level summary when the LLM omits ``tl_dr``.
+
+    This is intentionally plain product copy, not a second classifier. It
+    summarizes the already-classified cards so the trip detail has a real
+    top-level takeaway even when the joiner timed out or fell back.
+    """
+    if not items:
+        return None
+    destination = _location_hint_from_query(query)
+    gems = [item.candidate.name for item in items if item.classification == "local_gem"]
+    traps = [item.candidate.name for item in items if item.classification == "tourist_trap"]
+    mixed = [item.candidate.name for item in items if item.classification == "neutral"]
+    thin = [item.candidate.name for item in items if item.classification == "insufficient"]
+
+    lines: list[str] = []
+    place = destination or "this trip"
+    if gems:
+        lines.append(f"{place} has {len(gems)} stronger pick{'s' if len(gems) != 1 else ''}: {_join_names(gems[:3])}.")
+    else:
+        lines.append(f"{place} does not have a clean must-go signal yet.")
+    if traps:
+        lines.append(f"Be careful with {_join_names(traps[:3])}; the sources show tourist-trap or skip signals.")
+    if mixed:
+        lines.append(f"Treat {_join_names(mixed[:3])} as optional, not anchors; evidence is mixed or mostly confirms popularity.")
+    if thin:
+        lines.append(f"I would not plan around {_join_names(thin[:2])} until better evidence appears.")
+    return " ".join(lines)[:1000]
+
+
+def _join_names(names: list[str]) -> str:
+    clean = [name for name in names if name]
+    if not clean:
+        return "the weaker picks"
+    if len(clean) == 1:
+        return clean[0]
+    return ", ".join(clean[:-1]) + f" and {clean[-1]}"
 
 
 def _normalise_candidate(raw: object, fallback: dict[str, Any]) -> dict[str, object] | None:
@@ -474,11 +606,145 @@ def _render_user_payload(candidates: list[Candidate], all_results: list[list[Any
     return "\n".join(lines)
 
 
+def _filter_results_for_candidate(
+    candidate: Candidate,
+    results: list[Any],
+    query: str,
+) -> list[Any]:
+    filtered: list[Any] = []
+    for result in results:
+        if not result.ok or not result.output:
+            filtered.append(result)
+            continue
+        kept = [
+            hit
+            for hit in result.output
+            if _hit_matches_candidate(candidate, hit, query, source=_tool_source_label(result.tool))
+        ]
+        if len(kept) != len(result.output):
+            logger.info(
+                "joiner_evidence_filtered",
+                candidate=candidate.name,
+                tool=result.tool,
+                kept=len(kept),
+                dropped=len(result.output) - len(kept),
+            )
+        filtered.append(result.model_copy(update={"output": kept}))
+    return filtered
+
+
+def _hit_matches_candidate(candidate: Candidate, hit: object, query: str, *, source: str) -> bool:
+    text = _hit_text(hit)
+    if not text:
+        return False
+
+    destination = _location_hint_from_query(query)
+    if _mentions_other_destination(text, destination):
+        return False
+    if source == "foursquare":
+        return _foursquare_hit_matches_candidate(candidate, hit, destination)
+
+    name_score = _candidate_name_score(candidate.name, text)
+    return name_score >= _NAME_MATCH_THRESHOLD or (
+        name_score > 0 and _mentions_destination(text, destination)
+    )
+
+
+def _foursquare_hit_matches_candidate(candidate: Candidate, hit: object, destination: str) -> bool:
+    place_name = str(getattr(hit, "name", ""))
+    address = str(getattr(hit, "formatted_address", ""))
+    if _mentions_other_destination(" ".join([place_name, address]), destination):
+        return False
+    return _candidate_name_score(candidate.name, place_name) >= _NAME_MATCH_THRESHOLD
+
+
+def _hit_text(hit: object) -> str:
+    parts = [
+        getattr(hit, "title", None),
+        getattr(hit, "name", None),
+        getattr(hit, "body", None),
+        getattr(hit, "formatted_address", None),
+    ]
+    return " ".join(str(part) for part in parts if part)
+
+
+def _candidate_name_score(name: str, text: str) -> float:
+    name_norm = _normalise_match_text(name)
+    text_norm = _normalise_match_text(text)
+    if not name_norm or not text_norm:
+        return 0.0
+    if name_norm in text_norm:
+        return 1.0
+    tokens = _name_tokens(name)
+    if not tokens:
+        return 0.0
+    hits = sum(1 for token in tokens if token in text_norm)
+    if hits == 1 and any(_is_distinctive_token(token) and token in text_norm for token in tokens):
+        return _NAME_MATCH_THRESHOLD
+    return hits / len(tokens)
+
+
+def _name_tokens(name: str) -> list[str]:
+    normalised = _normalise_match_text(name)
+    return [
+        token
+        for token in normalised.split()
+        if len(token) >= _MIN_NAME_TOKEN_CHARS and token not in _NAME_STOPWORDS
+    ]
+
+
+def _normalise_match_text(text: str) -> str:
+    lowered = text.lower()
+    lowered = re.sub(r"[^\w\u3040-\u30ff\u3400-\u9fff]+", " ", lowered)
+    return " ".join(lowered.split())
+
+
+def _is_distinctive_token(token: str) -> bool:
+    return any(char.isdigit() for char in token)
+
+
+def _destination_aliases(destination: str) -> tuple[str, ...]:
+    lower = destination.lower()
+    aliases: list[str] = []
+    for key, values in _DESTINATION_ALIASES.items():
+        if key in lower or any(value.lower() in lower for value in values):
+            aliases.extend(values)
+    if not aliases and destination.strip():
+        aliases.append(destination.strip())
+    unique: list[str] = []
+    for alias in aliases:
+        key = alias.lower()
+        if key and key not in unique:
+            unique.append(key)
+    return tuple(unique)
+
+
+def _mentions_destination(text: str, destination: str) -> bool:
+    lower = text.lower()
+    aliases = _destination_aliases(destination)
+    return bool(aliases) and any(alias in lower for alias in aliases)
+
+
+def _mentions_other_destination(text: str, destination: str) -> bool:
+    lower = text.lower()
+    own_aliases = set(_destination_aliases(destination))
+    lower_without_own = lower
+    for alias in sorted(own_aliases, key=len, reverse=True):
+        lower_without_own = lower_without_own.replace(alias, " ")
+    for values in _DESTINATION_ALIASES.values():
+        aliases = {value.lower() for value in values}
+        if aliases & own_aliases:
+            continue
+        if any(alias in lower_without_own for alias in aliases):
+            return True
+    return False
+
+
 def _repair_items(
     items: list[JoinedItem],
     candidates: list[Candidate],
     ctx: AgentContext,
-    image_by_name: dict[str, str | None],
+    image_by_name: dict[str, ImageRef | None],
 ) -> tuple[list[JoinedItem], int]:
     allowed_ids = _allowed_person_ids(ctx)
     by_name: dict[str, Candidate] = {c.name.lower(): c for c in candidates}
@@ -508,7 +774,7 @@ def _repair_item_updates(
     item: JoinedItem,
     original: Candidate,
     allowed_ids: set[UUID],
-    image_by_name: dict[str, str | None],
+    image_by_name: dict[str, ImageRef | None],
 ) -> dict[str, object]:
     updates: dict[str, object] = {}
     score = divergence_score(item.classification_en, item.classification_zh)
@@ -521,7 +787,8 @@ def _repair_item_updates(
         updates["match_scores"] = sanitised_scores
     img = image_by_name.get(item.candidate.name.lower())
     if img is not None and not item.image_url:
-        updates["image_url"] = img
+        updates["image_url"] = img.url
+        updates["image_source"] = img.source
     return updates
 
 
@@ -529,7 +796,7 @@ def _fallback_items(
     candidates: list[Candidate],
     all_results: list[list[Any]],
     ctx: AgentContext,
-    image_by_name: dict[str, str | None],
+    image_by_name: dict[str, ImageRef | None],
 ) -> list[JoinedItem]:
     allowed_ids = _allowed_person_ids(ctx)
     items: list[JoinedItem] = []
@@ -537,6 +804,7 @@ def _fallback_items(
         evidence = _fallback_evidence(results)
         classification, confidence, classification_en, classification_zh = _fallback_verdict(evidence)
         summary = _fallback_summary(classification, evidence)
+        image = image_by_name.get(candidate.name.lower())
         item = JoinedItem(
             candidate=candidate,
             classification=classification,
@@ -547,7 +815,8 @@ def _fallback_items(
             summary=summary,
             long_description=_fallback_long_description(summary, evidence),
             match_scores=validate_match_scores(None, allowed_ids),
-            image_url=image_by_name.get(candidate.name.lower()),
+            image_url=image.url if image else None,
+            image_source=image.source if image else None,
         )
         items.append(item)
     return items
@@ -561,7 +830,9 @@ def _fallback_evidence(results: list[Any]) -> list[Evidence]:
         source = _normalise_source(str(result.tool))
         if source is None:
             continue
-        for hit in result.output[:2]:
+        for hit in result.output:
+            if source == "xiaohongshu" and not _xhs_hit_is_reliable(hit):
+                continue
             url = (
                 getattr(hit, "permalink", None)
                 or getattr(hit, "url", None)
@@ -597,9 +868,30 @@ def _fallback_verdict(
     )
     source_count = len({ev.source for ev in evidence})
     confidence = 0.5 + min(0.25, 0.06 * len(evidence) + 0.04 * max(0, source_count - 1))
+    if _has_mixed_sentiment(evidence):
+        confidence = min(confidence, 0.62)
     if fused == "insufficient":
         confidence = 0.0
     return fused, confidence, en if en != "insufficient" else None, zh if zh != "insufficient" else None
+
+
+def _xhs_hit_is_reliable(hit: object) -> bool:
+    if bool(getattr(hit, "is_promotional", False)):
+        return False
+    if getattr(hit, "authenticity_score", None) is None:
+        assessed = assess_xhs_authenticity(
+            {
+                "author": getattr(hit, "author", ""),
+                "title": getattr(hit, "title", ""),
+                "body": getattr(hit, "body", ""),
+                "images": getattr(hit, "images", ()),
+            }
+        )
+        return bool(not assessed["is_promotional"] and assessed["score"] >= _MIN_XHS_AUTHENTICITY_SCORE)
+    try:
+        return float(getattr(hit, "authenticity_score", 0.0)) >= _MIN_XHS_AUTHENTICITY_SCORE
+    except (TypeError, ValueError):
+        return False
 
 
 def _verdict_from_evidence(
@@ -610,9 +902,11 @@ def _verdict_from_evidence(
     if not evidence:
         return "insufficient"
     text = " ".join(ev.snippet for ev in evidence).lower()
-    positive = sum(1 for term in _POSITIVE_TERMS if term in text)
-    tourist = sum(1 for term in _TOURIST_TERMS if term in text)
-    if tourist > 0 and tourist >= positive:
+    positive = _signal_count(text, _POSITIVE_TERMS)
+    tourist = _signal_count(text, _TOURIST_TERMS)
+    if tourist > 0 and positive > 0:
+        return "neutral" if allow_neutral else "tourist_trap"
+    if tourist > 0:
         return "tourist_trap"
     if positive > 0:
         return "local_gem"
@@ -623,8 +917,8 @@ def _verdict_from_evidence(
 
 def _fallback_sentiment(text: str) -> float:
     lower = text.lower()
-    positive = sum(1 for term in _POSITIVE_TERMS if term in lower)
-    tourist = sum(1 for term in _TOURIST_TERMS if term in lower)
+    positive = _signal_count(lower, _POSITIVE_TERMS)
+    tourist = _signal_count(lower, _TOURIST_TERMS)
     if tourist > positive:
         return -0.4
     if positive > tourist:
@@ -632,14 +926,28 @@ def _fallback_sentiment(text: str) -> float:
     return 0.0
 
 
+def _signal_count(text: str, terms: tuple[str, ...]) -> int:
+    return sum(1 for term in terms if term in text)
+
+
+def _has_mixed_sentiment(evidence: list[Evidence]) -> bool:
+    sentiments = [ev.sentiment for ev in evidence if ev.sentiment is not None]
+    if any(s > 0 for s in sentiments) and any(s < 0 for s in sentiments):
+        return True
+    text = " ".join(ev.snippet for ev in evidence).lower()
+    return _signal_count(text, _POSITIVE_TERMS) > 0 and _signal_count(text, _TOURIST_TERMS) > 0
+
+
 def _fallback_summary(classification: Classification, evidence: list[Evidence]) -> str:
     source_names = ", ".join(sorted({ev.source for ev in evidence})) or "available sources"
+    if _has_mixed_sentiment(evidence):
+        return f"{source_names} are split: there is visible hype, but also complaints worth taking seriously."
     if classification == "local_gem":
-        return f"Rule fallback from tool evidence: {source_names} contains positive local-leaning signals."
+        return f"{source_names} point to real positive signal, not just name recognition."
     if classification == "tourist_trap":
-        return f"Rule fallback from tool evidence: {source_names} contains chain, tourist, or skip signals."
+        return f"{source_names} raise enough tourist, chain, or skip signals to be cautious."
     if classification == "neutral":
-        return f"Rule fallback from tool evidence: {source_names} confirms the place but does not show a strong verdict."
+        return f"{source_names} confirm the place, but the evidence does not separate it from the obvious picks."
     return "Not enough reliable source evidence to classify this pick yet."
 
 
@@ -654,7 +962,7 @@ async def _resolve_candidate_images(
     candidates: list[Candidate],
     all_results: list[list[Any]],
     query: str,
-) -> dict[str, str | None]:
+) -> dict[str, ImageRef | None]:
     """Build a candidate-name to image URL map for itinerary card art."""
     resolver = PlaceImageResolver()
     location_hint = _location_hint_from_query(query)
@@ -662,10 +970,10 @@ async def _resolve_candidate_images(
         _resolve_candidate_image(candidate, results, location_hint, resolver)
         for candidate, results in zip(candidates, all_results, strict=True)
     ]
-    image_urls = await asyncio.gather(*tasks)
+    image_refs = await asyncio.gather(*tasks)
     return {
-        candidate.name.lower(): image_url
-        for candidate, image_url in zip(candidates, image_urls, strict=True)
+        candidate.name.lower(): image_ref
+        for candidate, image_ref in zip(candidates, image_refs, strict=True)
     }
 
 
@@ -674,19 +982,101 @@ async def _resolve_candidate_image(
     results: list[Any],
     query: str,
     resolver: PlaceImageResolver,
-) -> str | None:
-    category = candidate.style or ""
+) -> ImageRef | None:
+    category = _image_category_hint(candidate, results)
     for result in results:
         if result.tool == "places_search" and result.ok and result.output:
             first = result.output[0]
             photo_url = getattr(first, "photo_url", None)
             if photo_url:
-                return str(photo_url)
-            categories = getattr(first, "categories", ()) or ()
-            if categories:
-                category = " ".join(str(c) for c in categories)
+                return ImageRef(url=str(photo_url), source="foursquare")
             break
+    xhs_image = _first_xhs_image(results)
+    if xhs_image:
+        return ImageRef(url=xhs_image, source="xhs")
     image = await resolver.resolve(
         PlaceImageInput(name=candidate.name, location_hint=query, category=category)
     )
-    return image.image_url if image is not None else None
+    if image is None:
+        fallback_category = _fallback_image_category(category)
+        if fallback_category is not None:
+            image = await resolver.resolve(
+                PlaceImageInput(
+                    name=candidate.name,
+                    location_hint=query,
+                    category=fallback_category,
+                )
+            )
+    return ImageRef(url=image.image_url, source=image.source) if image is not None else None
+
+
+def _fallback_image_category(category: str) -> str | None:
+    """Retry public image search with a broader food term when style is too narrow."""
+    lower = category.lower()
+    if "ramen" in lower and lower.strip() != "ramen":
+        return "ramen"
+    return None
+
+
+def _image_category_hint(candidate: Candidate, results: list[Any]) -> str:
+    """Build a stable image-search hint without losing producer context."""
+    haystack = " ".join([candidate.name, candidate.style or "", candidate.rationale or ""]).lower()
+    ramen_markers = (
+        "ramen",
+        "tsukemen",
+        "tantanmen",
+        "tan tan",
+        "tonkotsu",
+        "shoyu",
+        "shio",
+        "niboshi",
+        "soba",
+        "noodle",
+    )
+    parts: list[str] = []
+    if any(marker in haystack for marker in ramen_markers):
+        parts.append("ramen")
+
+    if candidate.style:
+        parts.append(candidate.style)
+
+    for result in results:
+        if result.tool != "places_search" or not result.ok or not result.output:
+            continue
+        for place in result.output[:3]:
+            categories = getattr(place, "categories", ()) or ()
+            parts.extend(str(category) for category in categories)
+        break
+
+    return _compact_hint(parts, max_chars=64)
+
+
+def _compact_hint(parts: list[str], *, max_chars: int) -> str:
+    seen: set[str] = set()
+    words: list[str] = []
+    for part in parts:
+        for raw in str(part).replace(",", " ").split():
+            word = raw.strip()
+            key = word.lower()
+            if not word or key in seen:
+                continue
+            candidate = " ".join([*words, word])
+            if len(candidate) > max_chars:
+                return " ".join(words)
+            seen.add(key)
+            words.append(word)
+    return " ".join(words)
+
+
+def _first_xhs_image(results: list[Any]) -> str | None:
+    """Return the first image attached to a successful XHS result."""
+    for result in results:
+        if result.tool != "xhs_search" or not result.ok or not result.output:
+            continue
+        for post in result.output:
+            images = getattr(post, "images", ()) or ()
+            for image_url in images:
+                image = str(image_url).strip()
+                if image:
+                    return image
+    return None

@@ -81,8 +81,8 @@ class PlaceImageResolver:
         )
         return self._client
 
-    def _fixture(self, args: PlaceImageInput) -> PlaceImage | None:
-        for candidate_key in _fixture_keys(args):
+    def _fixture(self, args: PlaceImageInput, *, include_generic: bool) -> PlaceImage | None:
+        for candidate_key in _fixture_keys(args, include_generic=include_generic):
             raw = load_json_fixture(self._fixtures_dir, candidate_key)
             if not raw:
                 continue
@@ -95,7 +95,7 @@ class PlaceImageResolver:
 
     async def resolve(self, args: PlaceImageInput) -> PlaceImage | None:
         if get_tools_mode() == "fixture":
-            return self._fixture(args)
+            return self._fixture(args, include_generic=True)
 
         key = cache_key(args.name, args.location_hint, args.category)
         try:
@@ -105,13 +105,22 @@ class PlaceImageResolver:
             cached = None
         if cached:
             try:
-                return PlaceImage.model_validate(cached[0])
+                image = PlaceImage.model_validate(cached[0])
+                if _looks_like_place_image(image, args):
+                    return image
+                logger.info(
+                    "place_image_cache_irrelevant_ignored",
+                    name=args.name,
+                    key=key,
+                    title=image.title,
+                    source=image.source,
+                )
             except Exception as exc:
                 logger.warning("place_image_cache_invalid", key=key, error=str(exc))
 
         image = await self._resolve_live(args)
         if image is None:
-            image = self._fixture(args)
+            image = self._fixture(args, include_generic=False)
             if image is not None:
                 logger.warning("place_image_degraded_to_fixture", name=args.name, key=key)
         if image is not None:
@@ -209,13 +218,13 @@ def _search_query(args: PlaceImageInput) -> str:
     return " ".join(p for p in parts if p).strip()
 
 
-def _fixture_keys(args: PlaceImageInput) -> tuple[str, ...]:
+def _fixture_keys(args: PlaceImageInput, *, include_generic: bool) -> tuple[str, ...]:
     keys = [cache_key(args.name, args.location_hint)]
     if args.category:
         keys.append(cache_key(args.name, args.category))
     keys.append(cache_key(args.name))
     lower = _search_query(args).lower()
-    if "tokyo" in lower and "ramen" in lower:
+    if include_generic and "tokyo" in lower and "ramen" in lower:
         keys.append("tokyo_ramen")
 
     unique: list[str] = []
@@ -240,6 +249,18 @@ def _looks_relevant(title: str, terms: tuple[str, ...]) -> bool:
     if not terms:
         return True
     haystack = title.lower()
+    return any(term in haystack for term in terms)
+
+
+def _looks_like_place_image(image: PlaceImage, args: PlaceImageInput) -> bool:
+    terms = _important_terms(args.name)
+    if not terms:
+        return True
+    haystack = " ".join(
+        part
+        for part in (image.title, image.page_url, image.image_url)
+        if part
+    ).lower()
     return any(term in haystack for term in terms)
 
 

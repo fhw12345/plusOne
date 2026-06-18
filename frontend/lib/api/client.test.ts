@@ -88,6 +88,52 @@ describe("apiFetch", () => {
     });
   });
 
+  it("clears stale auth and redirects to login on 401", async () => {
+    useAuthStore.getState().setSession("expired-token", {
+      id: "u1",
+      email: "a@b.test",
+      username: "u1",
+      is_admin: false,
+    });
+    const assign = vi.fn();
+    vi.stubGlobal("window", {
+      location: { pathname: "/app", assign },
+    });
+    globalThis.fetch = vi.fn(
+      async () => new Response(JSON.stringify({ detail: "expired" }), { status: 401 }),
+    ) as unknown as typeof fetch;
+
+    await expect(apiFetch("/api/auth/me", { method: "GET" })).rejects.toMatchObject({
+      status: 401,
+    });
+
+    expect(useAuthStore.getState().token).toBeNull();
+    expect(assign).toHaveBeenCalledWith("/login");
+  });
+
+  it("does not clear the current form state for failed password login", async () => {
+    useAuthStore.getState().setSession("still-present", {
+      id: "u1",
+      email: "a@b.test",
+      username: "u1",
+      is_admin: false,
+    });
+    const assign = vi.fn();
+    vi.stubGlobal("window", {
+      location: { pathname: "/login", assign },
+    });
+    globalThis.fetch = vi.fn(
+      async () => new Response(JSON.stringify({ detail: "invalid_credentials" }), { status: 401 }),
+    ) as unknown as typeof fetch;
+
+    await expect(apiFetch("/api/auth/login", { method: "POST", body: "{}" })).rejects.toMatchObject(
+      { status: 401 },
+    );
+
+    expect(useAuthStore.getState().token).toBe("still-present");
+    expect(assign).not.toHaveBeenCalled();
+  });
+
   it("ApiError carries status and body fields", async () => {
     globalThis.fetch = vi.fn(
       async () => new Response(JSON.stringify({ detail: "boom" }), { status: 503 }),
@@ -102,5 +148,26 @@ describe("apiFetch", () => {
       expect(apiErr.status).toBe(503);
       expect(apiErr.body).toEqual({ detail: "boom" });
     }
+  });
+
+  it("turns a hung request into request_timeout", async () => {
+    vi.useFakeTimers();
+    globalThis.fetch = vi.fn(
+      (_input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+        }),
+    ) as unknown as typeof fetch;
+
+    const pending = apiFetch("/api/x", { method: "GET" });
+    const assertion = expect(pending).rejects.toMatchObject({
+      name: "ApiError",
+      status: 408,
+      message: "request_timeout",
+    });
+    await vi.advanceTimersByTimeAsync(20_000);
+
+    await assertion;
+    vi.useRealTimers();
   });
 });

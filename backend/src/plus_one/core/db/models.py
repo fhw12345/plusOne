@@ -386,3 +386,93 @@ class ToolCache(Base, TimestampMixin):
     payload: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False)
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+# === XHS Evidence ========================================================
+
+
+class XHSPost(Base, TimestampMixin):
+    """One crawled XHS note, stored as factual evidence rather than summary state."""
+
+    __tablename__ = "xhs_posts"
+    __table_args__ = (
+        Index("ix_xhs_posts_note_id", "note_id"),
+        Index("ix_xhs_posts_canonical_url", "canonical_url"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=new_uuid)
+    note_id: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+    canonical_url: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    body: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    author: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    likes: Mapped[int] = mapped_column(nullable=False, default=0)
+    comments: Mapped[int] = mapped_column(nullable=False, default=0)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    images: Mapped[list[XHSPostImage]] = relationship(
+        "XHSPostImage",
+        back_populates="post",
+        cascade="all, delete-orphan",
+    )
+    matches: Mapped[list[XHSPostMatch]] = relationship(
+        "XHSPostMatch",
+        back_populates="post",
+        cascade="all, delete-orphan",
+    )
+
+
+class XHSPostImage(Base, TimestampMixin):
+    """One locally cached image associated with a crawled XHS note."""
+
+    __tablename__ = "xhs_post_images"
+    __table_args__ = (
+        UniqueConstraint("post_id", "local_url", name="uq_xhs_post_images_post_local_url"),
+        Index("ix_xhs_post_images_post_id", "post_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=new_uuid)
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("xhs_posts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    source_url: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    local_url: Mapped[str] = mapped_column(Text, nullable=False)
+    local_path: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    byte_count: Mapped[int | None] = mapped_column(nullable=True)
+    content_type: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+
+    post: Mapped[XHSPost] = relationship("XHSPost", back_populates="images")
+
+
+class XHSPostMatch(Base, TimestampMixin):
+    """A factual association between a crawled XHS note and a candidate/query."""
+
+    __tablename__ = "xhs_post_matches"
+    __table_args__ = (
+        UniqueConstraint("post_id", "candidate", "query", name="uq_xhs_post_matches_post_candidate_query"),
+        Index("ix_xhs_post_matches_candidate", "candidate"),
+        Index("ix_xhs_post_matches_query", "query"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=new_uuid)
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("xhs_posts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    candidate: Mapped[str] = mapped_column(Text, nullable=False)
+    destination: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    category: Mapped[str] = mapped_column(String(60), nullable=False, default="")
+    query: Mapped[str] = mapped_column(Text, nullable=False)
+    relevance_score: Mapped[float | None] = mapped_column(nullable=True)
+    matched_terms: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    quality_version: Mapped[int | None] = mapped_column(nullable=True)
+    authenticity_score: Mapped[float | None] = mapped_column(nullable=True)
+    authenticity_reasons: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+
+    post: Mapped[XHSPost] = relationship("XHSPost", back_populates="matches")

@@ -1,6 +1,9 @@
 # Plus One — Product Requirements Document
 
 > Locked: 2026-05-13. This is the canonical PRD. Changes require an ADR.
+> Implementation note: ADR-003 / ADR-007 have since updated the source mix;
+> current code uses Reddit public JSON, Xiaohongshu fallback scraping, and
+> Foursquare Places instead of the original Reddit PRAW / Google Places plan.
 
 ## 1. Tagline
 
@@ -56,9 +59,9 @@ Three supporting capabilities (not the headline, but felt by users):
 - Conversational refinement ("change Day 2 to a different area")
 
 ### Data sources (MVP)
-- Reddit (PRAW, official API)
-- Xiaohongshu (Playwright scrape with 3-tier fallback, see ADR-003)
-- Google Places (official API)
+- Reddit public JSON endpoint (see ADR-007)
+- Xiaohongshu Playwright / public-index fallback (see ADR-003)
+- Foursquare Places (see ADR-003 addendum)
 - All scraped content cached to DB
 
 ### City coverage

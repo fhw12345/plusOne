@@ -13,7 +13,7 @@ function mkItem(): JoinedItem {
     confidence: 0.8,
     evidence: [
       { source: "reddit", url: "https://reddit.com/r/x/1", snippet: "rdt" },
-      { source: "xiaohongshu", url: "https://xiaohongshu.com/2", snippet: "xhs" },
+      { source: "xiaohongshu", url: "https://www.xiaohongshu.com/explore/2", snippet: "xhs" },
       { source: "foursquare", url: "https://foursquare.com/v/3", snippet: "fsq" },
     ],
     summary: "summary",
@@ -56,7 +56,7 @@ describe("ItemCard perspective wiring (PRD batch-2r §4.2d)", () => {
     it("fused: keeps all evidence sources", () => {
       const html = renderToString(<ItemCard item={mkItem()} perspective="fused" />);
       expect(html).toContain("reddit.com");
-      expect(html).toContain("xiaohongshu.com");
+      expect(html).toContain("xhs search");
       expect(html).toContain("foursquare.com");
     });
 
@@ -64,12 +64,12 @@ describe("ItemCard perspective wiring (PRD batch-2r §4.2d)", () => {
       const html = renderToString(<ItemCard item={mkItem()} perspective="en" />);
       expect(html).toContain("reddit.com");
       expect(html).toContain("foursquare.com");
-      expect(html).not.toContain("xiaohongshu.com");
+      expect(html).not.toContain("xhs search");
     });
 
     it("zh: keeps xiaohongshu + foursquare, hides reddit", () => {
       const html = renderToString(<ItemCard item={mkItem()} perspective="zh" />);
-      expect(html).toContain("xiaohongshu.com");
+      expect(html).toContain("xhs search");
       expect(html).toContain("foursquare.com");
       expect(html).not.toContain("reddit.com");
     });
@@ -83,8 +83,15 @@ describe("ItemCard perspective wiring (PRD batch-2r §4.2d)", () => {
 
     it("defaults to fused when perspective prop omitted (back-compat)", () => {
       const html = renderToString(<ItemCard item={mkItem()} />);
-      expect(html).toContain("xiaohongshu.com");
+      expect(html).toContain("xhs search");
       expect(html).toContain("reddit.com");
+    });
+
+    it("does not render brittle XHS note URLs as direct links", () => {
+      const html = renderToString(<ItemCard item={mkItem()} />);
+
+      expect(html).toContain("https://www.google.com/search?q=");
+      expect(html).not.toContain('href="https://www.xiaohongshu.com/explore/2"');
     });
   });
 });

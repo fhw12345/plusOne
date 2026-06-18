@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 
 import { tiltStyle } from "@/lib/scrapbook/tilt";
 import type { JoinedItem, JoinedItemView } from "@/lib/schemas/trips";
+import { evidenceLink } from "@/lib/trips/evidenceLinks";
 import { resolveClassification } from "@/lib/trips/resolveClassification";
 import type { Perspective } from "@/store/reportPrefs";
 
@@ -57,15 +58,6 @@ const PERLANG_TINT: Record<string, string> = {
   neutral: "hsl(var(--ink-3))",
   insufficient: "hsl(var(--ink-3))",
 };
-
-function shortHost(url: string | undefined): string {
-  if (!url) return "";
-  try {
-    return new URL(url).host.replace(/^www\./, "");
-  } catch {
-    return url.slice(0, 40);
-  }
-}
 
 function truncate(s: string, n = 140): string {
   if (s.length <= n) return s;
@@ -282,19 +274,20 @@ export function ItemCard({
               </p>
               <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 8 }}>
                 {evidence.map((ev, idx) => {
-                  const url = ev?.url ?? "";
                   const snippet = ev?.snippet ?? "";
                   const source = ev?.source ?? "source";
-                  const label = `${source} · ${shortHost(url)}`;
+                  const link = evidenceLink(ev, name);
+                  const label = link?.label ?? source;
                   return (
                     <li key={idx} style={{ fontSize: 14 }}>
-                      {url ? (
+                      {link ? (
                         <a
-                          href={url}
+                          href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="link-hand"
                           style={{ fontSize: 15 }}
+                          title={link.title}
                         >
                           {label}
                         </a>
