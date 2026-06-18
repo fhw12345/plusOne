@@ -22,6 +22,11 @@ type TripDetail = {
 
 const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+test.skip(
+  process.env.PLAYWRIGHT_STRICT_XHS_REAL_CHAIN !== "1",
+  "strict XHS real-chain coverage requires admin credentials plus a live XHS/browser session; run it explicitly with PLAYWRIGHT_STRICT_XHS_REAL_CHAIN=1",
+);
+
 test.describe("strict XHS real chain (admin)", () => {
   test.setTimeout(600_000);
 

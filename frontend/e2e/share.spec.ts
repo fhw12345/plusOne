@@ -3,9 +3,8 @@ import { test, expect } from "@playwright/test";
 import { signInE2E } from "./_helpers/auth";
 
 // Batch 2j PR A — share-link round trip through an incognito context.
-// The PLUS_ONE_ALLOW_REAL_LLM=0 env in playwright.config.ts forces the
-// cycle to abort, so the trip lands on `aborted` quickly; sharing still
-// works (terminal status is the only gate).
+// CI uses a deterministic local Maestro-compatible fake; local real-chain
+// runs can still point Playwright at an actual Agent Maestro instance.
 
 test.describe("share link", () => {
   test("create trip → share → open in fresh context → revoke → expired", async ({

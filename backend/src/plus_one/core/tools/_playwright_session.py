@@ -861,8 +861,10 @@ def _parse_cookie_blob(cookie: str) -> list[dict[str, Any]]:
         if isinstance(source, dict):
             source = [source]
         if isinstance(source, list):
-            cookies = [_normalise_cookie_dict(item) for item in source if isinstance(item, dict)]
-            return [item for item in cookies if item]
+            parsed_cookies = [
+                _normalise_cookie_dict(item) for item in source if isinstance(item, dict)
+            ]
+            return [item for item in parsed_cookies if item]
         return []
 
     cookies: list[dict[str, Any]] = []

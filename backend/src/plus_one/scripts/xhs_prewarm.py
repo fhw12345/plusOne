@@ -18,7 +18,7 @@ import secrets
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlencode, urlparse
 
 from plus_one.core.tools import _playwright_session
@@ -620,9 +620,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
-    with contextlib.suppress(Exception):
-        sys.stdout.reconfigure(encoding="utf-8")
-        sys.stderr.reconfigure(encoding="utf-8")
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            with contextlib.suppress(Exception):
+                reconfigure(encoding="utf-8")
 
     args = build_parser().parse_args()
     if args.command == "open-browser":
@@ -3043,14 +3045,15 @@ def empty_report(args: argparse.Namespace) -> dict[str, Any]:
 def load_report(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {"started_at": now_iso(), "settings": {}, "results": []}
-    return json.loads(path.read_text(encoding="utf-8"))
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(raw, dict):
+        return cast("dict[str, Any]", raw)
+    return {"started_at": now_iso(), "settings": {}, "results": []}
 
 
 def merge_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
     merged: dict[str, Any] = {"started_at": now_iso(), "settings": {}, "results": []}
     for report in reports:
-        if not isinstance(report, dict):
-            continue
         if not merged.get("settings") and isinstance(report.get("settings"), dict):
             merged["settings"] = report["settings"]
         results = report.get("results")

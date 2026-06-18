@@ -619,7 +619,7 @@ async def _enrich_public_index_posts_with_context(
     enriched = [dict(post) for post in posts]
     if _cache_images_enabled():
         image_index_posts = [
-            post for post in enriched if post.get("xhs_image_index_stub") and post.get("images")
+            post for post in enriched if post.get("xhs_image_index_stub") and _image_values(post)
         ]
         if image_index_posts:
             cached_image_posts = await _playwright_session._cache_post_images_with_context(
@@ -649,8 +649,8 @@ async def _enrich_public_index_posts_with_context(
         uncached_image_posts = [
             post
             for post in enriched
-            if post.get("images")
-            and not any(str(image).startswith("/media/") for image in post.get("images") or [])
+            if _image_values(post)
+            and not any(image.startswith("/media/") for image in _image_values(post))
         ]
         if uncached_image_posts:
             cached_uncached_posts = await _playwright_session._cache_post_images_with_context(
@@ -670,7 +670,7 @@ async def _enrich_public_index_posts_with_context(
 def _public_index_post_needs_detail_enrichment(post: dict[str, object]) -> bool:
     title = str(post.get("title") or "").strip()
     body = str(post.get("body") or "").strip()
-    images = [str(image) for image in post.get("images") or []]
+    images = _image_values(post)
     has_local_image = any(image.startswith("/media/") for image in images)
     if post.get("xhs_image_index_stub") and title and (body or has_local_image):
         return False
@@ -1155,9 +1155,16 @@ def _posts_need_image_enrichment(posts: list[XHSPost]) -> bool:
     return bool(posts) and all(not post.images for post in posts)
 
 
+def _image_values(post: dict[str, object]) -> list[str]:
+    raw_images = post.get("images")
+    if not isinstance(raw_images, list):
+        return []
+    return [str(image) for image in raw_images if image]
+
+
 def _has_more_images(before: list[dict[str, object]], after: list[dict[str, object]]) -> bool:
-    before_count = sum(len(item.get("images") or []) for item in before)
-    after_count = sum(len(item.get("images") or []) for item in after)
+    before_count = sum(len(_image_values(item)) for item in before)
+    after_count = sum(len(_image_values(item)) for item in after)
     return after_count > before_count
 
 

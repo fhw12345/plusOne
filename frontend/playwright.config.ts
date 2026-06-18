@@ -2,6 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 const isCI = !!process.env.CI;
 const allBrowsers = !!process.env.PLAYWRIGHT_ALL_BROWSERS;
+const useFakeMaestro =
+  process.env.PLAYWRIGHT_USE_FAKE_MAESTRO === "1" ||
+  (isCI && process.env.PLAYWRIGHT_USE_FAKE_MAESTRO !== "0");
+const fakeMaestroPort = process.env.FAKE_MAESTRO_PORT ?? "24333";
+const fakeMaestroUrl = `http://127.0.0.1:${fakeMaestroPort}`;
 
 // Backend port: defaults to 8000 (the contract). Local dev can override via
 // PLUS_ONE_BACKEND_PORT when port 8000 is already taken by another service.
@@ -44,6 +49,21 @@ export default defineConfig({
       : []),
   ],
   webServer: [
+    ...(useFakeMaestro
+      ? [
+          {
+            command: "node e2e/_helpers/fake-maestro.mjs",
+            url: `${fakeMaestroUrl}/health`,
+            reuseExistingServer: !isCI,
+            timeout: 60_000,
+            stdout: "pipe" as const,
+            stderr: "pipe" as const,
+            env: {
+              FAKE_MAESTRO_PORT: fakeMaestroPort,
+            },
+          },
+        ]
+      : []),
     {
       command: "pnpm start",
       url: "http://localhost:3000",
@@ -77,16 +97,19 @@ export default defineConfig({
         DATABASE_URL:
           process.env.DATABASE_URL ?? "postgresql+asyncpg://plus_one:dev@localhost:5432/plus_one",
         JWT_SECRET: process.env.JWT_SECRET ?? "dummy-for-e2e",
-        // E2E keeps the real LLM code path enabled. By default it points
-        // at the local Agent Maestro instance;
-        // set MAESTRO_BASE_URL in the parent shell to run against a real
-        // Agent Maestro instance instead.
+        // E2E keeps the provider integration path enabled. CI points it
+        // at a deterministic local Anthropic-compatible fake; local real
+        // runs can opt out with PLAYWRIGHT_USE_FAKE_MAESTRO=0.
         PLUS_ONE_ALLOW_REAL_LLM: "1",
-        MAESTRO_BASE_URL: process.env.MAESTRO_BASE_URL ?? "http://127.0.0.1:23333/api/anthropic",
+        MAESTRO_BASE_URL: useFakeMaestro
+          ? fakeMaestroUrl
+          : (process.env.MAESTRO_BASE_URL ?? "http://127.0.0.1:23333/api/anthropic"),
         MAESTRO_AUTH_TOKEN: process.env.MAESTRO_AUTH_TOKEN ?? "Powered by Agent Maestro",
         LLM_DEFAULT_MAX_TOKENS: process.env.LLM_DEFAULT_MAX_TOKENS ?? "16000",
-        PLUS_ONE_TOOLS_MODE: process.env.PLUS_ONE_TOOLS_MODE ?? "real",
-        PLUS_ONE_TRANSLATE_ENABLED: process.env.PLUS_ONE_TRANSLATE_ENABLED ?? "1",
+        PLUS_ONE_TOOLS_MODE:
+          process.env.PLUS_ONE_TOOLS_MODE ?? (useFakeMaestro ? "fixture" : "real"),
+        PLUS_ONE_TRANSLATE_ENABLED:
+          process.env.PLUS_ONE_TRANSLATE_ENABLED ?? (useFakeMaestro ? "0" : "1"),
         PLUS_ONE_TRANSLATE_TIMEOUT_S: process.env.PLUS_ONE_TRANSLATE_TIMEOUT_S ?? "8",
         PLUS_ONE_JOINER_LLM_TIMEOUT_S: process.env.PLUS_ONE_JOINER_LLM_TIMEOUT_S ?? "25",
         XHS_TIMEOUT_S: process.env.XHS_TIMEOUT_S ?? "8",

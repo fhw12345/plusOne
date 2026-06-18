@@ -105,30 +105,30 @@ class PlaceImageResolver:
             cached = None
         if cached:
             try:
-                image = PlaceImage.model_validate(cached[0])
-                if _looks_like_place_image(image, args):
-                    return image
+                cached_image = PlaceImage.model_validate(cached[0])
+                if _looks_like_place_image(cached_image, args):
+                    return cached_image
                 logger.info(
                     "place_image_cache_irrelevant_ignored",
                     name=args.name,
                     key=key,
-                    title=image.title,
-                    source=image.source,
+                    title=cached_image.title,
+                    source=cached_image.source,
                 )
             except Exception as exc:
                 logger.warning("place_image_cache_invalid", key=key, error=str(exc))
 
-        image = await self._resolve_live(args)
-        if image is None:
-            image = self._fixture(args, include_generic=False)
-            if image is not None:
+        resolved_image = await self._resolve_live(args)
+        if resolved_image is None:
+            resolved_image = self._fixture(args, include_generic=False)
+            if resolved_image is not None:
                 logger.warning("place_image_degraded_to_fixture", name=args.name, key=key)
-        if image is not None:
+        if resolved_image is not None:
             try:
-                await put_cached(self._SOURCE, key, [image.model_dump(mode="json")])
+                await put_cached(self._SOURCE, key, [resolved_image.model_dump(mode="json")])
             except Exception as exc:
                 logger.warning("place_image_cache_write_failed", key=key, error=str(exc))
-        return image
+        return resolved_image
 
     async def _resolve_live(self, args: PlaceImageInput) -> PlaceImage | None:
         for fetcher in (self._fetch_commons, self._fetch_openverse):
@@ -264,8 +264,10 @@ def _looks_like_place_image(image: PlaceImage, args: PlaceImageInput) -> bool:
 
 def _meta_value(meta: dict[str, Any], key: str) -> str | None:
     raw = meta.get(key)
-    if isinstance(raw, dict) and isinstance(raw.get("value"), str):
-        return raw["value"]
+    if isinstance(raw, dict):
+        value = raw.get("value")
+        if isinstance(value, str):
+            return value
     return None
 
 

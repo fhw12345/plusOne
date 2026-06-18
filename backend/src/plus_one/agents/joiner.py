@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 import re
-from typing import Any, cast
+from typing import Any, Literal, cast
 from uuid import UUID  # noqa: TC003 - runtime use as Pydantic field annotation
 
 import structlog
@@ -32,6 +32,8 @@ from plus_one.core.tools.place_images import PlaceImageInput, PlaceImageResolver
 from plus_one.core.tools.xiaohongshu import assess_xhs_authenticity
 
 logger = structlog.get_logger()
+
+EvidenceSource = Literal["reddit", "xiaohongshu", "foursquare"]
 
 
 class JoinedItem(BaseModel):
@@ -389,6 +391,10 @@ def _coerce_joined_items(raw_items: list[Any]) -> tuple[list[JoinedItem], int]:
     items: list[JoinedItem] = []
     invalid = 0
     for index, raw in enumerate(raw_items):
+        if not isinstance(raw, dict):
+            logger.warning("joiner_item_dropped", index=index, reason="not_object")
+            invalid += 1
+            continue
         item = _coerce_joined_item(raw, index)
         if item is None:
             invalid += 1
@@ -398,9 +404,6 @@ def _coerce_joined_items(raw_items: list[Any]) -> tuple[list[JoinedItem], int]:
 
 
 def _coerce_joined_item(raw: dict[str, Any], index: int) -> JoinedItem | None:
-    if not isinstance(raw, dict):
-        logger.warning("joiner_item_dropped", index=index, reason="not_object")
-        return None
     data = dict(raw)
     candidate = _normalise_candidate(data.get("candidate"), data)
     if candidate is None:
@@ -553,17 +556,15 @@ def _normalise_evidence(raw: object) -> list[dict[str, object]]:
     return evidence
 
 
-def _normalise_source(raw: object) -> str | None:
+def _normalise_source(raw: object) -> EvidenceSource | None:
     if not isinstance(raw, str):
         return None
     key = raw.strip().lower().replace("-", "_").replace(" ", "_")
-    if key in {"reddit", "reddit_search", "xiaohongshu", "foursquare"}:
-        if key == "reddit_search":
-            return "reddit"
-        return key
-    if key in {"xhs", "xhs_search", "redbook", "little_red_book"}:
+    if key in {"reddit", "reddit_search"}:
+        return "reddit"
+    if key in {"xiaohongshu", "xhs", "xhs_search", "redbook", "little_red_book"}:
         return "xiaohongshu"
-    if key in {"places", "places_search", "place", "foursquare_places"}:
+    if key in {"foursquare", "places", "places_search", "place", "foursquare_places"}:
         return "foursquare"
     return None
 
@@ -577,10 +578,10 @@ def _normalise_match_scores(raw: object) -> dict[str, float] | None:
     for key, value in raw.items():
         if value is None:
             continue
-        try:
-            scores[str(key)] = _clamp_float(value, default=0.5)
-        except (TypeError, ValueError):
+        score = _clamp_float(value, default=0.5)
+        if score is None:
             continue
+        scores[str(key)] = score
     return scores or None
 
 
@@ -861,7 +862,7 @@ def _fallback_evidence(results: list[Any]) -> list[Evidence]:
             snippet = _trim_text(f"{title}: {body}", 500)
             evidence.append(
                 Evidence(
-                    source=source,  # type: ignore[arg-type]
+                    source=source,
                     url=str(url),
                     snippet=snippet,
                     sentiment=None if source == "foursquare" else _fallback_sentiment(snippet),
