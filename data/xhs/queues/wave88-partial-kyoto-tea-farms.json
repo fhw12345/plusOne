@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave88_partial_kyoto_tea_farms",
+  "items": [
+    {
+      "candidate": "D-matcha Kyoto Tea Farm Café (Wazuka day trip)",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["d matcha 和束", "D-matcha Kyoto", "和束茶园"],
+      "queries": [
+        "京都 d matcha 和束 茶园体验",
+        "京都 d matcha 和束 真实体验",
+        "京都 d matcha Kyoto tea farm review",
+        "京都 和束 茶园 d matcha",
+        "京都 d matcha 和束 抹茶"
+      ]
+    },
+    {
+      "candidate": "Salon de The Maeda-en / Kyoto Obubu Tea Farms tasting",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["Obubu 茶园", "Kyoto Obubu Tea Farms", "前田园"],
+      "queries": [
+        "京都 和束 茶园 Obubu 真实体验",
+        "京都 Obubu Tea Farms 茶园体验",
+        "京都 Obubu 茶园 茶道体验",
+        "京都 Kyoto Obubu Tea Farms review",
+        "京都 前田园 茶室 真实体验"
+      ]
+    }
+  ]
+}

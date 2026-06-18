@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave36_kyoto_hakone_tokyo_high_yield",
+  "items": [
+    {
+      "candidate": "D-matcha Kyoto Tea Farm Café (Wazuka day trip)",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["d matcha", "D-matcha", "和束茶园", "d matcha 和束"],
+      "queries": [
+        "京都 d matcha 和束 茶室推荐",
+        "京都 d matcha 和束 真实体验",
+        "京都 D-matcha 茶园",
+        "京都 和束 茶园 d matcha",
+        "京都 d matcha 避雷"
+      ]
+    },
+    {
+      "candidate": "Marukyu Koyamaen Nishinotoin Tea House",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["丸久小山园", "西洞院茶房", "Marukyu Koyamaen"],
+      "queries": [
+        "京都 丸久小山园 西洞院 茶房 茶室推荐",
+        "京都 丸久小山园 西洞院 抹茶",
+        "京都 Marukyu Koyamaen tea house",
+        "京都 丸久小山园 真实体验",
+        "京都 丸久小山园 避雷"
+      ]
+    },
+    {
+      "candidate": "Tenzan Tohji-kyo",
+      "category": "attraction",
+      "destinations": ["Hakone, Japan", "Hakone"],
+      "aliases": ["天山汤治乡", "箱根天山", "Tenzan Tohji-kyo"],
+      "queries": [
+        "箱根 天山汤治乡 本地人必去景点推荐",
+        "箱根 天山汤治乡 温泉",
+        "箱根 箱根天山 真实体验",
+        "箱根 Tenzan Tohji-kyo",
+        "箱根 天山汤治乡 避雷"
+      ]
+    },
+    {
+      "candidate": "Hatajuku yosegi-zaiku workshops",
+      "category": "attraction",
+      "destinations": ["Hakone"],
+      "aliases": ["畑宿寄木细工", "箱根寄木细工", "Hatajuku yosegi"],
+      "queries": [
+        "箱根 畑宿 寄木细工 本地人必去景点推荐",
+        "箱根 寄木细工 体验",
+        "箱根 畑宿 寄木细工 真实体验",
+        "箱根 Hatajuku yosegi",
+        "箱根 寄木细工 避雷"
+      ]
+    },
+    {
+      "candidate": "Tomita",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["とみ田", "富田拉面", "Tomita ramen"],
+      "queries": [
+        "东京 とみ田 拉面推荐",
+        "东京 富田拉面 美食推荐",
+        "东京 Tomita ramen",
+        "东京 とみ田 真实体验",
+        "东京 とみ田 避雷"
+      ]
+    },
+    {
+      "candidate": "Tsuta",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["蔦拉面", "Japanese Soba Noodles 蔦", "Tsuta ramen"],
+      "queries": [
+        "东京 蔦拉面 拉面推荐",
+        "东京 Japanese Soba Noodles 蔦",
+        "东京 Tsuta ramen",
+        "东京 蔦拉面 真实体验",
+        "东京 蔦拉面 避雷"
+      ]
+    }
+  ]
+}

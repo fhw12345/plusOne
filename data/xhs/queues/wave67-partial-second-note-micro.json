@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave67_partial_second_note_distinct_note_rotation",
+  "items": [
+    {
+      "candidate": "Camellia Garden Tea Ceremony",
+      "category": "attraction",
+      "destinations": ["Kyoto"],
+      "aliases": ["Camellia", "山茶花茶道", "京都茶道体验"],
+      "queries": [
+        "京都 山茶花茶道 真实体验",
+        "京都 Camellia 茶道 茶室推荐"
+      ]
+    },
+    {
+      "candidate": "Sunder Nursery",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Sunder Nursery", "桑达尔苗圃", "德里花园"],
+      "queries": [
+        "德里 Sunder Nursery 公园 真实体验",
+        "德里 桑达尔苗圃 小众景点"
+      ]
+    }
+  ]
+}

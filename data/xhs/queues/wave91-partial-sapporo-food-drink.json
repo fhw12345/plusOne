@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave91_partial_sapporo_food_drink",
+  "items": [
+    {
+      "candidate": "Hitsujitei",
+      "category": "drink",
+      "destinations": ["Sapporo"],
+      "aliases": ["羊亭", "ひつじ亭", "Hitsujitei"],
+      "queries": [
+        "札幌 ひつじ亭 真实体验",
+        "札幌 羊亭 本地人推荐",
+        "札幌 Hitsujitei review",
+        "札幌 ひつじ亭 氛围",
+        "札幌 羊亭 饮品推荐"
+      ]
+    },
+    {
+      "candidate": "Moon-Light (ムーンライト) / Susukino Ramen Yokocho fringe izakayas",
+      "category": "food",
+      "destinations": ["Sapporo"],
+      "aliases": ["ムーンライト", "薄野 拉面横丁 居酒屋", "Susukino Ramen Yokocho"],
+      "queries": [
+        "札幌 ムーンライト 居酒屋 真实体验",
+        "札幌 薄野 拉面横丁 居酒屋 攻略",
+        "札幌 Susukino Ramen Yokocho izakaya review",
+        "札幌 ムーンライト 美食推荐",
+        "札幌 薄野 拉面横丁 居酒屋 氛围"
+      ]
+    }
+  ]
+}

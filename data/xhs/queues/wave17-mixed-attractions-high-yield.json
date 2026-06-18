@@ -1,0 +1,89 @@
+{
+  "candidate_count": 6,
+  "query_count": 48,
+  "purpose": "wave17_remaining_high_yield_attractions",
+  "items": [
+    {
+      "candidate": "南禅寺",
+      "category": "attraction",
+      "destinations": ["Kyoto"],
+      "aliases": ["南禅寺"],
+      "queries": [
+        "京都 南禅寺 本地人必去景点推荐",
+        "京都 南禅寺 小众景点",
+        "京都 南禅寺 真实体验",
+        "京都 南禅寺 值得去吗",
+        "京都 南禅寺 避雷"
+      ]
+    },
+    {
+      "candidate": "京都御苑",
+      "category": "attraction",
+      "destinations": ["Kyoto"],
+      "aliases": ["京都御苑", "京都御所"],
+      "queries": [
+        "京都 京都御苑 本地人必去景点推荐",
+        "京都 京都御所 本地人必去景点推荐",
+        "京都 京都御苑 小众景点",
+        "京都 京都御苑 真实体验",
+        "京都 京都御苑 值得去吗",
+        "京都 京都御苑 避雷"
+      ]
+    },
+    {
+      "candidate": "广州塔珠江夜游",
+      "category": "attraction",
+      "destinations": ["Guangzhou"],
+      "aliases": ["广州塔", "珠江夜游"],
+      "queries": [
+        "广州 广州塔 本地人必去景点推荐",
+        "广州 珠江夜游 本地人必去景点推荐",
+        "广州 广州塔珠江夜游 真实体验",
+        "广州 广州塔 值得去吗",
+        "广州 珠江夜游 值得去吗",
+        "广州 广州塔 避雷"
+      ]
+    },
+    {
+      "candidate": "Yuexiu Park & Zhenhai Tower",
+      "category": "attraction",
+      "destinations": ["Guangzhou, China"],
+      "aliases": ["越秀公园", "镇海楼"],
+      "queries": [
+        "广州 越秀公园 镇海楼 本地人必去景点推荐",
+        "广州 镇海楼 本地人必去景点推荐",
+        "广州 越秀公园 镇海楼 小众景点",
+        "广州 镇海楼 小众景点",
+        "广州 越秀公园 镇海楼 真实体验",
+        "广州 镇海楼 真实体验"
+      ]
+    },
+    {
+      "candidate": "武康路",
+      "category": "attraction",
+      "destinations": ["Shanghai"],
+      "aliases": ["武康路"],
+      "queries": [
+        "上海 武康路 本地人必去景点推荐",
+        "上海 武康路 小众景点",
+        "上海 武康路 真实体验",
+        "上海 武康路 值得去吗",
+        "上海 武康路 避雷"
+      ]
+    },
+    {
+      "candidate": "豫园城隍庙",
+      "category": "attraction",
+      "destinations": ["Shanghai"],
+      "aliases": ["豫园", "城隍庙"],
+      "queries": [
+        "上海 豫园 本地人必去景点推荐",
+        "上海 城隍庙 本地人必去景点推荐",
+        "上海 豫园城隍庙 真实体验",
+        "上海 豫园 小众景点",
+        "上海 城隍庙 小众景点",
+        "上海 豫园 避雷"
+      ]
+    }
+  ]
+}

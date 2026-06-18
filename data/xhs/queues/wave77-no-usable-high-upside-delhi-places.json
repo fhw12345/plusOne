@@ -1,0 +1,29 @@
+{
+  "candidate_count": 2,
+  "query_count": 6,
+  "purpose": "wave77_no_usable_high_upside_delhi_places",
+  "items": [
+    {
+      "candidate": "Champa Gali",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Champa Gali", "香帕加利", "Saket Champa Gali"],
+      "queries": [
+        "德里 Champa Gali 真实体验",
+        "德里 Champa Gali 咖啡 美食",
+        "德里 Saket Champa Gali 小红书推荐"
+      ]
+    },
+    {
+      "candidate": "Mehrauli Archaeological Park",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Mehrauli Archaeological Park", "梅赫劳利考古公园", "Mehrauli Park"],
+      "queries": [
+        "德里 Mehrauli Archaeological Park 真实体验",
+        "德里 Mehrauli 考古公园 小众景点",
+        "德里 梅赫劳利考古公园 攻略"
+      ]
+    }
+  ]
+}

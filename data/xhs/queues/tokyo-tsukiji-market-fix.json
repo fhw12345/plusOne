@@ -1,0 +1,21 @@
+{
+  "candidate_count": 1,
+  "query_count": 6,
+  "purpose": "tokyo_tsukiji_outer_market_food_fix",
+  "items": [
+    {
+      "candidate": "筑地场外市场",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["筑地市场", "築地場外市場", "Tsukiji Outer Market"],
+      "queries": [
+        "东京 筑地市场 海鲜丼",
+        "东京 筑地市场 玉子烧",
+        "东京 筑地市场 寿司 推荐",
+        "东京 筑地场外市场 吃什么",
+        "东京 Tsukiji Outer Market food",
+        "东京 筑地市场 避雷"
+      ]
+    }
+  ]
+}

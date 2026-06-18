@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave82_partial_dilli_haat_variants",
+  "items": [
+    {
+      "candidate": "Dilli Haat (INA)",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Dilli Haat INA", "Delhi Haat INA", "德里手工艺市场 INA"],
+      "queries": [
+        "德里 Dilli Haat INA street food",
+        "德里 Dilli Haat INA 真实体验",
+        "Delhi Dilli Haat INA food review",
+        "Delhi Haat INA market food",
+        "德里手工艺市场 INA 街头小吃"
+      ]
+    },
+    {
+      "candidate": "Dilli Haat",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Dilli Haat", "Delhi Haat", "德里手工艺市场"],
+      "queries": [
+        "德里 Dilli Haat street food",
+        "德里 Dilli Haat 真实体验",
+        "Delhi Dilli Haat food review",
+        "Delhi Haat market food",
+        "德里手工艺市场 街头小吃"
+      ]
+    }
+  ]
+}

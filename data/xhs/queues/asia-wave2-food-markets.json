@@ -1,0 +1,199 @@
+{
+  "candidate_count": 12,
+  "query_count": 60,
+  "purpose": "asia_wave2_expand_each_city_food_market_coverage",
+  "items": [
+    {
+      "candidate": "道顿堀",
+      "category": "food",
+      "destinations": [
+        "Osaka"
+      ],
+      "aliases": [],
+      "queries": [
+        "大阪 道顿堀 美食推荐",
+        "大阪 道顿堀 本地人推荐",
+        "大阪 道顿堀 真实体验",
+        "大阪 道顿堀 值得吃吗",
+        "大阪 道顿堀 避雷"
+      ]
+    },
+    {
+      "candidate": "广藏市场",
+      "category": "food",
+      "destinations": [
+        "Seoul"
+      ],
+      "aliases": [
+        "광장시장"
+      ],
+      "queries": [
+        "首尔 广藏市场 美食推荐",
+        "首尔 광장시장 美食推荐",
+        "首尔 广藏市场 本地人推荐",
+        "首尔 广藏市场 真实体验",
+        "首尔 广藏市场 避雷"
+      ]
+    },
+    {
+      "candidate": "永康牛肉面",
+      "category": "food",
+      "destinations": [
+        "Taipei"
+      ],
+      "aliases": [],
+      "queries": [
+        "台北 永康牛肉面 美食推荐",
+        "台北 永康牛肉面 本地人推荐",
+        "台北 永康牛肉面 真实体验",
+        "台北 永康牛肉面 值得吃吗",
+        "台北 永康牛肉面 避雷"
+      ]
+    },
+    {
+      "candidate": "九记牛腩",
+      "category": "food",
+      "destinations": [
+        "Hong Kong"
+      ],
+      "aliases": [],
+      "queries": [
+        "香港 九记牛腩 美食推荐",
+        "香港 九记牛腩 本地人推荐",
+        "香港 九记牛腩 真实体验",
+        "香港 九记牛腩 值得吃吗",
+        "香港 九记牛腩 避雷"
+      ]
+    },
+    {
+      "candidate": "亚坤",
+      "category": "food",
+      "destinations": [
+        "Singapore"
+      ],
+      "aliases": [
+        "亚坤咖椰吐司"
+      ],
+      "queries": [
+        "新加坡 亚坤 美食推荐",
+        "新加坡 亚坤 本地人推荐",
+        "新加坡 亚坤咖椰吐司 真实体验",
+        "新加坡 亚坤 值得吃吗",
+        "新加坡 亚坤 避雷"
+      ]
+    },
+    {
+      "candidate": "Thipsamai",
+      "category": "food",
+      "destinations": [
+        "Bangkok"
+      ],
+      "aliases": [
+        "Thipsamai Pad Thai",
+        "Thipsamai泰式炒粉"
+      ],
+      "queries": [
+        "曼谷 Thipsamai 美食推荐",
+        "曼谷 Thipsamai 本地人推荐",
+        "曼谷 Thipsamai Pad Thai 真实体验",
+        "曼谷 泰式炒粉 Thipsamai 值得吃吗",
+        "曼谷 Thipsamai 避雷"
+      ]
+    },
+    {
+      "candidate": "新世界串炸",
+      "category": "food",
+      "destinations": [
+        "Osaka"
+      ],
+      "aliases": [
+        "新世界",
+        "串炸"
+      ],
+      "queries": [
+        "大阪 新世界串炸 美食推荐",
+        "大阪 新世界 串炸 本地人推荐",
+        "大阪 新世界串炸 真实体验",
+        "大阪 新世界串炸 值得吃吗",
+        "大阪 新世界串炸 避雷"
+      ]
+    },
+    {
+      "candidate": "南大门市场",
+      "category": "food",
+      "destinations": [
+        "Seoul"
+      ],
+      "aliases": [
+        "남대문시장"
+      ],
+      "queries": [
+        "首尔 南大门市场 美食推荐",
+        "首尔 남대문시장 美食推荐",
+        "首尔 南大门市场 本地人推荐",
+        "首尔 南大门市场 真实体验",
+        "首尔 南大门市场 避雷"
+      ]
+    },
+    {
+      "candidate": "宁夏夜市",
+      "category": "food",
+      "destinations": [
+        "Taipei"
+      ],
+      "aliases": [],
+      "queries": [
+        "台北 宁夏夜市 美食推荐",
+        "台北 宁夏夜市 本地人推荐",
+        "台北 宁夏夜市 真实体验",
+        "台北 宁夏夜市 值得吃吗",
+        "台北 宁夏夜市 避雷"
+      ]
+    },
+    {
+      "candidate": "澳洲牛奶公司",
+      "category": "food",
+      "destinations": [
+        "Hong Kong"
+      ],
+      "aliases": [],
+      "queries": [
+        "香港 澳洲牛奶公司 美食推荐",
+        "香港 澳洲牛奶公司 本地人推荐",
+        "香港 澳洲牛奶公司 真实体验",
+        "香港 澳洲牛奶公司 值得吃吗",
+        "香港 澳洲牛奶公司 避雷"
+      ]
+    },
+    {
+      "candidate": "松发肉骨茶",
+      "category": "food",
+      "destinations": [
+        "Singapore"
+      ],
+      "aliases": [],
+      "queries": [
+        "新加坡 松发肉骨茶 美食推荐",
+        "新加坡 松发肉骨茶 本地人推荐",
+        "新加坡 松发肉骨茶 真实体验",
+        "新加坡 松发肉骨茶 值得吃吗",
+        "新加坡 松发肉骨茶 避雷"
+      ]
+    },
+    {
+      "candidate": "水门鸡饭",
+      "category": "food",
+      "destinations": [
+        "Bangkok"
+      ],
+      "aliases": [],
+      "queries": [
+        "曼谷 水门鸡饭 美食推荐",
+        "曼谷 水门鸡饭 本地人推荐",
+        "曼谷 水门鸡饭 真实体验",
+        "曼谷 水门鸡饭 值得吃吗",
+        "曼谷 水门鸡饭 避雷"
+      ]
+    }
+  ]
+}

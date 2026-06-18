@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave69_partial_deep_search_for_second_unique_note",
+  "items": [
+    {
+      "candidate": "Bayun (Baiyun) Mountain — Mingchun Valley side",
+      "category": "attraction",
+      "destinations": ["guangzhou"],
+      "aliases": ["白云山明春谷", "明春谷"],
+      "queries": [
+        "广州 白云山 明春谷 真实体验",
+        "广州 明春谷 孔雀 小众景点"
+      ]
+    },
+    {
+      "candidate": "Amal Women's Training Center restaurant",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["Amal", "Amal restaurant", "Amal Women's Training Center"],
+      "queries": [
+        "马拉喀什 Amal restaurant 真实体验",
+        "马拉喀什 Amal Women's Training Center 餐厅 攻略"
+      ]
+    }
+  ]
+}

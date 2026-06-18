@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave93_no_usable_high_density_delhi_tokyo",
+  "items": [
+    {
+      "candidate": "Lodhi Art District",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Lodhi Art District", "洛迪艺术区", "Lodi Art District"],
+      "queries": [
+        "德里 Lodhi Art District 真实体验",
+        "德里 Lodhi Art District 攻略",
+        "Delhi Lodhi Art District street art review",
+        "德里 洛迪艺术区 街头艺术",
+        "德里 Lodi Art District 小众景点"
+      ]
+    },
+    {
+      "candidate": "Chuka Soba Inoue",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["中華そば井上", "筑地 井上 拉面", "Chuka Soba Inoue"],
+      "queries": [
+        "东京 中華そば井上 真实体验",
+        "东京 筑地 井上 拉面 真实体验",
+        "东京 Chuka Soba Inoue review",
+        "东京 筑地市场 井上拉面",
+        "东京 中華そば井上 值得吃吗"
+      ]
+    }
+  ]
+}

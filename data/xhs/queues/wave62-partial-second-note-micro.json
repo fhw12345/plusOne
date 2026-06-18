@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave62_partial_second_note_delhi_sapporo",
+  "items": [
+    {
+      "candidate": "Sunder Nursery",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["桑达尔苗圃", "Sunder Nursery", "Sundar Nursery"],
+      "queries": [
+        "德里 Sunder Nursery 真实体验",
+        "德里 桑达尔苗圃 小众景点"
+      ]
+    },
+    {
+      "candidate": "Ramen Yokocho izakaya alleys (Gansō vs. Shin)",
+      "category": "food",
+      "destinations": ["Sapporo"],
+      "aliases": ["元祖拉面横丁", "新拉面横丁", "薄野拉面横丁"],
+      "queries": [
+        "札幌 薄野 拉面横丁 拉面店推荐",
+        "札幌 元祖拉面横丁 新拉面横丁 排队拉面"
+      ]
+    }
+  ]
+}

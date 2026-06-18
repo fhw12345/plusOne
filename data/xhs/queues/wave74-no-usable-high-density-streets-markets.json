@@ -1,0 +1,29 @@
+{
+  "candidate_count": 2,
+  "query_count": 6,
+  "purpose": "wave74_no_usable_high_density_streets_markets",
+  "items": [
+    {
+      "candidate": "愚园路",
+      "category": "attraction",
+      "destinations": ["Shanghai"],
+      "aliases": ["愚园路", "上海愚园路", "愚园路citywalk"],
+      "queries": [
+        "上海 愚园路 citywalk 真实体验",
+        "上海 愚园路 小众景点",
+        "上海 愚园路 咖啡 美食 攻略"
+      ]
+    },
+    {
+      "candidate": "诺丁山波托贝洛市场",
+      "category": "attraction",
+      "destinations": ["London"],
+      "aliases": ["Portobello Market", "诺丁山波托贝洛市场", "波托贝洛市场"],
+      "queries": [
+        "伦敦 Portobello Market 真实体验",
+        "伦敦 诺丁山 波托贝洛市场 美食攻略",
+        "伦敦 Portobello Road Market 周末市集"
+      ]
+    }
+  ]
+}

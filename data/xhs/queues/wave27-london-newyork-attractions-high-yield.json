@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave27_untouched_london_newyork_attractions_high_yield",
+  "items": [
+    {
+      "candidate": "格林尼治",
+      "category": "attraction",
+      "destinations": ["London"],
+      "aliases": ["格林尼治", "Greenwich"],
+      "queries": [
+        "伦敦 格林尼治 本地人必去景点推荐",
+        "伦敦 格林尼治 小众路线",
+        "伦敦 格林尼治 真实体验",
+        "伦敦 Greenwich citywalk",
+        "伦敦 格林尼治 避雷"
+      ]
+    },
+    {
+      "candidate": "中央公园",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["中央公园", "Central Park"],
+      "queries": [
+        "纽约 中央公园 本地人必去景点推荐",
+        "纽约 中央公园 小众路线",
+        "纽约 中央公园 真实体验",
+        "纽约 Central Park 值得去吗",
+        "纽约 中央公园 避雷"
+      ]
+    },
+    {
+      "candidate": "大都会艺术博物馆",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["大都会艺术博物馆", "The Met", "Metropolitan Museum of Art"],
+      "queries": [
+        "纽约 大都会艺术博物馆 本地人必去景点推荐",
+        "纽约 大都会艺术博物馆 小众路线",
+        "纽约 大都会艺术博物馆 真实体验",
+        "纽约 The Met 值得去吗",
+        "纽约 大都会艺术博物馆 避雷"
+      ]
+    },
+    {
+      "candidate": "纽约现代艺术博物馆",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["纽约现代艺术博物馆", "MoMA", "Museum of Modern Art"],
+      "queries": [
+        "纽约 纽约现代艺术博物馆 本地人必去景点推荐",
+        "纽约 纽约现代艺术博物馆 小众路线",
+        "纽约 纽约现代艺术博物馆 真实体验",
+        "纽约 MoMA 值得去吗",
+        "纽约 纽约现代艺术博物馆 避雷"
+      ]
+    },
+    {
+      "candidate": "高线公园",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["高线公园", "High Line"],
+      "queries": [
+        "纽约 高线公园 本地人必去景点推荐",
+        "纽约 高线公园 小众路线",
+        "纽约 高线公园 真实体验",
+        "纽约 High Line 值得去吗",
+        "纽约 高线公园 避雷"
+      ]
+    },
+    {
+      "candidate": "布鲁克林大桥",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["布鲁克林大桥", "Brooklyn Bridge"],
+      "queries": [
+        "纽约 布鲁克林大桥 本地人必去景点推荐",
+        "纽约 布鲁克林大桥 小众机位",
+        "纽约 布鲁克林大桥 真实体验",
+        "纽约 Brooklyn Bridge 值得去吗",
+        "纽约 布鲁克林大桥 避雷"
+      ]
+    }
+  ]
+}

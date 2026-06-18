@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave59_partial_second_note_sapporo_kyoto",
+  "items": [
+    {
+      "candidate": "Craft beer bar Mugishutei (麦酒停)",
+      "category": "drink",
+      "destinations": ["Sapporo"],
+      "aliases": ["麦酒停", "Beer Inn Mugishutei", "Mugishutei"],
+      "queries": [
+        "札幌 麦酒停 本地人常去",
+        "札幌 Beer Inn Mugishutei craft beer"
+      ]
+    },
+    {
+      "candidate": "Camellia Tea Ceremony (Flower location)",
+      "category": "attraction",
+      "destinations": ["Kyoto"],
+      "aliases": ["Camellia Flower", "Camellia 茶道", "山茶花茶道"],
+      "queries": [
+        "京都 Camellia Flower 茶道 茶室推荐",
+        "京都 Camellia Flower 茶道 值得去吗"
+      ]
+    }
+  ]
+}

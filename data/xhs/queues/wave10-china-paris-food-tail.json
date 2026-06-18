@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave10_china_paris_food_drink_tail",
+  "items": [
+    {
+      "candidate": "Yongkang Lu",
+      "category": "drink",
+      "destinations": ["Shanghai, China"],
+      "aliases": ["永康路", "永康路酒吧"],
+      "queries": [
+        "上海 永康路 酒吧推荐",
+        "上海 永康路 咖啡酒吧",
+        "上海 永康路 本地人推荐",
+        "上海 永康路 真实体验",
+        "上海 永康路 避雷"
+      ]
+    },
+    {
+      "candidate": "花神咖啡馆",
+      "category": "drink",
+      "destinations": ["Paris"],
+      "aliases": ["Cafe de Flore", "Café de Flore"],
+      "queries": [
+        "巴黎 花神咖啡馆 咖啡推荐",
+        "巴黎 花神咖啡馆 本地人推荐",
+        "巴黎 Cafe de Flore",
+        "巴黎 花神咖啡馆 真实体验",
+        "巴黎 花神咖啡馆 避雷"
+      ]
+    },
+    {
+      "candidate": "双叟咖啡馆",
+      "category": "drink",
+      "destinations": ["Paris"],
+      "aliases": ["Les Deux Magots"],
+      "queries": [
+        "巴黎 双叟咖啡馆 咖啡推荐",
+        "巴黎 双叟咖啡馆 本地人推荐",
+        "巴黎 Les Deux Magots",
+        "巴黎 双叟咖啡馆 真实体验",
+        "巴黎 双叟咖啡馆 避雷"
+      ]
+    },
+    {
+      "candidate": "天使娜热巧克力",
+      "category": "drink",
+      "destinations": ["Paris"],
+      "aliases": ["Angelina", "安吉丽娜热巧克力"],
+      "queries": [
+        "巴黎 天使娜热巧克力 饮品推荐",
+        "巴黎 天使娜热巧克力 本地人推荐",
+        "巴黎 Angelina 热巧克力",
+        "巴黎 安吉丽娜热巧克力",
+        "巴黎 天使娜热巧克力 避雷"
+      ]
+    },
+    {
+      "candidate": "皮埃尔艾尔梅马卡龙",
+      "category": "food",
+      "destinations": ["Paris"],
+      "aliases": ["Pierre Herme", "Pierre Hermé"],
+      "queries": [
+        "巴黎 皮埃尔艾尔梅马卡龙 美食推荐",
+        "巴黎 皮埃尔艾尔梅马卡龙 本地人推荐",
+        "巴黎 Pierre Herme 马卡龙",
+        "巴黎 Pierre Hermé 甜品",
+        "巴黎 皮埃尔艾尔梅 避雷"
+      ]
+    },
+    {
+      "candidate": "巴黎左岸咖啡",
+      "category": "drink",
+      "destinations": ["Paris"],
+      "aliases": ["左岸咖啡"],
+      "queries": [
+        "巴黎 巴黎左岸咖啡 咖啡推荐",
+        "巴黎 左岸 咖啡店",
+        "巴黎 左岸咖啡 本地人推荐",
+        "巴黎 左岸咖啡 真实体验",
+        "巴黎 左岸咖啡 避雷"
+      ]
+    }
+  ]
+}

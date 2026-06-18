@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave49_micro_partials_after_wave48_success",
+  "items": [
+    {
+      "candidate": "Craft beer bar Mugishutei (麦酒停)",
+      "category": "drink",
+      "destinations": ["Sapporo"],
+      "aliases": ["麦酒停", "Beer Inn Mugishutei", "Mugishutei"],
+      "queries": [
+        "札幌 麦酒停 居酒屋推荐",
+        "札幌 麦酒停 本地人常去"
+      ]
+    },
+    {
+      "candidate": "Amal Women's Training Center restaurant",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["Amal", "Amal Women's Training Center", "Amal restaurant"],
+      "queries": [
+        "马拉喀什 Amal restaurant 美食推荐",
+        "马拉喀什 Amal restaurant 本地人推荐"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave9_newyork_high_density_food_tail_coverage",
+  "items": [
+    {
+      "candidate": "切尔西市场",
+      "category": "food",
+      "destinations": ["New York"],
+      "aliases": ["Chelsea Market"],
+      "queries": [
+        "纽约 切尔西市场 美食推荐",
+        "纽约 切尔西市场 街头小吃",
+        "纽约 Chelsea Market 美食",
+        "纽约 切尔西市场 本地人推荐",
+        "纽约 切尔西市场 避雷"
+      ]
+    },
+    {
+      "candidate": "Katz熟食店",
+      "category": "food",
+      "destinations": ["New York"],
+      "aliases": ["Katz Delicatessen", "Katz's Delicatessen"],
+      "queries": [
+        "纽约 Katz熟食店 美食推荐",
+        "纽约 Katz熟食店 本地人推荐",
+        "纽约 Katz Delicatessen pastrami",
+        "纽约 Katz熟食店 真实体验",
+        "纽约 Katz熟食店 避雷"
+      ]
+    },
+    {
+      "candidate": "Levain Bakery曲奇",
+      "category": "food",
+      "destinations": ["New York"],
+      "aliases": ["Levain Bakery"],
+      "queries": [
+        "纽约 Levain Bakery曲奇 美食推荐",
+        "纽约 Levain Bakery曲奇 本地人推荐",
+        "纽约 Levain Bakery cookie",
+        "纽约 Levain Bakery 真实体验",
+        "纽约 Levain Bakery 避雷"
+      ]
+    },
+    {
+      "candidate": "Joe's Pizza",
+      "category": "food",
+      "destinations": ["New York"],
+      "aliases": ["Joe's Pizza NYC", "纽约披萨 Joe's Pizza"],
+      "queries": [
+        "纽约 纽约披萨 Joe's Pizza 美食推荐",
+        "纽约 纽约披萨 Joe's Pizza 本地人推荐",
+        "纽约 Joe's Pizza NYC",
+        "纽约 Joe's Pizza 真实体验",
+        "纽约 Joe's Pizza 避雷"
+      ]
+    },
+    {
+      "candidate": "Los Tacos No.1",
+      "category": "food",
+      "destinations": ["New York"],
+      "aliases": ["Los Tacos No 1", "纽约墨西哥卷饼"],
+      "queries": [
+        "纽约 纽约墨西哥卷饼 美食推荐",
+        "纽约 Los Tacos No.1 美食推荐",
+        "纽约 Los Tacos No 1 本地人推荐",
+        "纽约 Los Tacos No.1 真实体验",
+        "纽约 Los Tacos No.1 避雷"
+      ]
+    },
+    {
+      "candidate": "法拉盛主街",
+      "category": "food",
+      "destinations": ["New York"],
+      "aliases": ["Flushing Main Street", "法拉盛"],
+      "queries": [
+        "纽约 法拉盛主街 美食推荐",
+        "纽约 法拉盛主街 本地人推荐",
+        "纽约 法拉盛 美食",
+        "纽约 Flushing Main Street food",
+        "纽约 法拉盛主街 避雷"
+      ]
+    }
+  ]
+}

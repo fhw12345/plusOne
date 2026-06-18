@@ -1,0 +1,29 @@
+{
+  "candidate_count": 2,
+  "query_count": 6,
+  "purpose": "wave100_swfc_maeda_second_note_after_alias_fix",
+  "items": [
+    {
+      "candidate": "Lujiazui SWFC observation deck",
+      "category": "attraction",
+      "destinations": ["Shanghai, China"],
+      "aliases": ["上海环球金融中心", "环球金融中心100层", "上海环球金融中心观光厅"],
+      "queries": [
+        "上海 环球金融中心 观光厅 夜景",
+        "上海 上海环球金融中心 真实体验",
+        "上海 环球金融中心100层 攻略"
+      ]
+    },
+    {
+      "candidate": "Salon de The Maeda-en / Kyoto Obubu Tea Farms tasting",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["京都 Obubu 茶园", "前田园", "Maeda-en"],
+      "queries": [
+        "京都 Obubu 茶园 茶室推荐",
+        "京都 Obubu 茶园 本地人推荐",
+        "京都 前田园 茶室 真实体验"
+      ]
+    }
+  ]
+}

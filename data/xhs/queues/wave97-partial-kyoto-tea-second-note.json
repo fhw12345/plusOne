@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave97_partial_kyoto_tea_second_note",
+  "items": [
+    {
+      "candidate": "D-matcha Kyoto Tea Farm Café (Wazuka day trip)",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["d matcha 和束", "D-matcha Kyoto", "和束茶园"],
+      "queries": [
+        "京都 d matcha 和束 抹茶 真实体验",
+        "京都 d matcha 和束 茶园 一日游",
+        "京都 D-matcha Kyoto cafe review",
+        "京都 和束 d matcha 茶园体验",
+        "京都 d matcha 和束 值得去吗"
+      ]
+    },
+    {
+      "candidate": "Uji Tsuen Kyoto-ten",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["通圆 京都店", "宇治通圆", "Uji Tsuen Kyoto"],
+      "queries": [
+        "京都 宇治通圆 抹茶 美食推荐",
+        "京都 通圆 京都店 真实体验",
+        "京都 Uji Tsuen Kyoto tea review",
+        "京都 宇治通圆 值得吃吗",
+        "京都 通圆 京都店 本地人推荐"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "asia_wave6_tokyo_kyoto_food_tail_high_image_coverage",
+  "items": [
+    {
+      "candidate": "新宿思出横丁",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["思い出横丁", "思出横丁"],
+      "queries": [
+        "东京 思い出横丁 酒吧推荐",
+        "东京 新宿思出横丁 酒吧推荐",
+        "东京 思い出横丁 居酒屋推荐",
+        "东京 新宿思出横丁 真实体验",
+        "东京 新宿思出横丁 避雷"
+      ]
+    },
+    {
+      "candidate": "惠比寿横丁",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["恵比寿横丁"],
+      "queries": [
+        "东京 惠比寿横丁 酒吧推荐",
+        "东京 惠比寿横丁 居酒屋推荐",
+        "东京 恵比寿横丁 美食推荐",
+        "东京 惠比寿横丁 本地人推荐",
+        "东京 惠比寿横丁 避雷"
+      ]
+    },
+    {
+      "candidate": "人形町今半",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["今半"],
+      "queries": [
+        "东京 人形町今半 美食推荐",
+        "东京 人形町今半 本地人推荐",
+        "东京 今半 寿喜烧",
+        "东京 人形町今半 真实体验",
+        "东京 人形町今半 避雷"
+      ]
+    },
+    {
+      "candidate": "东京站拉面街",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["東京駅ラーメンストリート", "东京拉面街"],
+      "queries": [
+        "东京 东京站拉面街 拉面推荐",
+        "东京 东京站拉面街 拉面店推荐",
+        "东京 东京站拉面街 排队拉面",
+        "东京 東京駅ラーメンストリート",
+        "东京站拉面街 避雷"
+      ]
+    },
+    {
+      "candidate": "锦市场",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["錦市場"],
+      "queries": [
+        "京都 锦市场 美食推荐",
+        "京都 锦市场 街头小吃",
+        "京都 錦市場 美食推荐",
+        "京都 锦市场 本地人推荐",
+        "京都 锦市场 避雷"
+      ]
+    },
+    {
+      "candidate": "出町双叶",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["出町ふたば", "豆大福"],
+      "queries": [
+        "京都 出町ふたば 美食推荐",
+        "京都 出町双叶 美食推荐",
+        "京都 出町ふたば 豆大福",
+        "京都 出町双叶 本地人推荐",
+        "京都 出町双叶 避雷"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave19_untouched_seoul_attractions_high_yield",
+  "items": [
+    {
+      "candidate": "北村韩屋村",
+      "category": "attraction",
+      "destinations": ["Seoul"],
+      "aliases": ["北村韩屋村"],
+      "queries": ["首尔 北村韩屋村 本地人必去景点推荐", "首尔 北村韩屋村 小众景点", "首尔 北村韩屋村 真实体验", "首尔 北村韩屋村 值得去吗", "首尔 北村韩屋村 避雷"]
+    },
+    {
+      "candidate": "景福宫",
+      "category": "attraction",
+      "destinations": ["Seoul"],
+      "aliases": ["景福宫"],
+      "queries": ["首尔 景福宫 本地人必去景点推荐", "首尔 景福宫 小众景点", "首尔 景福宫 真实体验", "首尔 景福宫 值得去吗", "首尔 景福宫 避雷"]
+    },
+    {
+      "candidate": "汉南洞",
+      "category": "attraction",
+      "destinations": ["Seoul"],
+      "aliases": ["汉南洞"],
+      "queries": ["首尔 汉南洞 本地人必去景点推荐", "首尔 汉南洞 小众景点", "首尔 汉南洞 真实体验", "首尔 汉南洞 citywalk", "首尔 汉南洞 避雷"]
+    },
+    {
+      "candidate": "梨泰院",
+      "category": "attraction",
+      "destinations": ["Seoul"],
+      "aliases": ["梨泰院"],
+      "queries": ["首尔 梨泰院 本地人必去景点推荐", "首尔 梨泰院 小众景点", "首尔 梨泰院 真实体验", "首尔 梨泰院 值得去吗", "首尔 梨泰院 避雷"]
+    },
+    {
+      "candidate": "乙支路",
+      "category": "attraction",
+      "destinations": ["Seoul"],
+      "aliases": ["乙支路"],
+      "queries": ["首尔 乙支路 本地人必去景点推荐", "首尔 乙支路 小众景点", "首尔 乙支路 真实体验", "首尔 乙支路 citywalk", "首尔 乙支路 避雷"]
+    },
+    {
+      "candidate": "新沙洞林荫道",
+      "category": "attraction",
+      "destinations": ["Seoul"],
+      "aliases": ["新沙洞林荫道", "林荫道"],
+      "queries": ["首尔 新沙洞林荫道 本地人必去景点推荐", "首尔 林荫道 小众景点", "首尔 新沙洞林荫道 真实体验", "首尔 新沙洞林荫道 值得去吗", "首尔 新沙洞林荫道 避雷"]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave89_partial_marrakech_markets_food",
+  "items": [
+    {
+      "candidate": "Mechoui Alley",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["Mechoui Alley", "烤羊街", "Chez Lamine"],
+      "queries": [
+        "马拉喀什 Mechoui Alley 烤羊 攻略",
+        "马拉喀什 Chez Lamine 烤羊 真实体验",
+        "马拉喀什 烤羊街 美食推荐",
+        "Marrakech Mechoui Alley review",
+        "马拉喀什 羊肉 烤羊 Chez Lamine"
+      ]
+    },
+    {
+      "candidate": "Souk Bab Doukkala / Mellah market (Place des Ferblantiers area)",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["Mellah market", "Bab Doukkala", "Place des Ferblantiers"],
+      "queries": [
+        "马拉喀什 Mellah spice market 真实体验",
+        "马拉喀什 Mellah 市场 街头小吃",
+        "马拉喀什 Place des Ferblantiers 市场",
+        "Marrakech Mellah market review",
+        "马拉喀什 Bab Doukkala 市集 攻略"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "candidate_count": 12,
+  "query_count": 60,
+  "purpose": "asia_wave7_kyoto_tea_cafe_food_high_image_coverage",
+  "items": [
+    {
+      "candidate": "D&Department Kyoto (in Bukkoji temple grounds)",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["D&Department Kyoto", "佛光寺 D&Department"],
+      "queries": [
+        "京都 佛光寺 D&Department 美食推荐",
+        "京都 D&Department Kyoto 咖啡",
+        "京都 佛光寺 D&Department 本地人推荐",
+        "京都 D&Department Kyoto 真实体验",
+        "京都 佛光寺 D&Department 避雷"
+      ]
+    },
+    {
+      "candidate": "D-matcha Kyoto Tea Farm (Wazuka)",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["d matcha", "d:matcha", "和束 d matcha"],
+      "queries": [
+        "京都 d matcha 和束 茶室推荐",
+        "京都 d matcha 抹茶 体验",
+        "京都 d matcha 和束 本地人推荐",
+        "京都 d matcha 和束 真实体验",
+        "京都 d matcha 和束 避雷"
+      ]
+    },
+    {
+      "candidate": "中村藤吉本店",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["中村藤吉", "中村藤吉宇治本店"],
+      "queries": [
+        "京都 中村藤吉本店 美食推荐",
+        "京都 中村藤吉本店 本地人推荐",
+        "京都 中村藤吉 抹茶",
+        "京都 中村藤吉本店 真实体验",
+        "京都 中村藤吉本店 避雷"
+      ]
+    },
+    {
+      "candidate": "茶寮都路里",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["都路里", "茶寮都路里祇园"],
+      "queries": [
+        "京都 茶寮都路里 茶室推荐",
+        "京都 茶寮都路里 本地人推荐",
+        "京都 都路里 抹茶",
+        "京都 茶寮都路里 真实体验",
+        "京都 茶寮都路里 避雷"
+      ]
+    },
+    {
+      "candidate": "键善良房",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["鍵善良房", "键善良房葛切"],
+      "queries": [
+        "京都 鍵善良房 美食推荐",
+        "京都 键善良房 美食推荐",
+        "京都 键善良房 葛切",
+        "京都 鍵善良房 本地人推荐",
+        "京都 键善良房 避雷"
+      ]
+    },
+    {
+      "candidate": "京都智能咖啡",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["Smart Coffee", "スマート珈琲店"],
+      "queries": [
+        "京都 スマート珈琲店 咖啡推荐",
+        "京都 京都智能咖啡 咖啡推荐",
+        "京都 Smart Coffee 咖啡",
+        "京都 スマート珈琲店 本地人推荐",
+        "京都 京都智能咖啡 避雷"
+      ]
+    },
+    {
+      "candidate": "一保堂茶铺",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["一保堂", "Ippodo Tea"],
+      "queries": [
+        "京都 一保堂 茶室推荐",
+        "京都 一保堂茶铺 茶室推荐",
+        "京都 一保堂 抹茶",
+        "京都 一保堂 本地人推荐",
+        "京都 一保堂 避雷"
+      ]
+    },
+    {
+      "candidate": "Ippodo Tea Main Store",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["一保堂茶铺 本店", "Ippodo Tea Kyoto"],
+      "queries": [
+        "京都 一保堂茶铺 本店 茶室推荐",
+        "京都 Ippodo Tea Kyoto",
+        "京都 一保堂茶铺 本店 本地人推荐",
+        "京都 一保堂茶铺 本店 真实体验",
+        "京都 一保堂茶铺 本店 避雷"
+      ]
+    },
+    {
+      "candidate": "Tsujiri Honten",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["辻利总本店", "祇园辻利"],
+      "queries": [
+        "京都 辻利总本店 茶室推荐",
+        "京都 祇园辻利 茶室推荐",
+        "京都 辻利 抹茶",
+        "京都 辻利总本店 本地人推荐",
+        "京都 辻利总本店 避雷"
+      ]
+    },
+    {
+      "candidate": "Ujien Kissako-an",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["宇治园", "宇治園喫茶去"],
+      "queries": [
+        "京都 宇治园 喫茶去庵 茶室推荐",
+        "京都 宇治园 茶室推荐",
+        "京都 宇治园 抹茶",
+        "京都 宇治园 清水坂 茶室推荐",
+        "京都 宇治园 避雷"
+      ]
+    },
+    {
+      "candidate": "Salon de The François adjacent — Ogawa Coffee + tea side",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["弗朗索瓦咖啡馆", "小川咖啡"],
+      "queries": [
+        "京都 弗朗索瓦咖啡馆 茶室推荐",
+        "京都 小川咖啡 茶室推荐",
+        "京都 弗朗索瓦咖啡馆 本地人推荐",
+        "京都 小川咖啡 本地人推荐",
+        "京都 弗朗索瓦咖啡馆 避雷"
+      ]
+    },
+    {
+      "candidate": "Salon de The Maeda Coffee Myokenji-mae",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["前田咖啡", "前田咖啡妙显寺"],
+      "queries": [
+        "京都 前田咖啡 妙显寺 咖啡推荐",
+        "京都 前田咖啡 妙显寺 本地人推荐",
+        "京都 前田咖啡 咖啡",
+        "京都 前田咖啡 妙显寺 真实体验",
+        "京都 前田咖啡 妙显寺 避雷"
+      ]
+    }
+  ]
+}

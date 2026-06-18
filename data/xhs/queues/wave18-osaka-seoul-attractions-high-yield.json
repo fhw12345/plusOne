@@ -1,0 +1,49 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave18_untouched_osaka_seoul_attractions_high_yield",
+  "items": [
+    {
+      "candidate": "通天阁",
+      "category": "attraction",
+      "destinations": ["Osaka"],
+      "aliases": ["通天阁", "新世界"],
+      "queries": ["大阪 通天阁 本地人必去景点推荐", "大阪 新世界 通天阁 真实体验", "大阪 通天阁 小众景点", "大阪 通天阁 值得去吗", "大阪 通天阁 避雷"]
+    },
+    {
+      "candidate": "难波八阪神社",
+      "category": "attraction",
+      "destinations": ["Osaka"],
+      "aliases": ["难波八阪神社", "难波八坂神社"],
+      "queries": ["大阪 难波八阪神社 本地人必去景点推荐", "大阪 难波八坂神社 真实体验", "大阪 难波八阪神社 小众景点", "大阪 难波八坂神社 值得去吗", "大阪 难波八阪神社 避雷"]
+    },
+    {
+      "candidate": "梅田蓝天大厦",
+      "category": "attraction",
+      "destinations": ["Osaka"],
+      "aliases": ["梅田蓝天大厦", "空中庭园展望台"],
+      "queries": ["大阪 梅田蓝天大厦 本地人必去景点推荐", "大阪 空中庭园展望台 真实体验", "大阪 梅田蓝天大厦 小众景点", "大阪 梅田蓝天大厦 值得去吗", "大阪 梅田蓝天大厦 避雷"]
+    },
+    {
+      "candidate": "中崎町",
+      "category": "attraction",
+      "destinations": ["Osaka"],
+      "aliases": ["中崎町"],
+      "queries": ["大阪 中崎町 本地人必去景点推荐", "大阪 中崎町 小众景点", "大阪 中崎町 真实体验", "大阪 中崎町 值得去吗", "大阪 中崎町 避雷"]
+    },
+    {
+      "candidate": "圣水洞",
+      "category": "attraction",
+      "destinations": ["Seoul"],
+      "aliases": ["圣水洞", "Seongsu"],
+      "queries": ["首尔 圣水洞 本地人必去景点推荐", "首尔 圣水洞 小众景点", "首尔 圣水洞 真实体验", "首尔 Seongsu citywalk", "首尔 圣水洞 避雷"]
+    },
+    {
+      "candidate": "益善洞韩屋街",
+      "category": "attraction",
+      "destinations": ["Seoul"],
+      "aliases": ["益善洞", "益善洞韩屋街"],
+      "queries": ["首尔 益善洞韩屋街 本地人必去景点推荐", "首尔 益善洞 小众景点", "首尔 益善洞韩屋街 真实体验", "首尔 益善洞 值得去吗", "首尔 益善洞 避雷"]
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "candidate_count": 6,
+  "query_count": 24,
+  "purpose": "hard_partial_second_note_queries_with_local_language_variants",
+  "items": [
+    {
+      "candidate": "Uji Tsuen Kyoto-ten",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["通圓 京都店", "宇治通圆", "Uji Tsuen"],
+      "queries": [
+        "京都 通圓 京都店 抹茶 真实体验",
+        "京都 宇治通圆 京都站 茶 体验",
+        "Kyoto Uji Tsuen tea 小红书",
+        "京都 通圆 茶寮 抹茶"
+      ]
+    },
+    {
+      "candidate": "Karim's",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Karim's", "Karims", "Jama Masjid"],
+      "queries": [
+        "德里 Old Delhi Karim's kebab 真实体验",
+        "德里 Jama Masjid Karim mutton korma",
+        "Delhi Karim's kebab 小红书",
+        "德里 Karim's 老德里 烤肉"
+      ]
+    },
+    {
+      "candidate": "Champa Gali",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Champa Gali", "Jugmug Thela", "Saket"],
+      "queries": [
+        "德里 Champa Gali Jugmug Thela 真实体验",
+        "Delhi Jugmug Thela Champa Gali 小红书",
+        "德里 Champa Gali 文青咖啡厅",
+        "德里 Saket Champa Gali cafe"
+      ]
+    },
+    {
+      "candidate": "Mechoui Alley",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["Chez Lamine", "Mechoui", "烤羊"],
+      "queries": [
+        "马拉喀什 Chez Lamine Hadj Mustapha 真实体验",
+        "Marrakech Chez Lamine mechoui 小红书",
+        "马拉喀什 Mechoui Chez Lamine 羊肉",
+        "马拉喀什 Jemaa el-Fna 烤羊 Chez Lamine"
+      ]
+    },
+    {
+      "candidate": "Sunder Nursery",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Sunder Nursery", "Sundar Nursery", "Humayun"],
+      "queries": [
+        "德里 Sunder Nursery picnic 真实体验",
+        "Delhi Sunder Nursery garden 小红书",
+        "德里 Sunder Nursery heritage park",
+        "德里 Humayun 附近 Sunder Nursery"
+      ]
+    },
+    {
+      "candidate": "Nizamuddin Dargah Qawwali (Thursday evenings)",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Nizamuddin Dargah", "Qawwali", "Hazrat Nizamuddin"],
+      "queries": [
+        "德里 Nizamuddin Dargah Thursday qawwali 现场",
+        "Delhi Hazrat Nizamuddin qawwali 小红书",
+        "德里 Nizamuddin Dargah 晚上 音乐",
+        "德里 Nizamuddin qawwali night"
+      ]
+    }
+  ]
+}

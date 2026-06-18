@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave28_untouched_newyork_hakone_attractions_high_yield",
+  "items": [
+    {
+      "candidate": "DUMBO",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["DUMBO", "丹波", "布鲁克林DUMBO"],
+      "queries": [
+        "纽约 丹波 本地人必去景点推荐",
+        "纽约 DUMBO 小众机位",
+        "纽约 DUMBO 真实体验",
+        "纽约 布鲁克林DUMBO citywalk",
+        "纽约 DUMBO 避雷"
+      ]
+    },
+    {
+      "candidate": "西村",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["西村", "West Village"],
+      "queries": [
+        "纽约 西村 本地人必去景点推荐",
+        "纽约 西村 小众路线",
+        "纽约 西村 真实体验",
+        "纽约 West Village citywalk",
+        "纽约 西村 避雷"
+      ]
+    },
+    {
+      "candidate": "苏豪区",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["苏豪区", "SoHo"],
+      "queries": [
+        "纽约 苏豪区 本地人必去景点推荐",
+        "纽约 苏豪区 小众路线",
+        "纽约 苏豪区 真实体验",
+        "纽约 SoHo citywalk",
+        "纽约 苏豪区 避雷"
+      ]
+    },
+    {
+      "candidate": "纽约公共图书馆",
+      "category": "attraction",
+      "destinations": ["New York"],
+      "aliases": ["纽约公共图书馆", "New York Public Library", "NYPL"],
+      "queries": [
+        "纽约 纽约公共图书馆 本地人必去景点推荐",
+        "纽约 纽约公共图书馆 小众路线",
+        "纽约 纽约公共图书馆 真实体验",
+        "纽约 New York Public Library 值得去吗",
+        "纽约 纽约公共图书馆 避雷"
+      ]
+    },
+    {
+      "candidate": "Hakone Sightseeing Cruise (pirate ships)",
+      "category": "attraction",
+      "destinations": ["Hakone"],
+      "aliases": ["箱根海贼船", "Hakone Sightseeing Cruise", "芦之湖海贼船"],
+      "queries": [
+        "箱根 箱根海贼船 本地人必去景点推荐",
+        "箱根 芦之湖海贼船 小众路线",
+        "箱根 箱根海贼船 真实体验",
+        "箱根 Hakone Sightseeing Cruise 值得去吗",
+        "箱根 箱根海贼船 避雷"
+      ]
+    },
+    {
+      "candidate": "Pola Museum of Art",
+      "category": "attraction",
+      "destinations": ["Hakone"],
+      "aliases": ["POLA美术馆", "Pola Museum of Art", "箱根POLA美术馆"],
+      "queries": [
+        "箱根 POLA美术馆 本地人必去景点推荐",
+        "箱根 POLA美术馆 小众路线",
+        "箱根 POLA美术馆 真实体验",
+        "箱根 Pola Museum of Art 值得去吗",
+        "箱根 POLA美术馆 避雷"
+      ]
+    }
+  ]
+}

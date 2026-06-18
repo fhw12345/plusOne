@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave46_partial_second_note",
+  "items": [
+    {
+      "candidate": "Salon de The Maeda-en / Kyoto Obubu Tea Farms tasting",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["\u524d\u7530\u56ed", "Obubu \u8336\u56ed", "Maeda-en"],
+      "queries": [
+        "\u4eac\u90fd Obubu \u8336\u56ed \u8336\u9053\u4f53\u9a8c",
+        "\u4eac\u90fd \u524d\u7530\u56ed \u672c\u5730\u4eba\u63a8\u8350",
+        "\u4eac\u90fd Obubu \u8336\u56ed \u8336\u5ba4\u63a8\u8350",
+        "\u4eac\u90fd \u524d\u7530\u56ed \u907f\u96f7",
+        "\u4eac\u90fd Maeda-en tea"
+      ]
+    },
+    {
+      "candidate": "Souk Bab Doukkala / Mellah market (Place des Ferblantiers area)",
+      "category": "attraction",
+      "destinations": ["Marrakech"],
+      "aliases": ["\u675c\u5361\u62c9\u95e8 \u5e02\u96c6", "Mellah \u5e02\u573a", "Place des Ferblantiers"],
+      "queries": [
+        "\u9a6c\u62c9\u5580\u4ec0 \u675c\u5361\u62c9\u95e8 \u5e02\u96c6 \u503c\u5f97\u5403\u5417",
+        "\u9a6c\u62c9\u5580\u4ec0 Mellah \u5e02\u573a \u907f\u96f7",
+        "\u9a6c\u62c9\u5580\u4ec0 \u675c\u5361\u62c9\u95e8 \u5e02\u96c6 \u8857\u5934\u5c0f\u5403",
+        "\u9a6c\u62c9\u5580\u4ec0 Place des Ferblantiers",
+        "\u9a6c\u62c9\u5580\u4ec0 Mellah \u5e02\u573a \u7f8e\u98df\u63a8\u8350"
+      ]
+    },
+    {
+      "candidate": "Tsuki-no-Yu (Setsugetsuka area)",
+      "category": "attraction",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["\u6708\u4e4b\u6c64", "\u96ea\u6708\u82b1 \u6708\u4e4b\u6c64", "Tsuki-no-Yu"],
+      "queries": [
+        "\u7bb1\u6839 \u6708\u4e4b\u6c64 \u672c\u5730\u4eba\u63a8\u8350",
+        "\u7bb1\u6839 \u96ea\u6708\u82b1 \u6708\u4e4b\u6c64 \u907f\u96f7",
+        "\u7bb1\u6839 Tsuki-no-Yu",
+        "\u7bb1\u6839 \u6708\u4e4b\u6c64 \u5c0f\u4f17\u666f\u70b9",
+        "\u7bb1\u6839 \u96ea\u6708\u82b1 \u6708\u4e4b\u6c64 \u672c\u5730\u4eba\u63a8\u8350"
+      ]
+    },
+    {
+      "candidate": "Nizamuddin Dargah qawwali night",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["\u5c3c\u624e\u59c6\u4e01\u5723\u9675", "\u5361\u74e6\u529b", "Nizamuddin qawwali night"],
+      "queries": [
+        "\u5fb7\u91cc \u5c3c\u624e\u59c6\u4e01\u5723\u9675 \u5361\u74e6\u529b \u5c0f\u4f17\u666f\u70b9",
+        "\u5fb7\u91cc \u5c3c\u624e\u59c6\u4e01\u5723\u9675 \u907f\u96f7",
+        "\u5fb7\u91cc Nizamuddin Dargah qawwali night",
+        "\u5fb7\u91cc \u5c3c\u624e\u59c6\u4e01\u5723\u9675 \u503c\u5f97\u53bb\u5417",
+        "\u5fb7\u91cc Nizamuddin qawwali \u771f\u5b9e\u4f53\u9a8c"
+      ]
+    },
+    {
+      "candidate": "Ramen Yokocho izakaya alleys (Gans\u014d vs. Shin)",
+      "category": "food",
+      "destinations": ["Sapporo"],
+      "aliases": ["\u5143\u7956\u62c9\u9762\u6a2a\u4e01", "\u65b0\u62c9\u9762\u6a2a\u4e01", "\u8584\u91ce\u62c9\u9762\u6a2a\u4e01"],
+      "queries": [
+        "\u672d\u5e4c \u8584\u91ce \u62c9\u9762\u6a2a\u4e01 \u672c\u5730\u4eba\u63a8\u8350",
+        "\u672d\u5e4c \u5143\u7956\u62c9\u9762\u6a2a\u4e01 \u65b0\u62c9\u9762\u6a2a\u4e01 \u672c\u5730\u4eba\u63a8\u8350",
+        "\u672d\u5e4c \u8584\u91ce \u62c9\u9762\u6a2a\u4e01 \u62c9\u9762\u5e97\u63a8\u8350",
+        "\u672d\u5e4c \u5143\u7956\u62c9\u9762\u6a2a\u4e01 \u771f\u5b9e\u4f53\u9a8c",
+        "\u672d\u5e4c \u65b0\u62c9\u9762\u6a2a\u4e01 \u62c9\u9762\u63a8\u8350"
+      ]
+    },
+    {
+      "candidate": "Sunder Nursery",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["\u6851\u8fbe\u5c14\u82d7\u5703", "Sunder Nursery", "Sundar Nursery"],
+      "queries": [
+        "\u5fb7\u91cc \u6851\u8fbe\u5c14\u82d7\u5703 \u672c\u5730\u4eba\u5fc5\u53bb\u666f\u70b9\u63a8\u8350",
+        "\u5fb7\u91cc Sunder Nursery \u907f\u96f7",
+        "\u5fb7\u91cc Sundar Nursery \u653b\u7565",
+        "\u5fb7\u91cc \u6851\u8fbe\u5c14\u82d7\u5703 \u5c0f\u4f17\u666f\u70b9",
+        "\u5fb7\u91cc Sunder Nursery \u503c\u5f97\u53bb\u5417"
+      ]
+    }
+  ]
+}

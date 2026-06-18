@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave81_partial_delhi_food_neighborhoods",
+  "items": [
+    {
+      "candidate": "Hauz Khas Village",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["豪兹卡斯村", "Hauz Khas Village", "豪兹卡斯"],
+      "queries": [
+        "德里 豪兹卡斯村 美食推荐",
+        "德里 豪兹卡斯村 本地人推荐",
+        "德里 豪兹卡斯村 真实体验",
+        "德里 Hauz Khas Village 餐厅 推荐",
+        "德里 Hauz Khas Village 真实体验"
+      ]
+    },
+    {
+      "candidate": "Karim's",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["卡里姆餐厅", "Karim's", "Karims Delhi"],
+      "queries": [
+        "德里 卡里姆餐厅 美食推荐",
+        "德里 卡里姆餐厅 本地人推荐",
+        "德里 卡里姆餐厅 真实体验",
+        "德里 Karim's 餐厅 推荐",
+        "德里 Karim's 餐厅 真实体验"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "candidate_count": 2,
+  "query_count": 6,
+  "purpose": "wave102_hakone_delhi_attractions_second_note",
+  "items": [
+    {
+      "candidate": "Tsuki-no-Yu (Setsugetsuka area)",
+      "category": "attraction",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["月之汤", "雪月花 月之汤", "季之汤雪月花"],
+      "queries": [
+        "箱根 雪月花 月之汤 真实体验",
+        "箱根 季之汤雪月花 温泉 体验",
+        "箱根 月之汤 温泉 攻略"
+      ]
+    },
+    {
+      "candidate": "Nizamuddin Dargah (Thursday qawwali)",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Nizamuddin Dargah qawwali", "Nizamuddin qawwali night", "尼扎姆丁圣陵 卡瓦力"],
+      "queries": [
+        "德里 Nizamuddin Dargah qawwali 攻略",
+        "Delhi Nizamuddin Dargah qawwali review",
+        "德里 Nizamuddin Thursday qawwali"
+      ]
+    }
+  ]
+}

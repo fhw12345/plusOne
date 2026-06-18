@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave84_partial_guangzhou_high_density",
+  "items": [
+    {
+      "candidate": "Yan Yan (沿沿) / Huifu East Road food street",
+      "category": "food",
+      "destinations": ["Guangzhou, China"],
+      "aliases": ["沿沿", "惠福东路美食街", "惠福东路"],
+      "queries": [
+        "广州 惠福东路 美食街 街头小吃",
+        "广州 惠福东路 美食街 攻略",
+        "广州 惠福东路 美食街 本地人推荐",
+        "广州 北京路 惠福东路 美食",
+        "广州 沿沿 真实体验"
+      ]
+    },
+    {
+      "candidate": "Bayun (Baiyun) Mountain — Mingchun Valley side",
+      "category": "attraction",
+      "destinations": ["Guangzhou"],
+      "aliases": ["白云山 明春谷", "明春谷", "Baiyun Mountain Mingchun Valley"],
+      "queries": [
+        "广州 白云山 明春谷 旅游攻略",
+        "广州 白云山 明春谷 真实体验",
+        "广州 明春谷 小众景点",
+        "广州 白云山 明春谷 值得去吗",
+        "广州 Baiyun Mountain Mingchun Valley review"
+      ]
+    }
+  ]
+}

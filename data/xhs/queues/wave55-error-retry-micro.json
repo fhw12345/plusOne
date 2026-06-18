@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave55_error_retry_marrakech",
+  "items": [
+    {
+      "candidate": "Mellah spice market (Place des Ferblantiers area)",
+      "category": "attraction",
+      "destinations": ["Marrakech"],
+      "aliases": ["Mellah 香料市场", "香料市场", "Place des Ferblantiers"],
+      "queries": [
+        "马拉喀什 Mellah 香料市场 真实体验",
+        "马拉喀什 香料市场 购物攻略"
+      ]
+    },
+    {
+      "candidate": "Mustapha's snail cart on Rue Riad Zitoun el-Kedim",
+      "category": "generic",
+      "destinations": ["Marrakech"],
+      "aliases": ["穆斯塔法 蜗牛摊", "蜗牛", "Rue Riad Zitoun el-Kedim"],
+      "queries": [
+        "马拉喀什 蜗牛 真实体验",
+        "马拉喀什 穆斯塔法 蜗牛摊 街头小吃"
+      ]
+    }
+  ]
+}

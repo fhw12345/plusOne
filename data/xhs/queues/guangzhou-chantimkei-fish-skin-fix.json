@@ -1,0 +1,21 @@
+{
+  "candidate_count": 1,
+  "query_count": 6,
+  "purpose": "guangzhou_chen_tian_ji_fish_skin_fix",
+  "items": [
+    {
+      "candidate": "陈添记鱼皮",
+      "category": "food",
+      "destinations": ["Guangzhou"],
+      "aliases": ["陈添记", "陈添记艇仔粥", "宝华路陈添记"],
+      "queries": [
+        "广州 陈添记 鱼皮 艇仔粥",
+        "广州 陈添记 宝华路 鱼皮",
+        "广州 陈添记 老字号",
+        "广州 陈添记 美食推荐",
+        "广州 宝华路 陈添记 美食",
+        "广州 陈添记 避雷"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave50_micro_partials_distinct_angles",
+  "items": [
+    {
+      "candidate": "Salon de The Maeda-en / Kyoto Obubu Tea Farms tasting",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["前田园", "Obubu 茶园", "Maeda-en"],
+      "queries": [
+        "京都 前田园 茶室推荐",
+        "京都 Obubu 茶园 本地人推荐"
+      ]
+    },
+    {
+      "candidate": "Nizamuddin Dargah (Thursday qawwali)",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["尼扎姆丁圣陵", "卡瓦力", "Nizamuddin qawwali"],
+      "queries": [
+        "德里 Nizamuddin qawwali 真实体验",
+        "德里 尼扎姆丁圣陵 卡瓦力 值得去吗"
+      ]
+    }
+  ]
+}

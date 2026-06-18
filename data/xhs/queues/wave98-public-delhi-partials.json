@@ -1,0 +1,29 @@
+{
+  "candidate_count": 2,
+  "query_count": 6,
+  "purpose": "wave98_public_desktop_delhi_partials",
+  "items": [
+    {
+      "candidate": "Dilli Haat",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Dilli Haat", "Delhi Haat", "Dilli Haat INA", "德里手工艺市场"],
+      "queries": [
+        "德里 Dilli Haat food review 真实体验",
+        "Delhi Dilli Haat INA food review",
+        "德里 Dilli Haat street food 攻略"
+      ]
+    },
+    {
+      "candidate": "Hauz Khas Village",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Hauz Khas Village", "Hauz Khas", "豪兹卡斯村"],
+      "queries": [
+        "德里 Hauz Khas Village food review 真实体验",
+        "Delhi Hauz Khas Village cafe restaurant review",
+        "德里 Hauz Khas Village 咖啡 酒吧 攻略"
+      ]
+    }
+  ]
+}

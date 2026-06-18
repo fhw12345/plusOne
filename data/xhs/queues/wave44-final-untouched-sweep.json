@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave44_final_untouched_sweep",
+  "items": [
+    {
+      "candidate": "Chandni Chowk parathe wali gali",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["\u6708\u5149\u96c6\u5e02", "\u5e15\u5170\u7279\u74e6\u5229\u8857", "Paranthe Wali Gali"],
+      "queries": [
+        "\u5fb7\u91cc \u6708\u5149\u96c6\u5e02 \u8857\u5934\u5c0f\u5403",
+        "\u5fb7\u91cc \u5e15\u5170\u7279\u74e6\u5229\u8857 \u771f\u5b9e\u4f53\u9a8c",
+        "\u5fb7\u91cc Chandni Chowk food walk",
+        "\u5fb7\u91cc Paranthe Wali Gali",
+        "\u5fb7\u91cc \u6708\u5149\u96c6\u5e02 \u7f8e\u98df\u63a8\u8350"
+      ]
+    },
+    {
+      "candidate": "Ippukudo (\u4e00\u798f\u5802)",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["\u4e00\u798f\u5802", "\u4e00\u798f\u8336\u5c4b", "Ippukudo"],
+      "queries": [
+        "\u4eac\u90fd \u4e00\u798f\u8336\u5c4b \u771f\u5b9e\u4f53\u9a8c",
+        "\u4eac\u90fd \u4e8c\u5e74\u5742 \u4e00\u798f\u5802 \u8336\u5c4b",
+        "\u4eac\u90fd \u6e05\u6c34\u5bfa \u4e00\u798f\u5802 \u62b9\u8336",
+        "\u4eac\u90fd Ippukudo matcha",
+        "\u4eac\u90fd \u4e00\u798f\u5802 \u907f\u96f7"
+      ]
+    },
+    {
+      "candidate": "Nizamuddin Dargah (Thursday qawwali)",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["\u5c3c\u624e\u59c6\u4e01\u5723\u9675", "\u5361\u74e6\u529b", "Nizamuddin Dargah"],
+      "queries": [
+        "\u5fb7\u91cc Nizamuddin Dargah qawwali",
+        "\u5fb7\u91cc \u5c3c\u624e\u59c6\u4e01\u5723\u9675 \u5361\u74e6\u529b \u771f\u5b9e\u4f53\u9a8c",
+        "\u5fb7\u91cc \u5c3c\u624e\u59c6\u4e01\u5723\u9675 \u5c0f\u4f17\u666f\u70b9",
+        "\u5fb7\u91cc Nizamuddin qawwali night",
+        "\u5fb7\u91cc \u5c3c\u624e\u59c6\u4e01\u5723\u9675 \u503c\u5f97\u53bb\u5417"
+      ]
+    },
+    {
+      "candidate": "Redtory / Yuexiu Park morning culture",
+      "category": "attraction",
+      "destinations": ["guangzhou"],
+      "aliases": ["\u7ea2\u7816\u5382", "\u8d8a\u79c0\u516c\u56ed", "Yuexiu Park"],
+      "queries": [
+        "\u5e7f\u5dde \u8d8a\u79c0\u516c\u56ed \u65e9\u6668 \u771f\u5b9e\u4f53\u9a8c",
+        "\u5e7f\u5dde \u7ea2\u7816\u5382 \u8d8a\u79c0\u516c\u56ed citywalk",
+        "\u5e7f\u5dde Yuexiu Park morning",
+        "\u5e7f\u5dde \u8d8a\u79c0\u516c\u56ed \u672c\u5730\u4eba\u63a8\u8350",
+        "\u5e7f\u5dde \u7ea2\u7816\u5382 \u5c0f\u4f17\u666f\u70b9"
+      ]
+    },
+    {
+      "candidate": "Ryurindo",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["\u67f3\u82d1\u5802", "Ryurindo"],
+      "queries": [
+        "\u4eac\u90fd \u67f3\u82d1\u5802 \u771f\u5b9e\u4f53\u9a8c",
+        "\u4eac\u90fd \u67f3\u82d1\u5802 \u5c0f\u7ea2\u4e66\u63a8\u8350",
+        "\u4eac\u90fd Ryurindo",
+        "\u4eac\u90fd \u67f3\u82d1\u5802 \u653b\u7565",
+        "\u4eac\u90fd \u67f3\u82d1\u5802 \u907f\u96f7"
+      ]
+    },
+    {
+      "candidate": "Sunder Nursery",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["\u6851\u8fbe\u5c14\u82d7\u5703", "Sunder Nursery", "Sundar Nursery"],
+      "queries": [
+        "\u5fb7\u91cc Sunder Nursery \u771f\u5b9e\u4f53\u9a8c",
+        "\u5fb7\u91cc \u6851\u8fbe\u5c14\u82d7\u5703 \u503c\u5f97\u53bb\u5417",
+        "\u5fb7\u91cc Sundar Nursery \u653b\u7565",
+        "\u5fb7\u91cc \u6851\u8fbe\u5c14\u82d7\u5703 \u5c0f\u4f17\u666f\u70b9",
+        "\u5fb7\u91cc Sunder Nursery \u907f\u96f7"
+      ]
+    }
+  ]
+}

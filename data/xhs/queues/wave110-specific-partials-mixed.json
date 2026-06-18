@@ -1,0 +1,79 @@
+{
+  "candidate_count": 6,
+  "query_count": 24,
+  "purpose": "specific_partial_queries_for_mixed_remaining_second_notes",
+  "items": [
+    {
+      "candidate": "Amal Women's Training Center restaurant",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["Amal", "Amal Women's Training Center", "Amal Marrakech"],
+      "queries": [
+        "马拉喀什 Amal Women's Training Center 餐厅 真实体验",
+        "Marrakech Amal restaurant 小红书",
+        "马拉喀什 Amal 女子培训中心 美食",
+        "马拉喀什 Amal Moroccan food 体验"
+      ]
+    },
+    {
+      "candidate": "Camellia Garden Tea Ceremony",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["Camellia Garden", "山茶花茶道", "茶道体验"],
+      "queries": [
+        "京都 Camellia Garden 茶道 真实体验",
+        "京都 山茶花 茶道 体验 游记",
+        "Kyoto Camellia Garden tea ceremony 小红书",
+        "京都 清水寺 Camellia 茶道"
+      ]
+    },
+    {
+      "candidate": "Bayun (Baiyun) Mountain — Mingchun Valley side",
+      "category": "attraction",
+      "destinations": ["Guangzhou"],
+      "aliases": ["白云山", "明春谷", "Mingchun Valley"],
+      "queries": [
+        "广州 白云山 明春谷 真实体验",
+        "广州 明春谷 鸟鸣 观景 游记",
+        "广州 白云山 明春谷 小众路线",
+        "Guangzhou Baiyun Mountain Mingchun Valley 小红书"
+      ]
+    },
+    {
+      "candidate": "Dilli Haat",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Dilli Haat", "INA Dilli Haat", "德里手工艺市场"],
+      "queries": [
+        "德里 Dilli Haat INA 市集 真实体验",
+        "Delhi Dilli Haat food market 小红书",
+        "德里 德里手工艺市场 小吃 游记",
+        "德里 Dilli Haat 手工艺 市集"
+      ]
+    },
+    {
+      "candidate": "Hauz Khas Village",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Hauz Khas Village", "HKV", "豪兹卡斯村"],
+      "queries": [
+        "德里 Hauz Khas Village 咖啡 真实体验",
+        "Delhi Hauz Khas Village cafe 小红书",
+        "德里 HKV 湖边 餐厅 游记",
+        "德里 豪兹卡斯村 酒吧 咖啡"
+      ]
+    },
+    {
+      "candidate": "Karim's",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Karim's", "Karims", "Jama Masjid"],
+      "queries": [
+        "德里 Karim's Jama Masjid 烤肉 真实体验",
+        "Delhi Karim's Jama Masjid food 小红书",
+        "德里 Karims 老德里 Mughlai 游记",
+        "德里 Jama Masjid Karim kebab"
+      ]
+    }
+  ]
+}

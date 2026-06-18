@@ -1,0 +1,59 @@
+{
+  "candidate_count": 4,
+  "query_count": 20,
+  "purpose": "deeper_scroll_for_hard_partial_candidates",
+  "items": [
+    {
+      "candidate": "Salon de The Maeda-en / Kyoto Obubu Tea Farms tasting",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["Obubu Tea Farm", "京都 Obubu 茶园", "和束茶园"],
+      "queries": [
+        "京都 Obubu Tea Farm 和束 茶园 tour",
+        "京都 和束 Obubu 茶园 体验",
+        "Kyoto Obubu Tea Farms 小红书",
+        "京都 Obubu 茶园 品茶",
+        "京都 和束 茶园 tour"
+      ]
+    },
+    {
+      "candidate": "Souk Bab Doukkala / Mellah market (Place des Ferblantiers area)",
+      "category": "attraction",
+      "destinations": ["Marrakech"],
+      "aliases": ["Bab Doukkala", "Mellah", "Place des Ferblantiers"],
+      "queries": [
+        "马拉喀什 Place des Ferblantiers Mellah 市场",
+        "Marrakech Mellah market Place des Ferblantiers 小红书",
+        "马拉喀什 Bab Doukkala 市集 早市",
+        "马拉喀什 Mellah 香料 市场 购物",
+        "马拉喀什 犹太区 市场 Mellah"
+      ]
+    },
+    {
+      "candidate": "Tsuki-no-Yu (Setsugetsuka area)",
+      "category": "attraction",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["月之汤", "雪月花", "季之汤雪月花"],
+      "queries": [
+        "箱根 季之汤雪月花 月之汤 温泉",
+        "箱根 雪月花 月之汤 私汤",
+        "Hakone Setsugetsuka Tsuki no Yu 小红书",
+        "箱根 强罗 雪月花 温泉 体验",
+        "箱根 月之汤 温泉 真实体验"
+      ]
+    },
+    {
+      "candidate": "D-matcha Kyoto Tea Farm Café (Wazuka day trip)",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["d:matcha Cafe", "d matcha 和束", "D-matcha Kyoto"],
+      "queries": [
+        "京都 d:matcha Cafe Kitchen 和束",
+        "京都 d matcha 和束 cafe 体验",
+        "Kyoto d:matcha Wazuka cafe 小红书",
+        "京都 和束 dmatcha 咖啡 茶园",
+        "京都 d matcha cafe kitchen"
+      ]
+    }
+  ]
+}

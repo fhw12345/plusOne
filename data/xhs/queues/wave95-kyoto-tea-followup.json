@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave95_kyoto_tea_followup",
+  "items": [
+    {
+      "candidate": "Uji Tsuen Kyoto-ten",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["通圆 京都店", "宇治通圆", "Uji Tsuen Kyoto"],
+      "queries": [
+        "京都 通圆 京都店 抹茶 真实体验",
+        "京都 宇治通圆 抹茶 推荐",
+        "京都 Uji Tsuen Kyoto matcha review",
+        "京都 通圆 京都店 值得吃吗",
+        "京都 宇治通圆 美食推荐"
+      ]
+    },
+    {
+      "candidate": "Ujien Kissako-an",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["宇治园 喫茶去庵", "宇治园 清水坂", "Ujien Kissako-an"],
+      "queries": [
+        "京都 宇治园 喫茶去庵 抹茶 真实体验",
+        "京都 宇治园 清水坂 茶室推荐",
+        "京都 Ujien Kissako-an review",
+        "京都 喫茶去庵 抹茶 推荐",
+        "京都 宇治园 京都 抹茶 真实体验"
+      ]
+    }
+  ]
+}

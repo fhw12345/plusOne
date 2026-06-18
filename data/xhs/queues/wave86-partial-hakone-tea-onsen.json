@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave86_partial_hakone_tea_onsen",
+  "items": [
+    {
+      "candidate": "Hakone Maruyama Bussan tea house at Owakudani",
+      "category": "food",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["丸山物产 茶屋", "大涌谷 丸山物产", "Maruyama Bussan Owakudani"],
+      "queries": [
+        "箱根 大涌谷 丸山物产 真实体验",
+        "箱根 丸山物产 茶屋 茶室推荐",
+        "箱根 大涌谷 丸山物产 茶屋",
+        "箱根 Maruyama Bussan Owakudani review",
+        "箱根 大涌谷 茶屋 真实体验"
+      ]
+    },
+    {
+      "candidate": "Tsuki-no-Yu (Setsugetsuka area)",
+      "category": "attraction",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["月之汤", "雪月花 月之汤", "Tsuki-no-Yu"],
+      "queries": [
+        "箱根 雪月花 月之汤 真实体验",
+        "箱根 月之汤 温泉 攻略",
+        "箱根 月之汤 值得去吗",
+        "箱根 Tsuki no Yu onsen review",
+        "箱根 雪月花 温泉 真实体验"
+      ]
+    }
+  ]
+}

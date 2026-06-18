@@ -1,0 +1,91 @@
+{
+  "candidate_count": 6,
+  "query_count": 40,
+  "purpose": "wave14_untouched_china_city_attractions_high_yield",
+  "items": [
+    {
+      "candidate": "愚园路",
+      "category": "attraction",
+      "destinations": ["Shanghai"],
+      "aliases": ["愚园路"],
+      "queries": [
+        "上海 愚园路 本地人必去景点推荐",
+        "上海 愚园路 小众景点",
+        "上海 愚园路 真实体验",
+        "上海 愚园路 值得去吗",
+        "上海 愚园路 避雷"
+      ]
+    },
+    {
+      "candidate": "安福路",
+      "category": "attraction",
+      "destinations": ["Shanghai"],
+      "aliases": ["安福路"],
+      "queries": [
+        "上海 安福路 本地人必去景点推荐",
+        "上海 安福路 小众景点",
+        "上海 安福路 真实体验",
+        "上海 安福路 值得去吗",
+        "上海 安福路 避雷"
+      ]
+    },
+    {
+      "candidate": "巨富长街区",
+      "category": "attraction",
+      "destinations": ["Shanghai"],
+      "aliases": ["巨鹿路", "富民路", "长乐路"],
+      "queries": [
+        "上海 巨鹿路 本地人必去景点推荐",
+        "上海 富民路 本地人必去景点推荐",
+        "上海 长乐路 本地人必去景点推荐",
+        "上海 巨富长街区 本地人必去景点推荐",
+        "上海 巨鹿路 小众景点",
+        "上海 富民路 小众景点",
+        "上海 长乐路 小众景点",
+        "上海 巨富长街区 小众景点"
+      ]
+    },
+    {
+      "candidate": "北京路",
+      "category": "attraction",
+      "destinations": ["Guangzhou"],
+      "aliases": ["北京路", "北京路步行街"],
+      "queries": [
+        "广州 北京路步行街 本地人必去景点推荐",
+        "广州 北京路 本地人必去景点推荐",
+        "广州 北京路步行街 小众景点",
+        "广州 北京路 小众景点",
+        "广州 北京路步行街 真实体验",
+        "广州 北京路 真实体验",
+        "广州 北京路步行街 避雷",
+        "广州 北京路 避雷"
+      ]
+    },
+    {
+      "candidate": "东山口",
+      "category": "attraction",
+      "destinations": ["Guangzhou"],
+      "aliases": ["东山口"],
+      "queries": [
+        "广州 东山口 本地人必去景点推荐",
+        "广州 东山口 小众景点",
+        "广州 东山口 真实体验",
+        "广州 东山口 值得去吗",
+        "广州 东山口 避雷"
+      ]
+    },
+    {
+      "candidate": "白云山",
+      "category": "attraction",
+      "destinations": ["Guangzhou"],
+      "aliases": ["白云山"],
+      "queries": [
+        "广州 白云山 本地人必去景点推荐",
+        "广州 白云山 小众景点",
+        "广州 白云山 真实体验",
+        "广州 白云山 值得去吗",
+        "广州 白云山 避雷"
+      ]
+    }
+  ]
+}

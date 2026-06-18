@@ -1,0 +1,29 @@
+{
+  "candidate_count": 2,
+  "query_count": 6,
+  "purpose": "wave79_no_usable_popular_brands",
+  "items": [
+    {
+      "candidate": "一保堂茶铺",
+      "category": "drink",
+      "destinations": ["Kyoto"],
+      "aliases": ["一保堂", "一保堂茶铺", "Ippodo Tea"],
+      "queries": [
+        "京都 一保堂 茶室 真实体验",
+        "京都 一保堂茶铺 抹茶 推荐",
+        "京都 Ippodo Tea 本店 攻略"
+      ]
+    },
+    {
+      "candidate": "皮埃尔艾尔梅马卡龙",
+      "category": "food",
+      "destinations": ["Paris"],
+      "aliases": ["Pierre Hermé", "皮埃尔艾尔梅", "Pierre Herme macaron"],
+      "queries": [
+        "巴黎 Pierre Hermé 马卡龙 真实体验",
+        "巴黎 皮埃尔艾尔梅 马卡龙 值得吃吗",
+        "巴黎 Pierre Herme 甜品 推荐"
+      ]
+    }
+  ]
+}

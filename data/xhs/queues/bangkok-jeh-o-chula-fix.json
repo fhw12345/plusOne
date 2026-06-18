@@ -1,0 +1,27 @@
+{
+  "candidate_count": 1,
+  "query_count": 6,
+  "purpose": "bangkok_zero_coverage_jeh_o_chula_relevance_fix",
+  "items": [
+    {
+      "candidate": "Jeh O Chula",
+      "category": "food",
+      "destinations": [
+        "Bangkok"
+      ],
+      "aliases": [
+        "朱拉隆功妈妈面",
+        "朱拉妈妈面",
+        "妈妈面"
+      ],
+      "queries": [
+        "曼谷 Jeh O Chula 美食推荐",
+        "曼谷 Jeh O Chula 本地人推荐",
+        "曼谷 朱拉隆功妈妈面 美食推荐",
+        "曼谷 朱拉隆功妈妈面 本地人推荐",
+        "曼谷 朱拉妈妈面 美食推荐",
+        "曼谷 妈妈面 Jeh O Chula 真实体验"
+      ]
+    }
+  ]
+}

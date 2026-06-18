@@ -1,0 +1,79 @@
+{
+  "candidate_count": 6,
+  "query_count": 23,
+  "purpose": "specific_partial_queries_to_avoid_duplicate_notes",
+  "items": [
+    {
+      "candidate": "Mehrauli Archaeological Park",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Mehrauli Archaeological Park", "Jamali Kamali", "梅赫劳利考古公园"],
+      "queries": [
+        "德里 Mehrauli Archaeological Park ruins 真实体验",
+        "德里 Jamali Kamali Mehrauli 真实体验",
+        "Delhi Mehrauli Archaeological Park 小红书",
+        "德里 梅赫劳利考古公园 古迹 游记"
+      ]
+    },
+    {
+      "candidate": "Nizamuddin Dargah (Thursday qawwali)",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Nizamuddin Dargah", "Hazrat Nizamuddin", "尼扎姆丁圣陵"],
+      "queries": [
+        "德里 Nizamuddin Dargah qawwali 周四 真实体验",
+        "Delhi Nizamuddin Dargah Qawwali 小红书",
+        "德里 Hazrat Nizamuddin Dargah 卡瓦力 游记",
+        "德里 尼扎姆丁圣陵 qawwali 体验"
+      ]
+    },
+    {
+      "candidate": "Sundar Nursery",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Sundar Nursery", "Sunder Nursery", "桑达尔苗圃"],
+      "queries": [
+        "德里 Sundar Nursery 真实体验",
+        "Delhi Sunder Nursery 小红书",
+        "德里 桑达尔苗圃 花园 游记",
+        "德里 Humayun tomb Sunder Nursery 逛"
+      ]
+    },
+    {
+      "candidate": "Ramen Nagi Golden Gai",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["ラーメン凪 ゴールデン街", "凪拉面 黄金街", "Ramen Nagi Golden Gai"],
+      "queries": [
+        "东京 ラーメン凪 ゴールデン街 煮干 拉面 真实体验",
+        "东京 新宿 黄金街 凪拉面 排队",
+        "Tokyo Ramen Nagi Golden Gai 小红书",
+        "东京 凪拉面 黄金街 别馆 本地人推荐"
+      ]
+    },
+    {
+      "candidate": "Majnu Ka Tila",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Majnu Ka Tila", "Majnu ka Tilla", "德里藏人区"],
+      "queries": [
+        "德里 Majnu Ka Tila 藏人区 真实体验",
+        "Delhi Majnu ka Tilla 小红书",
+        "德里 MKT 藏餐 咖啡街 游记",
+        "德里 德里藏人区 街区 逛"
+      ]
+    },
+    {
+      "candidate": "Karim's",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Karim's", "Karims Jama Masjid", "卡里姆餐厅"],
+      "queries": [
+        "德里 Karim's Jama Masjid 真实体验",
+        "Delhi Karims Old Delhi 小红书",
+        "德里 卡里姆餐厅 Jama Masjid 美食",
+        "德里 Karim Mughlai 排队"
+      ]
+    }
+  ]
+}

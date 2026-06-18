@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave40_untouched_high_yield",
+  "items": [
+    {
+      "candidate": "Daruma Honten (Jingisukan Daruma)",
+      "category": "generic",
+      "destinations": ["Sapporo"],
+      "aliases": ["\u8fbe\u6469 \u6210\u5409\u601d\u6c57", "\u6210\u5409\u601d\u6c57\u3060\u308b\u307e", "\u3060\u308b\u307e \u672c\u5e97"],
+      "queries": [
+        "\u672d\u5e4c \u6210\u5409\u601d\u6c57\u3060\u308b\u307e \u7f8e\u98df\u63a8\u8350",
+        "\u672d\u5e4c \u3060\u308b\u307e \u672c\u5e97 \u771f\u5b9e\u4f53\u9a8c",
+        "\u672d\u5e4c \u8fbe\u6469 \u6210\u5409\u601d\u6c57 \u7f8e\u98df\u63a8\u8350",
+        "\u672d\u5e4c \u6210\u5409\u601d\u6c57\u3060\u308b\u307e \u672c\u5730\u4eba\u63a8\u8350",
+        "\u672d\u5e4c \u3060\u308b\u307e \u672c\u5e97 \u907f\u96f7"
+      ]
+    },
+    {
+      "candidate": "Hyousetsu no Mon",
+      "category": "food",
+      "destinations": ["Sapporo"],
+      "aliases": ["\u51b0\u96ea\u4e4b\u95e8", "\u6c37\u96ea\u306e\u9580", "Hyousetsu no Mon"],
+      "queries": [
+        "\u672d\u5e4c \u51b0\u96ea\u4e4b\u95e8 \u87f9\u6599\u7406",
+        "\u672d\u5e4c \u6c37\u96ea\u306e\u9580 \u8783\u87f9",
+        "\u672d\u5e4c \u51b0\u96ea\u4e4b\u95e8 \u771f\u5b9e\u4f53\u9a8c",
+        "\u672d\u5e4c \u6c37\u96ea\u306e\u9580 \u7f8e\u98df\u63a8\u8350",
+        "\u672d\u5e4c Hyousetsu no Mon crab"
+      ]
+    },
+    {
+      "candidate": "G\u014dra Brewery & Grill",
+      "category": "food",
+      "destinations": ["Hakone"],
+      "aliases": ["\u5f3a\u7f57\u5564\u9152", "Gora Brewery", "G\u014dra Brewery & Grill"],
+      "queries": [
+        "\u7bb1\u6839 Gora Brewery \u5f3a\u7f57 \u5564\u9152",
+        "\u7bb1\u6839 \u5f3a\u7f57\u5564\u9152 \u771f\u5b9e\u4f53\u9a8c",
+        "\u7bb1\u6839 Gora Brewery Grill \u7f8e\u98df",
+        "\u7bb1\u6839 \u5f3a\u7f57\u5564\u9152 \u672c\u5730\u4eba\u63a8\u8350",
+        "\u7bb1\u6839 \u5f3a\u7f57 Brewery \u907f\u96f7"
+      ]
+    },
+    {
+      "candidate": "Marukyu Koyamaen Nishinotoin Tearoom",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["\u4e38\u4e45\u5c0f\u5c71\u56ed \u897f\u6d1e\u9662", "\u4e38\u4e45\u5c0f\u5c71\u56ed \u8336\u623f", "Marukyu Koyamaen"],
+      "queries": [
+        "\u4eac\u90fd \u4e38\u4e45\u5c0f\u5c71\u56ed \u897f\u6d1e\u9662 \u8336\u623f",
+        "\u4eac\u90fd \u4e38\u4e45\u5c0f\u5c71\u56ed \u8336\u5ba4\u63a8\u8350",
+        "\u4eac\u90fd Marukyu Koyamaen tearoom",
+        "\u4eac\u90fd \u4e38\u4e45\u5c0f\u5c71\u56ed \u771f\u5b9e\u4f53\u9a8c",
+        "\u4eac\u90fd \u4e38\u4e45\u5c0f\u5c71\u56ed \u8336\u9053\u4f53\u9a8c"
+      ]
+    },
+    {
+      "candidate": "Khan Market",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["\u6c57\u5e02\u573a", "\u53ef\u6c57\u5e02\u573a", "Khan Market"],
+      "queries": [
+        "\u5fb7\u91cc Khan Market \u7f8e\u98df",
+        "\u5fb7\u91cc \u53ef\u6c57\u5e02\u573a \u771f\u5b9e\u4f53\u9a8c",
+        "\u5fb7\u91cc \u6c57\u5e02\u573a \u8857\u5934\u5c0f\u5403",
+        "\u5fb7\u91cc Khan Market \u672c\u5730\u4eba\u63a8\u8350",
+        "\u5fb7\u91cc \u53ef\u6c57\u5e02\u573a \u907f\u96f7"
+      ]
+    },
+    {
+      "candidate": "Jemaa el-Fnaa night food stalls",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["\u6770\u9a6c\u592b\u7eb3\u5e7f\u573a", "\u4e0d\u7720\u5e7f\u573a", "Jemaa el-Fnaa"],
+      "queries": [
+        "\u9a6c\u62c9\u5580\u4ec0 \u4e0d\u7720\u5e7f\u573a \u591c\u5e02 \u7f8e\u98df",
+        "\u9a6c\u62c9\u5580\u4ec0 \u6770\u9a6c\u592b\u7eb3\u5e7f\u573a \u591c\u5e02",
+        "\u9a6c\u62c9\u5580\u4ec0 Jemaa el-Fnaa food stalls",
+        "\u9a6c\u62c9\u5580\u4ec0 \u4e0d\u7720\u5e7f\u573a \u771f\u5b9e\u4f53\u9a8c",
+        "\u9a6c\u62c9\u5580\u4ec0 \u6770\u9a6c\u592b\u7eb3\u5e7f\u573a \u907f\u96f7"
+      ]
+    }
+  ]
+}

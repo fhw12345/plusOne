@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave90_partial_delhi_neighborhood_qawwali",
+  "items": [
+    {
+      "candidate": "Majnu Ka Tila",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Majnu Ka Tila", "MKT Delhi", "德里藏人区"],
+      "queries": [
+        "德里 Majnu Ka Tila 美食 攻略",
+        "德里 Majnu Ka Tila 真实体验",
+        "Delhi Majnu Ka Tila food review",
+        "德里 MKT 藏人区 美食",
+        "德里 德里藏人区 真实体验"
+      ]
+    },
+    {
+      "candidate": "Nizamuddin Dargah qawwali night",
+      "category": "attraction",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Nizamuddin Dargah qawwali", "Nizamuddin qawwali night", "尼扎姆丁圣陵 卡瓦力"],
+      "queries": [
+        "德里 Nizamuddin qawwali night 真实体验",
+        "德里 Nizamuddin Dargah qawwali 攻略",
+        "Delhi Nizamuddin Dargah qawwali review",
+        "德里 尼扎姆丁圣陵 卡瓦力 真实体验",
+        "德里 Nizamuddin Thursday qawwali"
+      ]
+    }
+  ]
+}

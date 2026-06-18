@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave61_partial_second_note_marrakech_hakone",
+  "items": [
+    {
+      "candidate": "Souk Bab Doukkala / Mellah market (Place des Ferblantiers area)",
+      "category": "attraction",
+      "destinations": ["Marrakech"],
+      "aliases": ["杜卡拉门 市集", "Mellah 市场", "Place des Ferblantiers"],
+      "queries": [
+        "马拉喀什 Mellah 市场 街头小吃",
+        "马拉喀什 杜卡拉门 市集 本地人推荐"
+      ]
+    },
+    {
+      "candidate": "Tsuki-no-Yu (Setsugetsuka area)",
+      "category": "attraction",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["月之汤", "雪月花 月之汤", "Tsuki-no-Yu"],
+      "queries": [
+        "箱根 雪月花 月之汤 真实体验",
+        "箱根 月之汤 值得去吗"
+      ]
+    }
+  ]
+}

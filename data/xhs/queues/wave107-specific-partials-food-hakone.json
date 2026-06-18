@@ -1,0 +1,79 @@
+{
+  "candidate_count": 6,
+  "query_count": 24,
+  "purpose": "specific_partial_queries_for_food_and_hakone_second_notes",
+  "items": [
+    {
+      "candidate": "Champa Gali",
+      "category": "food",
+      "destinations": ["Delhi, India"],
+      "aliases": ["Champa Gali", "Saket Champa Gali", "香帕加利"],
+      "queries": [
+        "德里 Champa Gali Saket 咖啡 真实体验",
+        "Delhi Champa Gali cafe 小红书",
+        "德里 香帕加利 咖啡街 游记",
+        "德里 Champa Gali 晚上 逛"
+      ]
+    },
+    {
+      "candidate": "Mechoui Alley",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["Mechoui Alley", "Chez Lamine", "烤羊街"],
+      "queries": [
+        "马拉喀什 Mechoui Alley 烤羊 真实体验",
+        "马拉喀什 Chez Lamine 烤羊 游记",
+        "Marrakech mechoui alley 小红书",
+        "马拉喀什 烤羊街 羊肉 排队"
+      ]
+    },
+    {
+      "candidate": "Chairo Salon Tea Stand",
+      "category": "drink",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["Chairo Salon", "茶屋", "箱根茶寮"],
+      "queries": [
+        "箱根 Chairo Salon 抹茶 真实体验",
+        "箱根 Chairo Salon 茶屋 游记",
+        "Hakone Chairo Salon 小红书",
+        "箱根 茶屋 抹茶 小众"
+      ]
+    },
+    {
+      "candidate": "Hakone Kyu-Kaidou cedar avenue & Mototsumiya shrine on Mt. Komagatake",
+      "category": "attraction",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["箱根旧街道杉並木", "箱根元宫", "驹岳"],
+      "queries": [
+        "箱根 旧街道 杉並木 真实体验",
+        "箱根 驹岳 元宫 真实体验",
+        "箱根 箱根元宫 驹岳 游记",
+        "Hakone Mototsumiya Komagatake 小红书"
+      ]
+    },
+    {
+      "candidate": "Hakone Maruyama Bussan tea house at Owakudani",
+      "category": "food",
+      "destinations": ["Hakone, Japan"],
+      "aliases": ["丸山物产", "大涌谷茶屋", "Owakudani"],
+      "queries": [
+        "箱根 大涌谷 丸山物产 黑蛋 真实体验",
+        "箱根 丸山物产 茶屋 游记",
+        "Hakone Owakudani Maruyama Bussan 小红书",
+        "箱根 大涌谷 茶屋 黑蛋"
+      ]
+    },
+    {
+      "candidate": "Padella意面",
+      "category": "food",
+      "destinations": ["London"],
+      "aliases": ["Padella", "Padella pasta", "Padella意面"],
+      "queries": [
+        "伦敦 Padella Borough Market 意面 真实体验",
+        "London Padella pasta 小红书",
+        "伦敦 Padella 排队 意面",
+        "伦敦 Padella Shoreditch 真实体验"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "candidate_count": 2,
+  "query_count": 10,
+  "purpose": "wave85_partial_osaka_london_food",
+  "items": [
+    {
+      "candidate": "自由轩咖喱",
+      "category": "food",
+      "destinations": ["Osaka"],
+      "aliases": ["自由轩咖喱", "自由軒カレー", "Jiyuken curry"],
+      "queries": [
+        "大阪 自由軒 カレー 真实体验",
+        "大阪 自由轩咖喱 难波 总店",
+        "大阪 自由轩咖喱 值得吃吗",
+        "大阪 Jiyuken curry review",
+        "大阪 自由軒 名物カレー"
+      ]
+    },
+    {
+      "candidate": "Padella意面",
+      "category": "food",
+      "destinations": ["London"],
+      "aliases": ["Padella", "Padella Borough Market", "Padella pasta"],
+      "queries": [
+        "伦敦 Padella Borough Market 真实体验",
+        "伦敦 Padella pasta 值得吃吗",
+        "伦敦 Padella 排队 意面",
+        "London Padella Borough Market review",
+        "伦敦 Padella pasta review"
+      ]
+    }
+  ]
+}

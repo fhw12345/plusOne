@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave37_tokyo_kyoto_guangzhou_high_yield",
+  "items": [
+    {
+      "candidate": "Rokurinsha",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["六厘舎", "Rokurinsha", "六厘舍"],
+      "queries": [
+        "东京 六厘舎 美食推荐",
+        "东京 六厘舍 拉面推荐",
+        "东京 Rokurinsha ramen",
+        "东京 六厘舎 真实体验",
+        "东京 六厘舎 避雷"
+      ]
+    },
+    {
+      "candidate": "Tsujita",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["つじ田", "辻田拉面", "Tsujita"],
+      "queries": [
+        "东京 つじ田 拉面推荐",
+        "东京 辻田拉面 美食推荐",
+        "东京 Tsujita ramen",
+        "东京 つじ田 真实体验",
+        "东京 つじ田 避雷"
+      ]
+    },
+    {
+      "candidate": "Soranoiro Nippon",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["空之色拉面", "ソラノイロ NIPPON", "Soranoiro"],
+      "queries": [
+        "东京 空之色拉面 拉面推荐",
+        "东京 ソラノイロ NIPPON 拉面",
+        "东京 Soranoiro ramen",
+        "东京 空之色拉面 真实体验",
+        "东京 空之色拉面 避雷"
+      ]
+    },
+    {
+      "candidate": "Uji Tsuen Kyoto-ten",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["通圆 京都店", "宇治通圆", "Uji Tsuen"],
+      "queries": [
+        "京都 通圆 京都店 美食推荐",
+        "京都 宇治通圆 抹茶",
+        "京都 Uji Tsuen matcha",
+        "京都 通圆 真实体验",
+        "京都 通圆 避雷"
+      ]
+    },
+    {
+      "candidate": "Ryokucha-kan Fukujuen Kyoto Honten",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["福寿园京都本店", "福寿园", "Fukujuen Kyoto Honten"],
+      "queries": [
+        "京都 福寿园 京都本店 茶室推荐",
+        "京都 福寿园 抹茶",
+        "京都 Fukujuen Kyoto Honten",
+        "京都 福寿园 真实体验",
+        "京都 福寿园 避雷"
+      ]
+    },
+    {
+      "candidate": "Yongqingfang (永庆坊)",
+      "category": "attraction",
+      "destinations": ["guangzhou"],
+      "aliases": ["永庆坊", "Yongqingfang", "Yong Qing Fang"],
+      "queries": [
+        "广州 永庆坊 本地人必去景点推荐",
+        "广州 永庆坊 citywalk",
+        "广州 永庆坊 真实体验",
+        "广州 Yongqingfang citywalk",
+        "广州 永庆坊 避雷"
+      ]
+    }
+  ]
+}

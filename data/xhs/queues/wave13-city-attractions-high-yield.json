@@ -1,0 +1,100 @@
+{
+  "candidate_count": 6,
+  "query_count": 65,
+  "purpose": "wave13_untouched_city_attractions_high_yield",
+  "items": [
+    {
+      "candidate": "Xintiandi",
+      "category": "attraction",
+      "destinations": ["Shanghai, China"],
+      "aliases": ["新天地"],
+      "queries": [
+        "上海 新天地 本地人必去景点推荐",
+        "上海 新天地 小众景点",
+        "上海 新天地 真实体验",
+        "上海 新天地 值得去吗",
+        "上海 新天地 避雷"
+      ]
+    },
+    {
+      "candidate": "Yu Garden Bazaar",
+      "category": "attraction",
+      "destinations": ["Shanghai, China"],
+      "aliases": ["豫园", "城隍庙"],
+      "queries": [
+        "上海 豫园 城隍庙 本地人必去景点推荐",
+        "上海 豫园 城隍庙 小众景点",
+        "上海 豫园 城隍庙 真实体验",
+        "上海 豫园 城隍庙 值得去吗",
+        "上海 豫园 城隍庙 避雷"
+      ]
+    },
+    {
+      "candidate": "Yuexiu Park & Five Rams Statue",
+      "category": "attraction",
+      "destinations": ["guangzhou"],
+      "aliases": ["越秀公园", "五羊雕像"],
+      "queries": [
+        "广州 越秀公园 五羊雕像 本地人必去景点推荐",
+        "广州 越秀公园 本地人必去景点推荐",
+        "广州 五羊雕像 本地人必去景点推荐",
+        "广州 越秀公园 五羊雕像 小众景点",
+        "广州 越秀公园 小众景点",
+        "广州 五羊雕像 小众景点",
+        "广州 越秀公园 五羊雕像 真实体验",
+        "广州 越秀公园 真实体验",
+        "广州 五羊雕像 真实体验",
+        "广州 越秀公园 五羊雕像 值得去吗",
+        "广州 越秀公园 值得去吗",
+        "广州 五羊雕像 值得去吗",
+        "广州 越秀公园 五羊雕像 避雷",
+        "广州 越秀公园 避雷",
+        "广州 五羊雕像 避雷"
+      ]
+    },
+    {
+      "candidate": "浅草寺",
+      "category": "attraction",
+      "destinations": ["Tokyo"],
+      "aliases": ["浅草寺"],
+      "queries": [
+        "东京 浅草寺 本地人必去景点推荐",
+        "东京 浅草寺 小众景点",
+        "东京 浅草寺 真实体验",
+        "东京 浅草寺 值得去吗",
+        "东京 浅草寺 避雷"
+      ]
+    },
+    {
+      "candidate": "上野阿美横町",
+      "category": "attraction",
+      "destinations": ["Tokyo"],
+      "aliases": ["アメ横", "阿美横町"],
+      "queries": [
+        "东京 アメ横 本地人必去景点推荐",
+        "东京 上野阿美横町 本地人必去景点推荐",
+        "东京 アメ横 小众景点",
+        "东京 上野阿美横町 小众景点",
+        "东京 アメ横 真实体验",
+        "东京 上野阿美横町 真实体验",
+        "东京 アメ横 值得去吗",
+        "东京 上野阿美横町 值得去吗",
+        "东京 アメ横 避雷",
+        "东京 上野阿美横町 避雷"
+      ]
+    },
+    {
+      "candidate": "谷中银座",
+      "category": "attraction",
+      "destinations": ["Tokyo"],
+      "aliases": ["谷中银座"],
+      "queries": [
+        "东京 谷中银座 本地人必去景点推荐",
+        "东京 谷中银座 小众景点",
+        "东京 谷中银座 真实体验",
+        "东京 谷中银座 值得去吗",
+        "东京 谷中银座 避雷"
+      ]
+    }
+  ]
+}

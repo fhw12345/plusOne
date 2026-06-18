@@ -1,0 +1,85 @@
+{
+  "candidate_count": 6,
+  "query_count": 30,
+  "purpose": "wave43_remaining_untouched_high_yield",
+  "items": [
+    {
+      "candidate": "Ryukoen",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["\u67f3\u685c\u5712\u8336\u8217", "\u67f3\u6a31\u56ed\u8336\u94fa", "Ryukoen"],
+      "queries": [
+        "\u4eac\u90fd \u67f3\u685c\u5712\u8336\u8217 \u8336\u5ba4\u63a8\u8350",
+        "\u4eac\u90fd \u67f3\u6a31\u56ed\u8336\u94fa \u771f\u5b9e\u4f53\u9a8c",
+        "\u4eac\u90fd \u67f3\u685c\u5712\u8336\u8217 \u672c\u5730\u4eba\u63a8\u8350",
+        "\u4eac\u90fd Ryukoen tea",
+        "\u4eac\u90fd \u67f3\u685c\u5712\u8336\u8217 \u8336\u9053\u4f53\u9a8c"
+      ]
+    },
+    {
+      "candidate": "Salon de The Maeda-en",
+      "category": "attraction",
+      "destinations": ["Kyoto"],
+      "aliases": ["\u524d\u7530\u56ed", "Salon de The Maeda-en", "Maeda-en"],
+      "queries": [
+        "\u4eac\u90fd \u524d\u7530\u56ed \u8336\u5ba4\u63a8\u8350",
+        "\u4eac\u90fd \u524d\u7530\u56ed \u771f\u5b9e\u4f53\u9a8c",
+        "\u4eac\u90fd Maeda-en tea",
+        "\u4eac\u90fd \u524d\u7530\u56ed \u672c\u5730\u4eba\u63a8\u8350",
+        "\u4eac\u90fd \u524d\u7530\u56ed \u8336\u9053\u4f53\u9a8c"
+      ]
+    },
+    {
+      "candidate": "Salon de Th\u00e9 MAEDA-EN / Maeda Coffee tea menu",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["\u524d\u7530\u56ed", "\u524d\u7530\u5496\u5561 \u8336", "Maeda Coffee"],
+      "queries": [
+        "\u4eac\u90fd \u524d\u7530\u5496\u5561 \u8336 \u771f\u5b9e\u4f53\u9a8c",
+        "\u4eac\u90fd \u524d\u7530\u56ed \u8336\u5ba4\u63a8\u8350",
+        "\u4eac\u90fd Maeda Coffee tea",
+        "\u4eac\u90fd \u524d\u7530\u5496\u5561 \u8336 \u672c\u5730\u4eba\u63a8\u8350",
+        "\u4eac\u90fd \u524d\u7530\u56ed \u771f\u5b9e\u4f53\u9a8c"
+      ]
+    },
+    {
+      "candidate": "Shimogamo Shrine + Saryo Hosen morning combo",
+      "category": "food",
+      "destinations": ["Kyoto"],
+      "aliases": ["\u4e0b\u9e2d\u795e\u793e \u5b9d\u6cc9", "\u8336\u5bee\u5b9d\u6cc9", "Saryo Hosen"],
+      "queries": [
+        "\u4eac\u90fd \u8336\u5bee\u5b9d\u6cc9 \u8336\u5ba4\u63a8\u8350",
+        "\u4eac\u90fd \u4e0b\u9e2d\u795e\u793e \u5b9d\u6cc9 \u771f\u5b9e\u4f53\u9a8c",
+        "\u4eac\u90fd Saryo Hosen",
+        "\u4eac\u90fd \u8336\u5bee\u5b9d\u6cc9 \u672c\u5730\u4eba\u63a8\u8350",
+        "\u4eac\u90fd \u4e0b\u9e2d\u795e\u793e \u5b9d\u6cc9 \u8336\u9053\u4f53\u9a8c"
+      ]
+    },
+    {
+      "candidate": "Sapporo Kaitaku Shiyakusho-mae yokocho / Namara Ezo",
+      "category": "food",
+      "destinations": ["Sapporo"],
+      "aliases": ["\u958b\u62d3\u4f7f\u5f79\u6240\u524d\u6a2a\u4e01", "\u306a\u307e\u3089\u8766\u5937", "Namara Ezo"],
+      "queries": [
+        "\u672d\u5e4c \u958b\u62d3\u4f7f\u5f79\u6240\u524d\u6a2a\u4e01 \u5c45\u9152\u5c4b\u63a8\u8350",
+        "\u672d\u5e4c \u306a\u307e\u3089\u8766\u5937 \u771f\u5b9e\u4f53\u9a8c",
+        "\u672d\u5e4c Namara Ezo",
+        "\u672d\u5e4c \u958b\u62d3\u4f7f\u5f79\u6240\u524d\u6a2a\u4e01 \u9152\u5427\u63a8\u8350",
+        "\u672d\u5e4c \u306a\u307e\u3089\u8766\u5937 \u6c1b\u56f4"
+      ]
+    },
+    {
+      "candidate": "Souk Bab Doukkala / Mellah market (Place des Ferblantiers area)",
+      "category": "attraction",
+      "destinations": ["Marrakech"],
+      "aliases": ["\u675c\u5361\u62c9\u95e8 \u5e02\u96c6", "Mellah \u5e02\u573a", "Place des Ferblantiers"],
+      "queries": [
+        "\u9a6c\u62c9\u5580\u4ec0 Mellah \u5e02\u573a \u771f\u5b9e\u4f53\u9a8c",
+        "\u9a6c\u62c9\u5580\u4ec0 \u675c\u5361\u62c9\u95e8 \u5e02\u96c6 \u7f8e\u98df\u63a8\u8350",
+        "\u9a6c\u62c9\u5580\u4ec0 Place des Ferblantiers",
+        "\u9a6c\u62c9\u5580\u4ec0 Mellah \u5e02\u573a \u8857\u5934\u5c0f\u5403",
+        "\u9a6c\u62c9\u5580\u4ec0 \u675c\u5361\u62c9\u95e8 \u5e02\u96c6 \u907f\u96f7"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "candidate_count": 4,
+  "query_count": 16,
+  "purpose": "specific_queries_for_remaining_no_usable_entities",
+  "items": [
+    {
+      "candidate": "Mellah spice market (Place des Ferblantiers area)",
+      "category": "attraction",
+      "destinations": ["Marrakech"],
+      "aliases": ["Mellah spice market", "Place des Ferblantiers", "香料市场"],
+      "queries": [
+        "马拉喀什 Mellah spice market 购物 真实体验",
+        "Marrakech Mellah spice market 小红书",
+        "马拉喀什 Place des Ferblantiers 香料市场",
+        "马拉喀什 Mellah 香料 市场"
+      ]
+    },
+    {
+      "candidate": "Nanporo",
+      "category": "food",
+      "destinations": ["Sapporo"],
+      "aliases": ["なんぽろ", "南幌", "Nanporo"],
+      "queries": [
+        "札幌 なんぽろ 居酒屋 真实体验",
+        "札幌 南幌 居酒屋 小红书",
+        "Sapporo Nanporo izakaya 小红书",
+        "札幌 なんぽろ すすきの"
+      ]
+    },
+    {
+      "candidate": "Sidi Ghanem industrial district food spots",
+      "category": "food",
+      "destinations": ["Marrakech"],
+      "aliases": ["Sidi Ghanem", "西迪加奈姆", "industrial district"],
+      "queries": [
+        "马拉喀什 Sidi Ghanem 餐厅 真实体验",
+        "Marrakech Sidi Ghanem restaurant 小红书",
+        "马拉喀什 西迪加奈姆 工业区 咖啡",
+        "马拉喀什 Sidi Ghanem cafe"
+      ]
+    },
+    {
+      "candidate": "Otoboke (おとぼけ)",
+      "category": "food",
+      "destinations": ["Sapporo"],
+      "aliases": ["おとぼけ", "Otoboke", "札幌居酒屋"],
+      "queries": [
+        "札幌 おとぼけ 居酒屋 真实体验",
+        "Sapporo Otoboke izakaya 小红书",
+        "札幌 おとぼけ すすきの",
+        "札幌 Otoboke 居酒屋"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave60_partial_second_note_sapporo_kyoto",
+  "items": [
+    {
+      "candidate": "Mugishutei (Beer Inn Mugishutei)",
+      "category": "drink",
+      "destinations": ["Sapporo"],
+      "aliases": ["麦酒停", "Beer Inn Mugishutei", "Mugishutei"],
+      "queries": [
+        "札幌 Beer Inn 麦酒停 本地人推荐",
+        "札幌 Mugishutei 酒吧"
+      ]
+    },
+    {
+      "candidate": "Salon de The Maeda-en / Kyoto Obubu Tea Farms tasting",
+      "category": "generic",
+      "destinations": ["Kyoto"],
+      "aliases": ["前田园", "Obubu 茶园", "Maeda-en"],
+      "queries": [
+        "京都 Obubu 茶园 本地人推荐",
+        "京都 前田园 茶道体验"
+      ]
+    }
+  ]
+}

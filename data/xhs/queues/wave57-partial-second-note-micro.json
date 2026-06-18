@@ -1,0 +1,27 @@
+{
+  "candidate_count": 2,
+  "query_count": 4,
+  "purpose": "wave57_partial_second_note_tokyo_ramen",
+  "items": [
+    {
+      "candidate": "Menya Musashi",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["麺屋武蔵", "面屋武藏"],
+      "queries": [
+        "东京 面屋武藏 拉面店推荐",
+        "东京 麺屋武蔵 真实体验"
+      ]
+    },
+    {
+      "candidate": "Menya Musashi Kosho",
+      "category": "food",
+      "destinations": ["Tokyo"],
+      "aliases": ["麺屋武蔵 虎嘯", "面屋武藏 虎啸"],
+      "queries": [
+        "东京 面屋武藏 虎啸 拉面店推荐",
+        "东京 麺屋武蔵 虎嘯 真实体验"
+      ]
+    }
+  ]
+}
