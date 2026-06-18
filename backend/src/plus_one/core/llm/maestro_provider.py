@@ -16,11 +16,8 @@ import os
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from pydantic import BaseModel
 
-from plus_one.config import settings
 from plus_one.core.llm.parsers import parse_with_fallback
 from plus_one.core.llm.provider import LLMProvider, Message, Response, Usage
 from plus_one.core.llm.roles import resolve_model
@@ -28,14 +25,14 @@ from plus_one.core.llm.roles import resolve_model
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-    from langchain_core.runnables import Runnable
-
 logger = structlog.get_logger()
 
 
-def _to_langchain_messages(system: str, messages: list[Message]) -> list[BaseMessage]:
+def _to_langchain_messages(system: str, messages: list[Message]) -> list[Any]:
     """Convert Plus One ``Message`` list (+ system) to LangChain message objects."""
-    lc: list[BaseMessage] = [SystemMessage(content=system)] if system else []
+    from langchain_core.messages import AIMessage, HumanMessage, SystemMessage  # noqa: PLC0415
+
+    lc: list[Any] = [SystemMessage(content=system)] if system else []
     for m in messages:
         if m.role == "user":
             lc.append(HumanMessage(content=m.content))
@@ -77,16 +74,29 @@ class MaestroProvider(LLMProvider):
             )
         self.role = role
         self.model = resolve_model(role)
-        self._chat = ChatAnthropic(
-            model=self.model,
-            temperature=temperature
-            if temperature is not None
-            else settings.llm_default_temperature,
-            max_tokens_to_sample=max_tokens or settings.llm_default_max_tokens,
-            streaming=streaming,
-            anthropic_api_url=settings.maestro_base_url,
-            anthropic_api_key=settings.maestro_auth_token,
-        )
+        self._temperature = temperature
+        self._max_tokens = max_tokens
+        self._streaming = streaming
+        self._chat: Any | None = None
+
+    def _get_chat(self) -> Any:
+        """Build the vendor client lazily so tests can import this module safely."""
+        if self._chat is None:
+            from langchain_anthropic import ChatAnthropic  # noqa: PLC0415
+
+            from plus_one.config import settings  # noqa: PLC0415
+
+            self._chat = ChatAnthropic(
+                model=self.model,
+                temperature=self._temperature
+                if self._temperature is not None
+                else settings.llm_default_temperature,
+                max_tokens_to_sample=self._max_tokens or settings.llm_default_max_tokens,
+                streaming=self._streaming,
+                anthropic_api_url=settings.maestro_base_url,
+                anthropic_api_key=settings.maestro_auth_token,
+            )
+        return self._chat
 
     async def complete[TOutput: BaseModel](
         self,
@@ -102,7 +112,7 @@ class MaestroProvider(LLMProvider):
 
         # bind() returns a new Runnable with overridden params; type annotation
         # avoids mypy treating the rebind as an incompatible assignment.
-        chat: Runnable[Any, AIMessage] = self._chat.bind(temperature=temperature)
+        chat = self._get_chat().bind(temperature=temperature)
         if max_tokens is not None:
             chat = chat.bind(max_tokens=max_tokens)
 
@@ -115,7 +125,8 @@ class MaestroProvider(LLMProvider):
         )
 
         ai_msg = await chat.ainvoke(lc_messages)
-        text = ai_msg.content if isinstance(ai_msg.content, str) else str(ai_msg.content)
+        content = getattr(ai_msg, "content", "")
+        text = content if isinstance(content, str) else str(content)
 
         usage_meta = getattr(ai_msg, "usage_metadata", None) or {}
         usage = Usage(
@@ -145,7 +156,7 @@ class MaestroProvider(LLMProvider):
     ) -> AsyncIterator[str]:
         """Yield response text chunks as they arrive."""
         lc_messages = _to_langchain_messages(system, messages)
-        chat: Runnable[Any, AIMessage] = self._chat.bind(temperature=temperature)
+        chat = self._get_chat().bind(temperature=temperature)
         if max_tokens is not None:
             chat = chat.bind(max_tokens=max_tokens)
 

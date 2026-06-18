@@ -16,8 +16,6 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
-from plus_one.core.llm.maestro_provider import MaestroProvider
-
 if TYPE_CHECKING:
     from plus_one.core.llm.provider import LLMProvider
 
@@ -38,4 +36,6 @@ def get_llm_provider(
     Returns:
         An :class:`LLMProvider` instance (currently always :class:`MaestroProvider`).
     """
+    from plus_one.core.llm.maestro_provider import MaestroProvider  # noqa: PLC0415
+
     return MaestroProvider(role=role, streaming=streaming)

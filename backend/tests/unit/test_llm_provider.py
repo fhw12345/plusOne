@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import builtins
 from typing import TYPE_CHECKING
 
 import pytest
 from pydantic import BaseModel
 
 from plus_one.core import llm as llm_pkg
-from plus_one.core.llm.maestro_provider import MaestroProvider
 from plus_one.core.llm.parsers import LLMParseError, parse_with_fallback
 from plus_one.core.llm.provider import Message, Response
 from plus_one.core.llm.roles import ROLES, list_roles, resolve_model
@@ -74,6 +74,8 @@ def test_real_maestro_provider_blocked_without_opt_in_env_var(
     env var PLUS_ONE_ALLOW_REAL_LLM=1 is set. Production entry points
     (main.py lifespan) set it once at startup; tests never do.
     """
+    from plus_one.core.llm.maestro_provider import MaestroProvider
+
     monkeypatch.delenv("PLUS_ONE_ALLOW_REAL_LLM", raising=False)
     with pytest.raises(RuntimeError, match="PLUS_ONE_ALLOW_REAL_LLM"):
         MaestroProvider(role="conversational")
@@ -89,9 +91,22 @@ def test_real_maestro_provider_constructs_when_opt_in_env_var_set(
     is tautological (always raising for some other reason). This proves
     PLUS_ONE_ALLOW_REAL_LLM=1 is a real toggle, not a placebo.
     """
+    real_import = builtins.__import__
+
+    def fail_on_vendor_import(name: str, *args: object, **kwargs: object) -> object:
+        if name == "langchain_anthropic" or name.startswith("langchain_anthropic."):
+            raise AssertionError("ChatAnthropic must be created lazily on real LLM calls")
+        if name == "langchain_core.messages" or name.startswith("langchain_core.messages."):
+            raise AssertionError("LangChain messages must be created lazily on real LLM calls")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fail_on_vendor_import)
     monkeypatch.setenv("PLUS_ONE_ALLOW_REAL_LLM", "1")
-    # Construction must succeed; we don't actually issue any network call,
-    # the ChatAnthropic client is built lazily on .ainvoke / .astream.
+
+    from plus_one.core.llm.maestro_provider import MaestroProvider
+
+    # Construction must succeed without importing or building the vendor client;
+    # that work is deferred until .complete / .astream.
     provider = MaestroProvider(role="conversational")
     assert provider.role == "conversational"
     assert provider.name == "maestro"
@@ -107,6 +122,8 @@ def test_stale_import_pattern_still_blocked() -> None:
     the mock_llm fixture cannot be silently bypassed.
     """
     # No env var set in test process.
+    from plus_one.core.llm.maestro_provider import MaestroProvider
+
     with pytest.raises(RuntimeError, match="PLUS_ONE_ALLOW_REAL_LLM"):
         MaestroProvider(role="producer_agent")
 

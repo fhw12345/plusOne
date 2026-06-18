@@ -1345,6 +1345,9 @@ async def test_unenriched_search_index_stub_does_not_cache_or_return_hit(
     async def explode_put(*args: object, **kwargs: object) -> None:
         raise AssertionError("unenriched search-index stubs must not be cached")
 
+    async def explode_open_scrape_context(*args: object, **kwargs: object) -> object:
+        raise AssertionError("bare search-index stubs must not launch Playwright")
+
     def fake_load_fixture(directory: Any, key: str) -> list[dict[str, Any]]:
         del directory, key
         return []
@@ -1370,6 +1373,7 @@ async def test_unenriched_search_index_stub_does_not_cache_or_return_hit(
     monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
     monkeypatch.setattr(xhs_mod, "put_cached", explode_put)
     monkeypatch.setattr(xhs_mod, "load_json_fixture", fake_load_fixture)
+    monkeypatch.setattr(_playwright_session, "_open_scrape_context", explode_open_scrape_context)
     monkeypatch.setattr(XHSSearchTool, "_fetch_from_search_index", fake_search_index)
 
     tool = XHSSearchTool()

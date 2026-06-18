@@ -412,6 +412,10 @@ class XHSSearchTool:
         try:
             indexed = await self._fetch_from_search_index(args.query, args.limit)
             if indexed:
+                indexed = [
+                    post for post in indexed if _public_index_post_needs_detail_enrichment(post)
+                ]
+            if indexed:
                 indexed = await self._enrich_indexed_posts(indexed, args.limit)
                 indexed = annotate_xhs_posts(indexed)
                 indexed = mark_quality_checked_xhs_posts(
