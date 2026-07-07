@@ -108,6 +108,7 @@ export default defineConfig({
         LLM_DEFAULT_MAX_TOKENS: process.env.LLM_DEFAULT_MAX_TOKENS ?? "16000",
         PLUS_ONE_TOOLS_MODE:
           process.env.PLUS_ONE_TOOLS_MODE ?? (useFakeMaestro ? "fixture" : "real"),
+        XHS_CACHE_ONLY: process.env.XHS_CACHE_ONLY ?? "0",
         PLUS_ONE_TRANSLATE_ENABLED:
           process.env.PLUS_ONE_TRANSLATE_ENABLED ?? (useFakeMaestro ? "0" : "1"),
         PLUS_ONE_TRANSLATE_TIMEOUT_S: process.env.PLUS_ONE_TRANSLATE_TIMEOUT_S ?? "8",

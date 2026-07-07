@@ -1098,6 +1098,83 @@ async def test_real_mode_prefers_prewarmed_cache_before_live_scrape(
 
 
 @pytest.mark.unit
+def test_xhs_cache_alias_candidates_include_chinese_prewarm_keys() -> None:
+    aliases = xhs_mod._xhs_cache_alias_candidates("Ichiran Shibuya tonkotsu chain Tokyo 小红书")
+    keys = {key for key, _query in aliases}
+
+    assert xhs_mod.xhs_cache_key("东京 一兰拉面 涩谷 美食推荐") in keys
+    assert xhs_mod.cache_key("东京 一兰拉面 涩谷 美食推荐") in keys
+    assert xhs_mod.xhs_cache_key("东京 一蘭 渋谷 拉面推荐") in keys
+
+
+@pytest.mark.unit
+async def test_real_mode_prefers_prewarmed_alias_cache_before_live_scrape(
+    monkeypatch: pytest.MonkeyPatch,
+    real_mode: None,
+) -> None:
+    alias_key = xhs_mod.xhs_cache_key("东京 一兰拉面 涩谷 美食推荐")
+    cached_payload = [_post("ichiran-alias")]
+    cached_payload[0]["title"] = "东京 一兰拉面 涩谷 真实体验"
+    cache_calls: list[str] = []
+
+    async def fake_get_cached(source: str, key: str) -> list[dict[str, Any]] | None:
+        assert source == "xhs"
+        cache_calls.append(key)
+        if key == alias_key:
+            return cached_payload
+        return None
+
+    async def explode_fetch(*args: object, **kwargs: object) -> Any:
+        raise AssertionError("prewarmed alias cache should be read before live XHS scrape")
+
+    async def explode_put(*args: object, **kwargs: object) -> None:
+        raise AssertionError("alias cache hit must not rewrite the prewarmed payload")
+
+    monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(xhs_mod, "put_cached", explode_put)
+    monkeypatch.setattr(_playwright_session, "fetch", explode_fetch)
+
+    tool = XHSSearchTool()
+    result = await tool.execute(XHSSearchInput(query="Ichiran Shibuya tonkotsu chain Tokyo 小红书"))
+
+    assert result.ok
+    assert result.output is not None
+    assert [post.id for post in result.output] == ["ichiran-alias"]
+    assert cache_calls[0] == xhs_mod.xhs_cache_key("Ichiran Shibuya tonkotsu chain Tokyo 小红书")
+    assert alias_key in cache_calls
+    assert "prewarmed alias cache hit" in result.notes
+
+
+@pytest.mark.unit
+async def test_real_mode_cache_only_miss_does_not_live_scrape(
+    monkeypatch: pytest.MonkeyPatch,
+    real_mode: None,
+) -> None:
+    monkeypatch.setenv("XHS_CACHE_ONLY", "1")
+
+    async def fake_get_cached(source: str, key: str) -> list[dict[str, Any]] | None:
+        assert source == "xhs"
+        assert key
+
+    async def explode_fetch(*args: object, **kwargs: object) -> Any:
+        raise AssertionError("cache-only mode must not call live XHS scrape")
+
+    async def explode_put(*args: object, **kwargs: object) -> None:
+        raise AssertionError("cache-only miss must not write a new cache row")
+
+    monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(xhs_mod, "put_cached", explode_put)
+    monkeypatch.setattr(_playwright_session, "fetch", explode_fetch)
+
+    tool = XHSSearchTool()
+    result = await tool.execute(XHSSearchInput(query="uncached Tokyo ramen"))
+
+    assert result.ok
+    assert result.output == []
+    assert "cache-only miss" in result.notes
+
+
+@pytest.mark.unit
 async def test_tier1_scrape_success_caches_and_returns(
     monkeypatch: pytest.MonkeyPatch, real_mode: None
 ) -> None:
@@ -1557,6 +1634,45 @@ async def test_tier1_2_fail_tier3_fixture(
     # we capture via capsys rather than caplog.
     out = capsys.readouterr().out
     assert "xhs_degraded_to_fixture" in out
+
+
+@pytest.mark.unit
+async def test_real_mode_does_not_use_fixture_when_fallback_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+    real_mode: None,
+) -> None:
+    monkeypatch.setenv("PLUS_ONE_DISABLE_FIXTURE_FALLBACK", "1")
+    fixture_payload = [_post("f1")]
+
+    async def fake_fetch(*args: Any, **kwargs: Any) -> Any:
+        raise TimeoutError("timed out")
+
+    async def fake_get_cached(source: str, key: str) -> None:
+        return None
+
+    async def explode_put(*args: object, **kwargs: object) -> None:
+        raise AssertionError("put_cached must not run on total failure")
+
+    async def fake_search_index(self: object, query: str, limit: int) -> list[dict[str, Any]]:
+        del self, query, limit
+        return []
+
+    def fake_load_fixture(directory: Any, key: str) -> list[dict[str, Any]]:
+        del directory, key
+        return fixture_payload
+
+    monkeypatch.setattr(_playwright_session, "fetch", fake_fetch)
+    monkeypatch.setattr(xhs_mod, "get_cached", fake_get_cached)
+    monkeypatch.setattr(xhs_mod, "put_cached", explode_put)
+    monkeypatch.setattr(xhs_mod, "load_json_fixture", fake_load_fixture)
+    monkeypatch.setattr(XHSSearchTool, "_fetch_from_search_index", fake_search_index)
+
+    tool = XHSSearchTool()
+    result = await tool.execute(XHSSearchInput(query="tokyo ramen"))
+
+    assert result.ok
+    assert result.output == []
+    assert result.notes == "degraded; fixture fallback disabled"
 
 
 # === all 3 fail -> empty ok=True with notes="degraded" ===================

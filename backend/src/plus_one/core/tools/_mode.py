@@ -21,6 +21,7 @@ from typing import Literal
 ToolsMode = Literal["real", "fixture"]
 
 _VALID_MODES: tuple[ToolsMode, ...] = ("real", "fixture")
+_TRUTHY = {"1", "true", "yes", "on"}
 
 
 def get_tools_mode() -> ToolsMode:
@@ -60,3 +61,16 @@ def require_env(*names: str, tool: str) -> None:
     missing = [name for name in names if not os.getenv(name)]
     if missing:
         raise RuntimeError(f"Tool {tool!r} requires env vars in real mode: {', '.join(missing)}")
+
+
+def fixture_fallbacks_enabled() -> bool:
+    """Return whether real-mode tools may degrade to local fixtures.
+
+    Fixture mode always uses fixtures. In real mode, beta validation can set
+    ``PLUS_ONE_DISABLE_FIXTURE_FALLBACK=1`` so fake evidence is excluded from
+    end-to-end readiness checks.
+    """
+    if get_tools_mode() != "real":
+        return True
+    raw = os.getenv("PLUS_ONE_DISABLE_FIXTURE_FALLBACK", "")
+    return raw.strip().lower() not in _TRUTHY

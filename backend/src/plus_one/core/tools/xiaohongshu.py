@@ -47,7 +47,7 @@ from plus_one.core.agents.framework.tools import ToolResult
 from plus_one.core.tools import _playwright_session
 from plus_one.core.tools._cache import cache_key, load_json_fixture
 from plus_one.core.tools._cache_db import get_cached, put_cached
-from plus_one.core.tools._mode import get_tools_mode
+from plus_one.core.tools._mode import fixture_fallbacks_enabled, get_tools_mode
 
 logger = structlog.get_logger()
 
@@ -95,6 +95,34 @@ _QUERY_INTENTS = (
     "reviews",
     "guide",
 )
+_LOCAL_CACHE_DESTINATION_ALIASES: dict[str, tuple[str, ...]] = {
+    "tokyo": ("东京",),
+    "kyoto": ("京都",),
+    "osaka": ("大阪",),
+    "sapporo": ("札幌",),
+    "shanghai": ("上海",),
+    "guangzhou": ("广州",),
+    "hakone": ("箱根",),
+    "marrakech": ("马拉喀什",),
+    "delhi": ("德里",),
+}
+_LOCAL_CACHE_NAME_ALIASES: dict[str, tuple[str, ...]] = {
+    "Afuri": ("阿夫利", "AFURI"),
+    "Afuri Ebisu": ("阿夫利 惠比寿", "AFURI 惠比寿", "AFURI 恵比寿"),
+    "Afuri Harajuku": ("阿夫利 原宿", "AFURI 原宿"),
+    "Chuka Soba Inoue": ("中華そば井上", "筑地 井上 拉面"),
+    "Ichiran": ("一兰拉面", "一蘭"),
+    "Ichiran Shibuya": ("一兰拉面 涩谷", "一蘭 渋谷"),
+    "Konjiki Hototogisu": ("金色不如归", "金色不如帰"),
+    "Menya Itto": ("麺屋一燈", "面屋一灯"),
+    "Menya Shono": ("麺や庄の", "面屋庄野"),
+    "Nakiryu": ("鸣龙", "鳴龍", "鸣龙 拉面", "鳴龍 拉面"),
+    "Ramen Nagi": ("凪拉面", "ラーメン凪"),
+    "Ramen Nagi Niboshi": ("凪拉面 煮干", "すごい煮干ラーメン凪"),
+    "Rokurinsha": ("六厘舎", "六厘舍"),
+    "Tsuta": ("蔦拉面", "Japanese Soba Noodles 蔦"),
+}
+_LOCAL_CACHE_ALIAS_INTENTS = ("美食推荐", "本地人推荐", "拉面推荐", "拉面")
 _GENERIC_QUERY_ENTITY_TERMS = {
     "bar",
     "beer",
@@ -337,14 +365,21 @@ class XHSSearchTool:
         key = xhs_cache_key(args.query)
 
         if _prefer_cache():
-            cached_result = await self._load_cached_result(
-                key,
-                args.limit,
+            cached_result = await self._load_cache_result_with_aliases(
+                args.query,
+                primary_key=key,
+                limit=args.limit,
                 note_prefix="prewarmed",
-                query=args.query,
             )
             if cached_result is not None:
                 return cached_result
+            if _cache_only():
+                logger.info("xhs_cache_only_miss", key=key)
+                return ToolResult(
+                    tool=self.name,
+                    output=[],
+                    notes=f"cache-only miss {key!r}",
+                )
 
         # --- Tier 1: live scrape ------------------------------------
         cookie, profile_dir, storage_state_path = _configured_session_values()
@@ -399,11 +434,11 @@ class XHSSearchTool:
             )
 
         # --- Tier 2: DB cache ---------------------------------------
-        cached_result = await self._load_cached_result(
-            key,
-            args.limit,
+        cached_result = await self._load_cache_result_with_aliases(
+            args.query,
+            primary_key=key,
+            limit=args.limit,
             note_prefix="cache",
-            query=args.query,
         )
         if cached_result is not None:
             return cached_result
@@ -441,26 +476,7 @@ class XHSSearchTool:
                 error_type=type(exc).__name__,
             )
 
-        # --- Tier 4: fixture fallback ------------------------------
-        raw_fixture = self._load_fixture_fallback(args.query, key)
-        if raw_fixture:
-            logger.warning("xhs_degraded_to_fixture", key=key, count=len(raw_fixture))
-            fixture_posts = filter_query_relevant_xhs_posts(
-                annotate_xhs_posts(raw_fixture), args.query
-            )
-            posts = [XHSPost.model_validate(item) for item in fixture_posts[: args.limit]]
-            return ToolResult(
-                tool=self.name,
-                output=posts,
-                notes=f"degraded to fixture {key!r} -> {len(posts)} posts",
-            )
-
-        logger.warning("xhs_total_failure", key=key)
-        return ToolResult(
-            tool=self.name,
-            output=[],
-            notes="degraded",
-        )
+        return self._fixture_or_empty_result(args, key)
 
     async def execute(self, args: XHSSearchInput) -> ToolResult[list[XHSPost]]:
         if get_tools_mode() == "fixture":
@@ -506,6 +522,94 @@ class XHSSearchTool:
         if cached == []:
             logger.info("xhs_cache_empty_miss", key=key, mode=note_prefix)
         return None
+
+    async def _load_cache_result_with_aliases(
+        self,
+        query: str,
+        *,
+        primary_key: str,
+        limit: int,
+        note_prefix: str,
+    ) -> ToolResult[list[XHSPost]] | None:
+        cached_result = await self._load_cached_result(
+            primary_key,
+            limit,
+            note_prefix=note_prefix,
+            query=query,
+        )
+        if cached_result is not None:
+            return cached_result
+        return await self._load_cached_alias_result(
+            query,
+            primary_key=primary_key,
+            limit=limit,
+            note_prefix=note_prefix,
+        )
+
+    async def _load_cached_alias_result(
+        self,
+        query: str,
+        *,
+        primary_key: str,
+        limit: int,
+        note_prefix: str,
+    ) -> ToolResult[list[XHSPost]] | None:
+        for alias_key, alias_query in _xhs_cache_alias_candidates(query):
+            if alias_key == primary_key:
+                continue
+            cached_result = await self._load_cached_result(
+                alias_key,
+                limit,
+                note_prefix=f"{note_prefix} alias",
+                query=alias_query,
+            )
+            if cached_result is not None:
+                logger.info(
+                    "xhs_cache_alias_hit",
+                    requested_key=primary_key,
+                    alias_key=alias_key,
+                    alias_query=alias_query,
+                    mode=note_prefix,
+                )
+                return cached_result.model_copy(
+                    update={
+                        "notes": (
+                            f"{note_prefix} alias cache hit {primary_key!r} "
+                            f"via {alias_key!r} -> {len(cached_result.output or [])} posts"
+                        )
+                    }
+                )
+        return None
+
+    def _fixture_or_empty_result(self, args: XHSSearchInput, key: str) -> ToolResult[list[XHSPost]]:
+        if not fixture_fallbacks_enabled():
+            logger.warning("xhs_total_failure", key=key, fixture_fallback_disabled=True)
+            return ToolResult(
+                tool=self.name,
+                output=[],
+                notes="degraded; fixture fallback disabled",
+            )
+
+        # --- Tier 4: fixture fallback ------------------------------
+        raw_fixture = self._load_fixture_fallback(args.query, key)
+        if raw_fixture:
+            logger.warning("xhs_degraded_to_fixture", key=key, count=len(raw_fixture))
+            fixture_posts = filter_query_relevant_xhs_posts(
+                annotate_xhs_posts(raw_fixture), args.query
+            )
+            posts = [XHSPost.model_validate(item) for item in fixture_posts[: args.limit]]
+            return ToolResult(
+                tool=self.name,
+                output=posts,
+                notes=f"degraded to fixture {key!r} -> {len(posts)} posts",
+            )
+
+        logger.warning("xhs_total_failure", key=key)
+        return ToolResult(
+            tool=self.name,
+            output=[],
+            notes="degraded",
+        )
 
     async def _fetch_from_search_index(self, query: str, limit: int) -> list[dict[str, object]]:
         """Return public XHS note URLs already indexed by a search engine.
@@ -1120,8 +1224,82 @@ def xhs_cache_key(query: str) -> str:
     return key
 
 
+def _xhs_cache_alias_candidates(query: str) -> tuple[tuple[str, str], ...]:
+    """Return cache-key/query pairs for local prewarm aliases.
+
+    The agent often asks XHS with English, descriptor-heavy names such as
+    ``Ichiran Shibuya tonkotsu chain Tokyo``. The prewarm cache was collected
+    with Chinese-first queries such as ``东京 一兰拉面 涩谷 美食推荐``. Exact-key
+    lookup should stay first, but these aliases let already-prewarmed local
+    rows satisfy equivalent candidate queries before we hit public XHS again.
+    """
+    alias_queries = _xhs_cache_alias_queries(query)
+    candidates: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for alias_query in alias_queries:
+        for key in (xhs_cache_key(alias_query), cache_key(alias_query)):
+            if key not in seen:
+                seen.add(key)
+                candidates.append((key, alias_query))
+    return tuple(candidates)
+
+
+def _xhs_cache_alias_queries(query: str) -> tuple[str, ...]:
+    destinations = _matched_local_cache_destinations(query)
+    names = _matched_local_cache_names(query)
+    if not destinations or not names:
+        return ()
+
+    alias_queries: list[str] = []
+    for destination in destinations:
+        for name in names:
+            aliases = (name, *_LOCAL_CACHE_NAME_ALIASES[name])
+            for alias in aliases:
+                for intent in _LOCAL_CACHE_ALIAS_INTENTS:
+                    alias_queries.append(f"{destination} {alias} {intent}")
+    return tuple(_unique(alias_queries))
+
+
+def _matched_local_cache_destinations(query: str) -> tuple[str, ...]:
+    compact = _compact_relevance_text(query)
+    matched: list[str] = []
+    for latin, aliases in _LOCAL_CACHE_DESTINATION_ALIASES.items():
+        if latin in query.casefold() or any(
+            _compact_relevance_text(alias) in compact for alias in aliases
+        ):
+            matched.extend(aliases)
+    return tuple(_unique(matched))
+
+
+def _matched_local_cache_names(query: str) -> tuple[str, ...]:
+    compact = _compact_relevance_text(query)
+    matched: list[str] = []
+    for name in sorted(_LOCAL_CACHE_NAME_ALIASES, key=len, reverse=True):
+        aliases = _LOCAL_CACHE_NAME_ALIASES[name]
+        if _local_cache_name_matches(query, compact, name, aliases):
+            matched.append(name)
+    return tuple(_unique(matched))
+
+
+def _local_cache_name_matches(
+    query: str,
+    compact_query: str,
+    name: str,
+    aliases: tuple[str, ...],
+) -> bool:
+    query_folded = query.casefold()
+    name_tokens = [token for token in re.split(r"\W+", name.casefold()) if token]
+    if name_tokens and all(token in query_folded for token in name_tokens):
+        return True
+    return any(_compact_relevance_text(alias) in compact_query for alias in aliases)
+
+
 def _prefer_cache() -> bool:
     return os.getenv("XHS_PREFER_CACHE", "1").strip().lower() not in {"0", "false", "no"}
+
+
+def _cache_only() -> bool:
+    return os.getenv("XHS_CACHE_ONLY", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _use_configured_session() -> bool:

@@ -64,6 +64,7 @@ tmp-xhs-*/
 # Local crawl queues/backfills and browser-debug artifacts
 data/xhs/backfills/
 data/xhs/queues/
+data/xhs/exports/
 docs/status/xhs-playwright-login-progress-*.md
 tmp-bing-debug-*.html
 /tmp-trip-*
